@@ -1,10 +1,7 @@
 package mills.ring;
 
-import com.google.common.collect.Iterables;
 import mills.bits.BW;
 import mills.bits.Pattern;
-
-import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -18,11 +15,7 @@ import java.util.List;
  */
 public class RingTable extends EntryTable {
 
-    private final RingEntry entries[];
-
-    RingTable(final List<RingEntry> entries) {
-        this.entries = Iterables.toArray(entries, RingEntry.class);
-    }
+    private final RingEntry entries[] = RingEntry.entries();
 
     @Override
     public int size() {

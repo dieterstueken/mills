@@ -2,11 +2,11 @@ package mills.scores;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
 
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * version:     $Revision$
@@ -55,7 +55,7 @@ public class Pair<V> {
     }
 
     public boolean all(Predicate<V> predicate) {
-        return predicate.apply(self) && (equal() || predicate.apply(other));
+        return predicate.test(self) && (equal() || predicate.test(other));
     }
 
     public <T> Pair<T> transform(Function<? super V,? extends T> f) {

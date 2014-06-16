@@ -1,10 +1,9 @@
 package mills.util;
 
-import com.google.common.collect.ImmutableList;
-
 import java.util.AbstractList;
 import java.util.List;
 import java.util.RandomAccess;
+import java.util.function.IntFunction;
 
 /**
  * Created by IntelliJ IDEA.
@@ -18,13 +17,8 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
 
     abstract public int size();
 
-    public List<T> immutableCopy() {
-        return ImmutableList.copyOf(this);
-    }
-
     @Override
     abstract public T get(int index);
-
 
     public static <T> AbstractRandomList<T> of(T[] data) {
 
@@ -38,6 +32,43 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
             @Override
             public T get(int index) {
                 return data[index];
+            }
+        };
+    }
+
+    public static <T> List<T> virtual(int size, IntFunction<? extends T> generate) {
+        return new AbstractRandomList<T>() {
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public T get(int index) {
+                return generate.apply(index);
+            }
+        };
+    }
+
+    public static <T> List<T> generate(int size, IntFunction<? extends T> generate) {
+
+        Object values[] = new Object[size];
+        for(int i=0; i<size; ++i)
+            values[i] = generate.apply(i);
+
+        return new AbstractRandomList<T>() {
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            // The fake cast to E is safe since the generate method returned a T
+            @Override
+            @SuppressWarnings("unchecked")
+            public T get(int index) {
+                return (T) values[index];
             }
         };
     }

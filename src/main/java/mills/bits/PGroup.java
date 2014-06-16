@@ -7,11 +7,11 @@ package mills.bits;
  * Time: 22:32
  */
 
-import com.google.common.base.Predicate;
 import mills.ring.RingEntry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * For some reason for a single RingEntry exactly 9 different MEQ permutation masks exist.

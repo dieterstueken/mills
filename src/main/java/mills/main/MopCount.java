@@ -1,6 +1,5 @@
 package mills.main;
 
-import com.google.common.base.Predicate;
 import mills.bits.BW;
 import mills.bits.PopCount;
 import mills.index.Partitions;
@@ -93,11 +92,7 @@ public class MopCount {
 
                 EntryTable t0 = partitions.partitions.get(pop0).get(msk);
 
-                Predicate<RingEntry> filter = e1 -> {
-                    return BW.mcount(e2, e0, e1) == mop.closed;
-                };
-
-                EntryTable m0 = t0.filter(filter);
+                EntryTable m0 = t0.filter(e1 -> BW.mcount(e2, e0, e1) == mop.closed);
                 mc.add(m0);
             }
 

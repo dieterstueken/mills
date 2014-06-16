@@ -1,12 +1,11 @@
 package mills.bits;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
+import mills.util.AbstractRandomList;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Created by IntelliJ IDEA.
@@ -213,7 +212,7 @@ public class PopCount {
     public static final int SIZE = 100;
 
     // PopCounts <= (9,9)
-    public static final ImmutableList<PopCount> TABLE = createTable();
+    public static final List<PopCount> TABLE = createTable();
 
     public static Predicate<PopCount> VALID = pop -> pop != null && pop.valid();
 
@@ -223,22 +222,8 @@ public class PopCount {
         return TABLE.get(index);
     }
 
-    //public static final Array<PopCount> ARRAY = Array.array(Iterables.toArray(TABLE, PopCount.class));
-
-    private static ImmutableList<PopCount> createTable() {
-
-        // make an empty list preset with all entries == null
-        final List<PopCount> table = Arrays.asList(new PopCount[SIZE]);
-
-        for (int nw = 0; nw < 10; ++nw) {
-            for (int nb = 0; nb < 10; ++nb) {
-                final PopCount p = new PopCount(nb, nw);
-                table.set(p.index(), p);
-            }
-        }
-
-        // will complain by a NullPointerException if any element remained empty.
-        return ImmutableList.copyOf(table);
+    private static List<PopCount> createTable() {
+        return AbstractRandomList.generate(100, index -> new PopCount(index/100, index%100));
     }
 
     /**

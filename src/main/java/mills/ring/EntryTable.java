@@ -1,12 +1,11 @@
 package mills.ring;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import mills.util.AbstractRandomList;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Created by IntelliJ IDEA.
@@ -59,17 +58,12 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
         return EntryTable.of(subList);
     }
 
-    @Override
-    public List<RingEntry> immutableCopy() {
-        return this;
-    }
-
     public EntryTable filter(Predicate<? super RingEntry> predicate) {
 
-        if(predicate.equals(Predicates.alwaysTrue()))
+        if(predicate == ALL)
             return this;
 
-        if(predicate.equals(Predicates.alwaysFalse()))
+        if(predicate == NONE)
             return EMPTY;
 
         int i0;
@@ -77,7 +71,7 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
         // find start of sequence
         for(i0=0; i0<size(); ++i0) {
             final RingEntry e = get(i0);
-            if(predicate.apply(e))
+            if(predicate.test(e))
                 break;
         }
 
@@ -88,7 +82,7 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
         int i1;
         for(i1=i0+1; i1<size(); ++i1) {
             final RingEntry e = get(i1);
-            if(!predicate.apply(e))
+            if(!predicate.test(e))
                 break;
         }
 
@@ -101,7 +95,7 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
         int i2 = size();
         for(int i=i1+1; i<size(); ++i) {
             final RingEntry e = get(i);
-            if(predicate.apply(e)) {
+            if(predicate.test(e)) {
                 ++count;
                 i2 = Math.min(i2, i);
             }
@@ -121,7 +115,7 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
 
         for(int i=i2; i<size(); ++i) {
             final RingEntry e = get(i);
-            if(predicate.apply(e))
+            if(predicate.test(e))
                 indexes[count++] = e.index;
         }
 
@@ -148,6 +142,9 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static final Predicate<RingEntry> ALL  = e -> true;
+    public static final Predicate<RingEntry> NONE = e -> false;
 
     // an empty table template
     public static final EmptyTable EMPTY = new EmptyTable();

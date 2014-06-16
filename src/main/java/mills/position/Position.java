@@ -13,7 +13,7 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.ring.RingEntry;
 import mills.stones.Stones;
-import mills.util.AbstractRandomArray;
+import mills.util.AbstractRandomList;
 
 import java.util.List;
 
@@ -43,20 +43,9 @@ public class Position implements Comparable<Position> {
     public final int black;
     public final int white;
 
-    public final List<Position> permuted = new AbstractRandomArray<Position>(16) {
+    public final List<Position> permuted = AbstractRandomList.virtual(16, Position.this::permute);
 
-        @Override
-        public Position get(int index) {
-            return Position.this.permute(index);
-        }
-    };
-
-    public final List<Position> swapped = new AbstractRandomArray<Position>(1) {
-        @Override
-        public Position get(int index) {
-            return swap();
-        }
-    };
+    public final List<Position> swapped = AbstractRandomList.virtual(1, index -> swap());
 
     private Position permute(int perm) {
         if(perm==0)

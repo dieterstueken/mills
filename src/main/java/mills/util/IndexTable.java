@@ -83,6 +83,9 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
         if(table.length==0)
             return EMPTY;
 
+        if(table.length==1)
+            return singleton(table[0]);
+
         return new IndexTable() {
 
             @Override
@@ -108,7 +111,7 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
         };
     }
 
-    public static Indexer<List> SIZE = new Indexer<List>() {
+    public static final Indexer<List> SIZE = new Indexer<List>() {
 
         @Override
         public int index(List element) {

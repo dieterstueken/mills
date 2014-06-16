@@ -7,7 +7,7 @@ import mills.index.IndexProcessor;
 import mills.index.PosIndex;
 import mills.position.Positions;
 import mills.stones.Stones;
-import mills.util.AbstractRandomArray;
+import mills.util.AbstractRandomList;
 
 import java.util.List;
 import java.util.concurrent.RecursiveAction;
@@ -84,9 +84,7 @@ public class VerifyIndex {
 
                 final int size = (index.size() + SIZE - 1) / SIZE;
 
-                List<RecursiveAction> tasks = new AbstractRandomArray<RecursiveAction>(size) {
-                    @Override
-                    public RecursiveAction get(int i) {
+                List<RecursiveAction> tasks = AbstractRandomList.generate(size, i->{
                         final int start = i * SIZE;
                         final int end = Math.min(start+SIZE, index.size());
 
@@ -98,7 +96,7 @@ public class VerifyIndex {
                             }
                         };
                     }
-                }.immutableCopy();
+                );
 
                 invokeAll(tasks);
             }

@@ -2,7 +2,7 @@ package mills.position;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.util.AbstractRandomArray;
+import mills.util.AbstractRandomList;
 
 import java.util.List;
 import java.util.Objects;
@@ -23,17 +23,17 @@ public class Situation implements Position.Factory {
 
     public static Situation of(PopCount pop, int stock, Player player) {
 
-        assert stock>=0 && stock<=18 : "invalid stock";
-        assert player!=Player.None && player!=null: "no player";
+        assert stock >= 0 && stock <= 18 : "invalid stock";
+        assert player != Player.None && player != null : "no player";
 
-        if(pop==null)   // null transparent
+        if (pop == null)   // null transparent
             return null;
 
         // no stones taken
         Situation full = OPENINGS.get(stock);
 
         // use directly
-        if(full.pop.equals(pop) && full.player==player)
+        if (full.pop.equals(pop) && full.player == player)
             return full;
 
         assert pop.sum() + stock <= 18 : "too many stones";
@@ -54,7 +54,7 @@ public class Situation implements Position.Factory {
     }
 
     public String toString() {
-        if(stock==0)
+        if (stock == 0)
             return String.format("%d%d%c", pop.nb, pop.nw, player.name().charAt(0));
         else
             return String.format("%02d+%d%d%c", stock, pop.nb, pop.nw, player.name().charAt(0));
@@ -66,7 +66,7 @@ public class Situation implements Position.Factory {
 
     public PopCount popMax() {
         Situation full = OPENINGS.get(stock);
-        return full.pop.swapIf(full.player!=player);
+        return full.pop.swapIf(full.player != player);
     }
 
     public PopCount popTaken() {
@@ -74,7 +74,7 @@ public class Situation implements Position.Factory {
     }
 
     public PopCount popStock() {
-        return PopCount.of(9,9).sub(popTaken());
+        return PopCount.of(9, 9).sub(popTaken());
     }
 
     public int taken() {
@@ -88,64 +88,66 @@ public class Situation implements Position.Factory {
 
     /**
      * Put a new stone from stock and possibly hit some opponents stone.
+     *
      * @param hit if some opponents stone to take away.
      * @return the new Situation or null if this action is impossible.
      */
     public Situation put(boolean hit) {
 
-        if(stock<=0)
+        if (stock <= 0)
             return null;
 
         PopCount put = pop.add(player.pop);
 
-        if(hit) {
+        if (hit) {
             // take a stone
             put = put.sub(player.other().pop);
-            if(put==null)
+            if (put == null)
                 return null;
 
             // compare stone taken to stones set
-            PopCount full = OPENINGS.get(stock-1).pop();
+            PopCount full = OPENINGS.get(stock - 1).pop();
 
             int take = full.sub(put).count(player.other());
             int set = full.count(player);
 
             // impossible since too few mills to close
-            if(set <= 2*take)
+            if (set <= 2 * take)
                 return null;
         }
 
-        return Situation.of(put, stock-1, player.other());
+        return Situation.of(put, stock - 1, player.other());
     }
 
     /**
      * Opposite/reverse action of put().
+     *
      * @param hit if some opponents stone was taken away.
      * @return the new Situation or null if this action is impossible.
      */
     public Situation xput(boolean hit) {
 
-        if(stock>=18)
+        if (stock >= 18)
             return null;
 
         // reverse move
         PopCount xput = pop.sub(player.other().pop);
 
         // may cause underflow
-        if(xput==null)
+        if (xput == null)
             return null;
 
-        if(hit) {
+        if (hit) {
             // todo: compare stone taken to stones set
 
             // all stones already on board, too many stones needed.
-            if(xput.sum() + stock+1 >= 18)
+            if (xput.sum() + stock + 1 >= 18)
                 return null;
 
             xput = xput.add(player.pop);
         }
 
-        return Situation.of(xput, stock+1, player.other());
+        return Situation.of(xput, stock + 1, player.other());
     }
 
     @Override
@@ -196,17 +198,13 @@ public class Situation implements Position.Factory {
 
     private static List<Situation> openings() {
 
-        return new AbstractRandomArray<Situation>(19) {
-
-            @Override
-            public Situation get(int stock) {
-                int step = 18-stock;
-                int nb = step/2;
-                int nw = (step+1)/2;
-                PopCount pop = PopCount.of(nb, nw);
-                Player player = (step%2)==0 ? Player.White : Player.Black;
-                return new Situation(pop, stock, player);
-            }
-        }.immutableCopy();
+        return AbstractRandomList.generate(19, stock -> {
+            int step = 18 - stock;
+            int nb = step / 2;
+            int nw = (step + 1) / 2;
+            PopCount pop = PopCount.of(nb, nw);
+            Player player = (step % 2) == 0 ? Player.White : Player.Black;
+            return new Situation(pop, stock, player);
+        });
     }
 }

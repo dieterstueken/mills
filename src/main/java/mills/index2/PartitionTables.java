@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.RecursiveTask;
-import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -154,11 +153,8 @@ public class PartitionTables extends AbstractRandomList<List<EntryTable>> {
 
     public static void main(String ... args) {
 
-        List<RecursiveAction> tasks = AbstractRandomArray.generate(100, new IntFunction<RecursiveAction>() {
-
-            @Override
-            public RecursiveAction apply(int index) {
-                return new RecursiveAction() {
+        List<RecursiveAction> tasks = AbstractRandomList.generate(100, index ->
+                new RecursiveAction() {
                     @Override
                     protected void compute() {
                         List<EntryTable> t1 = of(index);
@@ -167,9 +163,8 @@ public class PartitionTables extends AbstractRandomList<List<EntryTable>> {
                         if (!t1.equals(t2))
                             throw new RuntimeException();
                     }
-                };
-            }
-        });
+                }
+        );
 
         ForkJoinTask.invokeAll(tasks);
     }

@@ -7,7 +7,6 @@ package mills.bits;
  * Time: 15:43:39
  */
 
-import com.google.common.collect.Iterables;
 import mills.util.AbstractRandomList;
 
 import java.util.List;
@@ -159,7 +158,7 @@ public class Pattern {
     }
 
     // a pre calculated list of all 256 Pattern
-    private static final Pattern PATTERNS[] = Iterables.toArray(patterns(), Pattern.class);
+    private static final Pattern PATTERNS[] = patterns().toArray(new Pattern[256]);
 
     private static List<Pattern> patterns() {
 

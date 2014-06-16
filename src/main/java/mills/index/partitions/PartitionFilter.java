@@ -1,10 +1,10 @@
 package mills.index.partitions;
 
-import com.google.common.base.Predicate;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * A Predicate to filter RingEntries for a given restriction mask.
@@ -28,7 +28,7 @@ class PartitionFilter implements Predicate<RingEntry> {
      * @param entry to analyze.
      * @return if the entry matches.
      */
-    public boolean apply(final RingEntry entry) {
+    public boolean test(final RingEntry entry) {
         return (entry.pmin() & restriction) == 0;
     }
 
@@ -41,15 +41,6 @@ class PartitionFilter implements Predicate<RingEntry> {
      * @return a virtual table of 128 MskFilter.
      */
     private static List<PartitionFilter> generate() {
-        return new AbstractRandomList<PartitionFilter>() {
-
-            @Override
-            public PartitionFilter get(int index) {
-                return new PartitionFilter(index);
-            }
-
-            @Override
-            public int size() {return 128;}
-        }.immutableCopy();
+        return AbstractRandomList.generate(128, PartitionFilter::new);
     }
 }

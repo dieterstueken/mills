@@ -74,7 +74,7 @@ public class ScoreFiles {
         return file.exists();
     }
 
-    public ScoreMap createMap(final Situation situation) throws IOException {
+    public ScoreMap createMap(final Situation situation) {
 
         final File file = file(situation, "map");
 

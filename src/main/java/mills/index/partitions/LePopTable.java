@@ -1,8 +1,6 @@
 package mills.index.partitions;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import mills.bits.Player;
@@ -16,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
+import java.util.function.Predicate;
 
 /**
  * Created by IntelliJ IDEA.
@@ -119,7 +118,7 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
             if (pop.min() < 8)
                 return e -> e != null && e.pop.le(pop);
             else
-                return Predicates.alwaysTrue();
+                return EntryTable.ALL;
         }
 
         public Builder() {

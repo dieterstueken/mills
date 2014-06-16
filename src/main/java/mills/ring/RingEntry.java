@@ -1,12 +1,13 @@
 package mills.ring;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import mills.bits.*;
 import mills.util.AbstractRandomArray;
 import mills.util.AbstractRandomList;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Created by IntelliJ IDEA.
@@ -48,22 +49,14 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     // permutation group kept as a short index.
     private final short perm[] = new short[8];
 
-    public final List<RingEntry> permutations = new AbstractRandomArray<RingEntry>(8) {
-        @Override
-        public RingEntry get(int index) {
-            return TABLE.get(perm[index]);
-        }
-    };
+    public final List<RingEntry> permutations = AbstractRandomList.virtual(8, index -> TABLE.get(perm[index]));
 
     // permutation group fingerprint
     public final PGroup grp;
 
-    public Function<Sector, Player> player = new Function<Sector, Player>() {
-
-        public Player apply(final Sector sector) {
-            int p = index/sector.pow3();
-            return Player.of(p%3);
-        }
+    public Function<Sector, Player> player = sector -> {
+        int p = index/sector.pow3();
+        return Player.of(p%3);
     };
 
     public List<Player> players = new AbstractRandomArray<Player>(8) {
@@ -280,36 +273,22 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
 
     //////////////////// static utilities functions on RinEntry index ////////////////////
 
-    public static Predicate<RingEntry> IS_MIN = new Predicate<RingEntry>() {
-
-        public boolean apply(final RingEntry entry) {
-            return entry.isMin();
-        }
-    };
+    public static Predicate<RingEntry> IS_MIN = RingEntry::isMin;
 
     /**
      * A virtual list of of RinEntries to be materialized be a copy.
      * @return a virtual list of of RinEntries.
      */
-    private static List<RingEntry> entries() {
-        return new AbstractRandomList<RingEntry>() {
-
-            @Override
-            public RingEntry get(int index) {
-                return new RingEntry((short) index);
-            }
-
-            @Override
-            public int size() {
-                return MAX_INDEX;
-            }
-        }.immutableCopy();
+    static RingEntry[] entries() {
+        RingEntry[] entries = new RingEntry[MAX_INDEX];
+        Arrays.setAll(entries, index -> new RingEntry((short) index));
+        return entries;
     }
 
     /**
      * An immutable list of all entries.
      */
-    public static final RingTable TABLE = new RingTable(entries());
+    public static final RingTable TABLE = new RingTable();
 
     public static final EntryTable MINIMIZED = TABLE.filter(IS_MIN);
 

@@ -1,9 +1,5 @@
 package mills.scores;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Ordering;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.position.Situation;
@@ -13,12 +9,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Created by IntelliJ IDEA.
@@ -63,12 +60,8 @@ public class Generate implements Runnable {
     final Function<Situation, ForkJoinTask<ScoreSlices>> slices = situation -> new RecursiveTask<ScoreSlices>() {
         @Override
         public ScoreSlices compute() {
-            try {
-                ScoreMap map = files.createMap(situation);
-                return ScoreSlices.of(map);
-            } catch (IOException e) {
-                throw Throwables.propagate(e);
-            }
+            ScoreMap map = files.createMap(situation);
+            return ScoreSlices.of(map);
         }
     }.fork();
 
@@ -78,7 +71,7 @@ public class Generate implements Runnable {
             try {
                 return descend(input);
             } catch (IOException e) {
-                throw Throwables.propagate(e);
+                throw new RuntimeException(e);
             }
         }
     }.fork();
@@ -97,7 +90,7 @@ public class Generate implements Runnable {
                             ScoreSlices other = slices.other.join();
                             return ScoreElevator.of(self, other, downMap);
                         } catch (IOException e) {
-                            throw Throwables.propagate(e);
+                            throw new RuntimeException(e);
                         }
                     }
                 }
@@ -149,11 +142,8 @@ public class Generate implements Runnable {
     }
 
     public void run() {
-        List<PopCount> todo = Ordering.<Integer>natural().
-                onResultOf(PopCount.MAX).
-                immutableSortedCopy(Iterables.filter(PopCount.TABLE, FILTER));
 
-        for (PopCount pop : todo) {
+        PopCount.TABLE.stream().filter(FILTER).sorted(Comparator.comparing(PopCount::max)).forEach(pop -> {
 
             final Pair<Situation> situations = situations(pop);
 
@@ -177,7 +167,7 @@ public class Generate implements Runnable {
 
                 System.out.format("%s %s done %ds\n\n", now(), situations, millis/1000);
             }
-        }
+        });
     }
 
     public static void main(String... args) {

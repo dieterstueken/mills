@@ -1,6 +1,5 @@
 package mills.scores;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Ordering;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
@@ -10,6 +9,7 @@ import mills.util.QueueActor;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Created by IntelliJ IDEA.
@@ -44,13 +44,7 @@ public class ScoreSlice extends MapSlice {
 
         final int count = sliceCount(map);
 
-        return new AbstractRandomArray<ScoreSlice>(count) {
-
-            @Override
-            public ScoreSlice get(int index) {
-                return newSlice(map, index);
-            }
-        }.immutableCopy();
+        return AbstractRandomArray.generate(count, index -> newSlice(map, index));
     }
 
     public int max() {

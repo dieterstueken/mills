@@ -1,7 +1,5 @@
 package mills.index2;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
@@ -11,6 +9,7 @@ import mills.util.AbstractRandomList;
 import java.util.ArrayList;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -86,6 +85,6 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
         if (pop.min() < 8)
             return e -> e != null && e.pop.le(pop);
         else
-            return Predicates.alwaysTrue();
+            return EntryTable.ALL;
     }
 }

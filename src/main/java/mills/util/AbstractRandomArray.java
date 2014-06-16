@@ -1,8 +1,5 @@
 package mills.util;
 
-import java.util.List;
-import java.util.function.IntFunction;
-
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -32,13 +29,4 @@ public abstract class AbstractRandomArray<T> extends AbstractRandomList<T> {
         };
     }
 
-    public static <T> List<T> generate(int size, IntFunction<T> generate) {
-        return new AbstractRandomArray<T>(size) {
-
-            @Override
-            public T get(int index) {
-                return generate.apply(index);
-            }
-        }.immutableCopy();
-    }
 }

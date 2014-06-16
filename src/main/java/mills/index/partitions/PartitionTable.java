@@ -1,12 +1,12 @@
 package mills.index.partitions;
 
-import com.google.common.base.Predicate;
 import mills.bits.PGroup;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 /**
  * Created by IntelliJ IDEA.

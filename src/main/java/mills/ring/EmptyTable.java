@@ -1,9 +1,8 @@
 package mills.ring;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterators;
-
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.function.Predicate;
 
 /**
  * Created by IntelliJ IDEA.
@@ -35,7 +34,7 @@ class EmptyTable extends EntryTable {
 
     @Override
     public Iterator<RingEntry> iterator() {
-        return Iterators.emptyIterator();
+        return Collections.emptyIterator();
     }
 
     @Override

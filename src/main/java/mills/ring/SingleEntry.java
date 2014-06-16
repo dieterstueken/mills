@@ -1,9 +1,7 @@
 package mills.ring;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterators;
-
 import java.util.Iterator;
+import java.util.function.Predicate;
 
 /**
  * Created by IntelliJ IDEA.
@@ -30,7 +28,7 @@ abstract class SingleEntry extends EntryTable {
 
     @Override
     public EntryTable filter(Predicate<? super RingEntry> predicate) {
-        if (predicate.apply(entry()))
+        if (predicate.test(entry()))
             return this;
         else
             return EMPTY;
@@ -64,7 +62,8 @@ abstract class SingleEntry extends EntryTable {
 
     @Override
     public Iterator<RingEntry> iterator() {
-        return Iterators.singletonIterator(entry());
+        //return Iterators.singletonIterator(entry());
+        return super.iterator();
     }
 
     @Override

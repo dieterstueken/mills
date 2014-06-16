@@ -57,13 +57,7 @@ public class HitProcessor extends RecursiveTask<Integer> {
     private List<SliceProcessor> processors() {
         int count = (index.size() + SIZE - 1) / SIZE;
 
-        return new AbstractRandomArray<SliceProcessor>(count) {
-
-            @Override
-            public SliceProcessor get(int index) {
-                return new SliceProcessor(index);
-            }
-        }.immutableCopy();
+        return AbstractRandomArray.generate(count, SliceProcessor::new);
     }
 
     public class SliceProcessor extends RecursiveAction implements IndexProcessor {

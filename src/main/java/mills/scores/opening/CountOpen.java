@@ -96,14 +96,7 @@ public class CountOpen {
 
                 //return IntStream.range(0, size).mapToObj(i -> count(index, i)).collect(Collectors.toList());
 
-                return new AbstractRandomArray<RecursiveAction>(size) {
-
-                    @Override
-                    public RecursiveAction get(int i) {
-                        int start = i * Slice.BLOCK;
-                        return count(index, start);
-                    }
-                }.immutableCopy();
+                return AbstractRandomArray.generate(size, i ->  count(index, i * Slice.BLOCK));
             }
 
             RecursiveAction count(PosIndex posIndex, int i) {
