@@ -54,6 +54,9 @@ abstract class SingleEntry extends EntryTable {
 
     @Override
     public EntryTable subList(int fromIndex, int toIndex) {
+        if(fromIndex==toIndex)
+            return EntryTable.EMPTY;
+
         if(fromIndex==0 && toIndex==1)
             return this;
 

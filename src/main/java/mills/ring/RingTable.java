@@ -19,7 +19,7 @@ public class RingTable extends EntryTable {
 
     @Override
     public int size() {
-        return entries.length;
+        return RingEntry.MAX_INDEX;
     }
 
     @Override
@@ -27,15 +27,16 @@ public class RingTable extends EntryTable {
         return entries[index];
     }
 
+    boolean inRange(int index) {return index>=0 && index<RingEntry.MAX_INDEX;}
+
     // for the full table there is no need to search any entry.
     public int indexOf(short index) {
-        return index>=0 && index<size() ? index : -1;
+        return inRange(index) ? index : -1;
     }
 
     public short ringIndex(int index) {
 
-        if(index<0 && index>=size())
-            throw new IndexOutOfBoundsException("invalid RingTable index: " + index);
+        assert inRange(index) : "invalid RingTable index: " + index;
 
         return (short) index;
     }

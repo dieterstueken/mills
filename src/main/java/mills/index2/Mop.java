@@ -28,18 +28,6 @@ public class Mop implements Comparable<Mop> {
         return String.format("%s-%s", count, closed);
     }
 
-    public static int maxClosed(int closed) {
-        if(closed<3) return 0;
-        if(closed<5) return 1;
-        if(closed<7) return 2;
-        if(closed<8) return 3;
-        return 4;
-    }
-
-    static PopCount maxClosed(PopCount count) {
-        return PopCount.of(maxClosed(count.nb), maxClosed(count.nw));
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -53,7 +41,7 @@ public class Mop implements Comparable<Mop> {
 
     @Override
     public int hashCode() {
-        return count.hashCode() + 100*closed.hashCode();
+        return count.hashCode() + PopCount.SIZE * closed.hashCode();
     }
 
     @Override

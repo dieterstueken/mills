@@ -4,7 +4,6 @@ import mills.util.AbstractRandomList;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -164,6 +163,17 @@ public class PopCount {
         return true;
     }
 
+    @Override
+    public int hashCode() {
+        int m = Math.max(nb, nw)+1;
+        m *= m;
+
+        int d = 2*(nb-nw);
+        m += d>0 ? 1-d : d;
+
+        return m-1;
+    }
+
     /**
      * Create a new PopCount.
      * Use factory of() to benefit from pre calculated instances
@@ -175,6 +185,7 @@ public class PopCount {
         this.nb = (byte) nb;
         this.nw = (byte) nw;
         this.index = (byte) index(nb, nw);
+
         this.string = String.format("%d:%d", nb, nw);
     }
 
@@ -212,18 +223,25 @@ public class PopCount {
     public static final int SIZE = 100;
 
     // PopCounts <= (9,9)
-    public static final List<PopCount> TABLE = createTable();
-
-    public static Predicate<PopCount> VALID = pop -> pop != null && pop.valid();
-
-    public static final Function<PopCount, Integer> MAX = pop -> pop==null ? null : pop.max();
+    public static final List<PopCount> TABLE = AbstractRandomList.of(table());
 
     public static PopCount get(int index) {
         return TABLE.get(index);
     }
 
-    private static List<PopCount> createTable() {
-        return AbstractRandomList.generate(100, index -> new PopCount(index/100, index%100));
+    private static PopCount[] table() {
+
+        PopCount table[] = new PopCount[SIZE];
+        for (int nw = 0; nw < 10; ++nw) {
+            for (int nb = 0; nb < 10; ++nb) {
+                PopCount p = new PopCount(nb, nw);
+                int index = p.index();
+                assert table[index]==null;
+                table[index] = p;
+            }
+        }
+
+        return table;
     }
 
     /**
@@ -232,13 +250,24 @@ public class PopCount {
      * @param args unused.
      */
     public static void main(String... args) {
-        System.out.println("PopCount table");
+        System.out.println("PopCount index");
 
-        for (int nw = -10; nw < 10; ++nw) {
-            for (int nb = -10; nb < 10; ++nb) {
+        for (int nw = -2; nw < 12; ++nw) {
+            for (int nb = -2; nb < 12; ++nb) {
                 //final PopCount p = PopCount.of(nb, nw);
                 //System.out.format("%3d", p.index());
                 System.out.format("%5d", index(nb, nw));
+            }
+
+            System.out.println();
+        }
+
+        System.out.println("PopCount hash");
+
+        for (int nw = 0; nw < 12; ++nw) {
+            for (int nb = 0; nb < 12; ++nb) {
+                final PopCount p = PopCount.of(nb, nw);
+                System.out.format("%5d", p.hashCode());
             }
 
             System.out.println();
