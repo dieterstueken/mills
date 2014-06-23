@@ -225,6 +225,8 @@ public class PopCount {
     // PopCounts <= (9,9)
     public static final List<PopCount> TABLE = AbstractRandomList.of(table());
 
+    public static final PopCount EMPTY = of(0,0);
+
     public static PopCount get(int index) {
         return TABLE.get(index);
     }

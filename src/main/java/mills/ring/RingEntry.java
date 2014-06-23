@@ -254,7 +254,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     public StringBuilder toString(final StringBuilder sb) {
 
         // prepend pop
-        sb.append(String.format("%1d%1d ", pop.nb(), pop.nw()));
+        sb.append(String.format("%1d%1d[%1d%1d] ", pop.nb(), pop.nw(), b.mcount, w.mcount));
         pattern(sb);
 
         // add permutation info

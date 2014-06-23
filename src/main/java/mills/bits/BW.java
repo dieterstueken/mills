@@ -42,6 +42,10 @@ public class BW {
         return pop;
     }
 
+    public PopCount closed() {
+        return PopCount.of(b.mcount, w.mcount);
+    }
+
     public byte nb() {
         return pop.nb();
     }
