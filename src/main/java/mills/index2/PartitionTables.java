@@ -2,18 +2,13 @@ package mills.index2;
 
 import mills.bits.PGroup;
 import mills.bits.PopCount;
-import mills.index.Partitions;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomArray;
 import mills.util.AbstractRandomList;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.RecursiveTask;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -151,21 +146,24 @@ public class PartitionTables extends AbstractRandomList<List<EntryTable>> {
         return INSTANCE.get(pop);
     }
 
+
     public static void main(String ... args) {
 
-        List<RecursiveAction> tasks = AbstractRandomList.generate(100, index ->
-                new RecursiveAction() {
-                    @Override
-                    protected void compute() {
-                        List<EntryTable> t1 = of(index);
-                        List<EntryTable> t2 = Partitions.open().partitions.get(index);
+        Set<EntryTable> tables = new TreeSet<>();
 
-                        if (!t1.equals(t2))
-                            throw new RuntimeException();
-                    }
+        List<PopCount> mops = new ArrayList<>(25);
+        for(int mb=0;mb<5;mb++)
+            for(int mw=0;mw<5;mw++)
+                mops.add(PopCount.of(mb,mw));
+
+        INSTANCE.forEach(list -> {
+                    list.forEach(t -> {
+                                tables.add(t);
+
+                            });
                 }
         );
 
-        ForkJoinTask.invokeAll(tasks);
+        System.out.format("%d\n", tables.size());
     }
 }

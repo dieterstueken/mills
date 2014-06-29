@@ -1,5 +1,7 @@
 package mills.index;
 
+import mills.util.Indexer;
+
 import static mills.position.Positions.i0;
 import static mills.position.Positions.i1;
 
@@ -55,4 +57,20 @@ public class R2Entry {
     boolean process(IndexProcessor processor, int start, int end) {
       return t0.process(index, i2, processor, start, end);
     }
+
+    static final Indexer<R2Entry> INDEX = new Indexer<R2Entry>() {
+
+        @Override
+        public int index(R2Entry element) {
+            return element.index;
+        }
+    };
+
+    static final Indexer<R2Entry> R2 = new Indexer<R2Entry>() {
+
+        @Override
+        public int index(R2Entry element) {
+            return element.i2;
+        }
+    };
 }

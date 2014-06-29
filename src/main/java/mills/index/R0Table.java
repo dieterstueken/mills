@@ -1,9 +1,7 @@
 package mills.index;
 
-import mills.bits.PopCount;
 import mills.position.Positions;
 import mills.ring.EntryTable;
-import mills.ring.RingEntry;
 import mills.util.IndexTable;
 
 import java.util.Collections;
@@ -117,9 +115,5 @@ class R0Table {
 
     public static R0Table of(IndexTable it, EntryTable r0, List<EntryTable> t1) {
         return new R0Table(it, r0, t1);
-    }
-
-    interface Builder {
-        R0Table build(PopCount pop, RingEntry e2);
     }
 }
