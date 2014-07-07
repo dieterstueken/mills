@@ -5,6 +5,7 @@ import mills.util.AbstractRandomArray;
 import mills.util.AbstractRandomList;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -323,6 +324,19 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
             System.out.format("%02x %d %4d %4d\n", meq, Integer.bitCount(meq), count1, count2);
         }
     }
+
+    public static final Comparator<RingEntry> COMPARATOR = new Comparator<RingEntry>() {
+        @Override
+        public int compare(RingEntry o1, RingEntry o2) {
+            if(o1==o2)
+                return 0;
+
+            if(o1==null)
+                return -1;
+
+            return Short.compare(o1.index, o2.index);
+        }
+    };
 
     @Override
     public int compareTo(RingEntry o) {

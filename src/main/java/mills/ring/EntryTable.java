@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 import mills.util.AbstractRandomList;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -142,6 +143,25 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static final Comparator<List<RingEntry>> COMPARATOR = new Comparator<List<RingEntry>>() {
+        @Override
+        public int compare(List<RingEntry> t1, List<RingEntry> t2) {
+
+            if(t1==t2)
+                return 0;
+
+            if(t1==null)
+                return -1;
+
+            int result = Integer.compare(t1.size(), t2.size());
+
+            for(int i=0; result==0 && i<t1.size(); ++i)
+                result = RingEntry.COMPARATOR.compare(t1.get(i), t2.get(i));
+
+            return result;
+        }
+    };
 
     public static final Predicate<RingEntry> ALL  = e -> true;
     public static final Predicate<RingEntry> NONE = e -> false;

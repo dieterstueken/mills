@@ -98,7 +98,7 @@ public class MopIndex {
 
                     for(PopCount clop:closed) {
 
-                        EntryTable m0 = t0.filter(e1 -> BW.mcount(e2, e0, e1) == clop);
+                        EntryTable m0 = t0.filter(e1 -> BW.clop(e2, e0, e1) == clop);
 
                         add(m0);
                     }

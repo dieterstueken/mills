@@ -20,7 +20,7 @@ public class R2Entry {
 
     final R0Table t0;
 
-    R2Entry(int index, short i2, R0Table t0) {
+    public R2Entry(int index, short i2, R0Table t0) {
         this.index = index;
         this.i2 = i2;
         this.t0 = t0;

@@ -19,7 +19,7 @@ public class R2Table implements PosIndex {
     // partial table
     final List<R2Entry> entries;
 
-    protected R2Table(final PopCount pop, final List<R2Entry> entries) {
+    public R2Table(final PopCount pop, final List<R2Entry> entries) {
         this.pop = pop;
         this.entries = ImmutableList.copyOf(entries);
     }

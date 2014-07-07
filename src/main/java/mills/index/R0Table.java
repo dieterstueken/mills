@@ -2,8 +2,10 @@ package mills.index;
 
 import mills.position.Positions;
 import mills.ring.EntryTable;
+import mills.ring.RingEntry;
 import mills.util.IndexTable;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -13,7 +15,7 @@ import java.util.List;
  * Date: 07.07.12
  * Time: 12:25
  */
-class R0Table {
+public class R0Table {
 
     final IndexTable index;
 
@@ -114,6 +116,24 @@ class R0Table {
             Collections.<EntryTable>emptyList());
 
     public static R0Table of(IndexTable it, EntryTable r0, List<EntryTable> t1) {
+        assert r0.size() == it.size();
+        assert r0.size() == t1.size();
+
         return new R0Table(it, r0, t1);
+    }
+
+    public static R0Table of(EntryTable r0, List<EntryTable> t1) {
+        return of(indexOf(t1), r0, t1);
+    }
+
+    public static IndexTable indexOf(List<? extends Collection<RingEntry>> t) {
+        final int index[] = new int[t.size()];
+        int sum=0;
+        for(int i=0; i<t.size(); ++i) {
+            index[i] = sum;
+            sum += t.get(i).size();
+        }
+
+        return IndexTable.of(index);
     }
 }

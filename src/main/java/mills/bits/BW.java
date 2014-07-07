@@ -96,10 +96,9 @@ public class BW {
         return pattern;
     }
 
-    public static PopCount mcount(BW r2, BW r0, BW r1) {
+    public static PopCount clop(BW r2, BW r0, BW r1) {
         return PopCount.of(
-                Pattern.mcount(r2.b, r0.b, r2.b),
-                Pattern.mcount(r2.w, r0.w, r2.w));
+                Pattern.mcount(r2.b, r0.b, r1.b),
+                Pattern.mcount(r2.w, r0.w, r1.w));
     }
-
 }
