@@ -1,6 +1,7 @@
 package mills.util;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -130,6 +131,17 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
         for(int i=0; i<table.size(); ++i) {
             index[i] = idx;
             idx += indexer.index(table.get(i));
+        }
+
+        return IndexTable.of(index);
+    }
+
+    public static IndexTable build(List<? extends Collection<?>> t) {
+        final int index[] = new int[t.size()];
+        int sum=0;
+        for(int i=0; i<t.size(); ++i) {
+            index[i] = sum;
+            sum += t.get(i).size();
         }
 
         return IndexTable.of(index);

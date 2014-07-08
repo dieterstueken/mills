@@ -16,30 +16,28 @@ import java.util.function.Supplier;
  * modified by: $Author$
  * modified on: $Date$
  */
-public class IndexList extends AbstractRandomList<R2Table> {
+public class IndexList extends AbstractRandomList<R2Index> {
 
-    final Partitions partitions;
-    final List<? extends Supplier<R2Table>> tables;
+    final List<? extends Supplier<R2Index>> tables;
 
-    private IndexList(Partitions partitions, List<? extends Supplier<R2Table>> tables) {
-        this.partitions = partitions;
+    private IndexList(List<? extends Supplier<R2Index>> tables) {
         this.tables = tables;
     }
 
     public static IndexList create() {
         Partitions partitions = Partitions.open();
-        final List<? extends FutureReference<R2Table>> list = Lists.transform(partitions, FutureReference::new);
-        List<FutureReference<R2Table>> tables = ImmutableList.copyOf(list);
+        final List<? extends FutureReference<R2Index>> list = Lists.transform(partitions, FutureReference::new);
+        List<FutureReference<R2Index>> tables = ImmutableList.copyOf(list);
 
-        return new IndexList(partitions, tables);
+        return new IndexList(tables);
     }
 
     @Override
-    public R2Table get(int index) {
+    public R2Index get(int index) {
         return tables.get(index).get();
     }
 
-    public R2Table get(PopCount pop) {
+    public R2Index get(PopCount pop) {
         return get(pop.index);
     }
 
@@ -58,7 +56,7 @@ public class IndexList extends AbstractRandomList<R2Table> {
             int p = PopCount.SIZE;
             p *= Math.random();
 
-            R2Table t = indexes.get(p);
+            R2Index t = indexes.get(p);
 
             PopCount pop = PopCount.get(p);
 

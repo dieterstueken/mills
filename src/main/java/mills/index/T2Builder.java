@@ -18,7 +18,7 @@ import java.util.function.Supplier;
  * Date: 25.11.12
  * Time: 12:17
  */
-abstract class T2Builder implements Supplier<R2Table> {
+abstract class T2Builder implements Supplier<R2Index> {
 
     final PopCount pop;
 
@@ -73,13 +73,13 @@ abstract class T2Builder implements Supplier<R2Table> {
             helper.join();
     }
 
-    public R2Table get() {
+    public R2Index get() {
 
         fillRemaining();
 
         // return empty list
         if(count.get()==0)
-            return new R2Table(pop, ImmutableList.of());
+            return new R2Index(pop, ImmutableList.of());
 
         int index = 0;
         final List<R2Entry> sparseTable = new ArrayList<>(count.get());
@@ -105,9 +105,9 @@ abstract class T2Builder implements Supplier<R2Table> {
         }
 
         if(fullTable==null)
-            return new R2Table(pop, sparseTable);
+            return new R2Index(pop, sparseTable);
         else
-            return new R2Table(pop, sparseTable) {
+            return new R2Index(pop, sparseTable) {
                 public int posIndex(long i201) {
                     assert verify(i201) : Positions.position(i201);
 

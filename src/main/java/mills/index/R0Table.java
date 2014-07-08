@@ -2,12 +2,14 @@ package mills.index;
 
 import mills.position.Positions;
 import mills.ring.EntryTable;
-import mills.ring.RingEntry;
 import mills.util.IndexTable;
+import mills.util.Indexer;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import static mills.position.Positions.i0;
+import static mills.position.Positions.i1;
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,7 +21,7 @@ public class R0Table {
 
     final IndexTable index;
 
-    final EntryTable r0;
+    final EntryTable t0;
 
     final List<EntryTable> t1;
 
@@ -28,11 +30,21 @@ public class R0Table {
         return t<0 ? 0 : index.getIndex(t) + t1.get(t).size();
     }
 
+    public List<EntryTable> entries() {
+        return t1;
+    }
+
+    int idx01(long i201) {
+        final short i0 = i0(i201);
+        final short i1 = i1(i201);
+        return idx01(i0, i1);
+    }
+
     // return relative index of (i0,i1)
     int idx01(short i0, short i1) {
 
         // lookup position of i0
-        final int pos = r0.indexOf(i0);
+        final int pos = t0.indexOf(i0);
         if(pos==-1)
             return -1;
         if(pos<-1)
@@ -58,7 +70,7 @@ public class R0Table {
     public long i201(short i2, int idx01) {
 
         int pos = index.lowerBound(idx01);
-        int i0 = r0.ringIndex(pos);
+        int i0 = t0.ringIndex(pos);
         idx01 -= index.getIndex(pos);
 
         int i1 = t1.get(pos).ringIndex(idx01);
@@ -72,7 +84,7 @@ public class R0Table {
         boolean any = false;
 
         for(; i<index.size(); i++) {
-            if(!foreach(base + index.getIndex(i), i2, r0.ringIndex(i), t1.get(i), processor, start, end))
+            if(!foreach(base + index.getIndex(i), i2, t0.ringIndex(i), t1.get(i), processor, start, end))
                 break;
             any = true;
         }
@@ -98,19 +110,21 @@ public class R0Table {
         return true;
     }
 
-    R0Table(IndexTable it, EntryTable r0, List<EntryTable> t1) {
+    R0Table(IndexTable it, EntryTable t0, List<EntryTable> t1) {
         this.index = it;
-        this.r0 = r0;
+        this.t0 = t0;
         this.t1 = t1;
     }
 
-    //R0Table(EntryTable r0, List<EntryTable> t1) {
-    //    this.index = IndexTable.build(t1, IndexTable.SIZE);
-    //    this.r0 = r0;
-    //    this.t1 = t1;
-    //}
+    public static final Indexer<R0Table> INDEXER = new Indexer<R0Table>() {
 
-    public static R0Table EMPTY = new R0Table(
+        @Override
+        public int index(R0Table t) {
+            return t.size();
+        }
+    };
+
+    public static final R0Table EMPTY = new R0Table(
             IndexTable.EMPTY,
             EntryTable.EMPTY,
             Collections.<EntryTable>emptyList());
@@ -123,17 +137,6 @@ public class R0Table {
     }
 
     public static R0Table of(EntryTable r0, List<EntryTable> t1) {
-        return of(indexOf(t1), r0, t1);
-    }
-
-    public static IndexTable indexOf(List<? extends Collection<RingEntry>> t) {
-        final int index[] = new int[t.size()];
-        int sum=0;
-        for(int i=0; i<t.size(); ++i) {
-            index[i] = sum;
-            sum += t.get(i).size();
-        }
-
-        return IndexTable.of(index);
+        return of(IndexTable.build(t1), r0, t1);
     }
 }

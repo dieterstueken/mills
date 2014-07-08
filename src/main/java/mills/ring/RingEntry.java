@@ -325,17 +325,14 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         }
     }
 
-    public static final Comparator<RingEntry> COMPARATOR = new Comparator<RingEntry>() {
-        @Override
-        public int compare(RingEntry o1, RingEntry o2) {
-            if(o1==o2)
-                return 0;
+    public static final Comparator<RingEntry> COMPARATOR = (o1, o2) -> {
+        if(o1==o2)
+            return 0;
 
-            if(o1==null)
-                return -1;
+        if(o1==null)
+            return -1;
 
-            return Short.compare(o1.index, o2.index);
-        }
+        return Short.compare(o1.index, o2.index);
     };
 
     @Override

@@ -1,89 +1,108 @@
 package mills.index;
 
 import com.google.common.collect.ImmutableList;
-import mills.bits.PopCount;
 import mills.position.Positions;
+import mills.ring.EntryTable;
+import mills.util.IndexTable;
 
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: stueken
- * Date: 07.07.12
- * Time: 15:01
+ * version:     $Revision$
+ * created by:  dst
+ * created on:  07.07.2014 11:48
+ * modified by: $Author$
+ * modified on: $Date$
  */
-public class R2Table implements PosIndex {
+public class R2Table {
 
-    final PopCount pop;
+    final IndexTable it;
 
-    // partial table
-    final List<R2Entry> entries;
+    final EntryTable t2;
 
-    public R2Table(final PopCount pop, final List<R2Entry> entries) {
-        this.pop = pop;
-        this.entries = ImmutableList.copyOf(entries);
-    }
-
-    public final PopCount pop() {
-        return pop;
-    }
-
-    public List<R2Entry> entries() {
-        return entries;
-    }
+    final List<R0Table> t0;
 
     public int size() {
-        if(entries.isEmpty())
-            return 0;
-
-        int tail = entries.size()-1;
-        return entries.get(tail).size();
+        final int t = it.size()-1;
+        return t<0 ? 0 : it.getIndex(t) + t0.get(t).size();
     }
 
-    boolean verify(long i201) {
-        PopCount p = Positions.pop(i201);
-        return p == pop;
+    public List<R0Table> entries() {
+        return t0;
     }
 
     public int posIndex(long i201) {
-        assert verify(i201) : Positions.position(i201);
+        assert Positions.normalized(i201);
 
-        final long n201 = Positions.normalize(i201);
+        final short i2 = Positions.i2(i201);
 
-        final short i2 = Positions.i2(n201);
-        int pos = R2Entry.R2.binarySearchKey(entries, i2);
+        // lookup position of i2
+        final int pos = t2.indexOf(i2);
+        if(pos==-1)
+            return -1;
+        if(pos<-1)
+            return -it.getIndex(-2-pos);
 
-        if (pos < 0) {
-            // if missing return lower bound by negative index
-            return -entries.get(-2 - pos).index;
-        }
+        R0Table r0 = t0.get(pos);
+        int posIndex = r0.idx01(i201);
 
-        return entries.get(pos).posIndex(i201);
+        int index = it.get(pos);    // base index
+
+        // if missing return lower bound by negative index
+        if(posIndex<0)
+            posIndex -= index;
+        else
+            posIndex += index;
+
+        return posIndex;
     }
 
-    public long i201(int posIndex) {
+    long i201(int posIndex) {
 
-        final int pos = R2Entry.INDEX.lowerBound(entries, posIndex);
+        final int pos = it.lowerBound(posIndex);
+        R0Table r0 = t0.get(pos);
+        short i2 = t2.ringIndex(pos);
+        int index = it.get(pos);
 
-        // may throw IndexOutOfBoundsException
-        final R2Entry entry = entries.get(pos);
-
-        return entry.i201(posIndex);
-    }
-
-    public IndexProcessor process(IndexProcessor receiver) {
-        return process(receiver, 0, Integer.MAX_VALUE);
+        return r0.i201(i2, posIndex-index);
     }
 
     public IndexProcessor process(IndexProcessor processor, int start, int end) {
-        final int i0 = start>0 ? R2Entry.INDEX.lowerBound(entries, start) : 0;
 
-        for(int i=i0; i<entries.size(); ++i) {
-            final R2Entry entry = entries.get(i);
-            if(!entry.process(processor, start, end))
+        for(int pos = start>0 ? it.lowerBound(start) : 0;
+            pos<t0.size(); ++pos) {
+            R0Table r0 = t0.get(pos);
+            short i2 = t2.ringIndex(pos);
+            int index = it.get(pos);
+
+            if(!r0.process(index, i2, processor, start, end))
                 break;
         }
 
         return processor;
+    }
+
+    R2Table(IndexTable it, EntryTable t2, List<R0Table> t0) {
+        this.it = it;
+        this.t2 = t2;
+        this.t0 = t0;
+    }
+
+    static final R2Table EMPTY = new R2Table(IndexTable.EMPTY, EntryTable.EMPTY, ImmutableList.of());
+
+    public static R2Table of(IndexTable it, EntryTable t2, List<R0Table> t0) {
+        int size = it.size();
+
+        assert size == t2.size();
+        assert size == t0.size();
+
+        if(size==0)
+            return EMPTY;
+
+        return new R2Table(it, t2, ImmutableList.copyOf(t0));
+    }
+
+    public static R2Table of(EntryTable t2, List<R0Table> t0) {
+        return of(IndexTable.build(t0, R0Table.INDEXER), t2, t0);
     }
 }

@@ -2,7 +2,7 @@ package mills.main;
 
 import mills.bits.PopCount;
 import mills.index.IndexList;
-import mills.index.R2Table;
+import mills.index.R2Index;
 import mills.ring.RingEntry;
 import mills.util.IntegerDigest;
 
@@ -34,7 +34,7 @@ public class IndexDigest extends RecursiveAction {
         double start = System.currentTimeMillis();
 
         for(PopCount pop:PopCount.TABLE) {
-            final R2Table posIndex = indexes.get(pop);
+            final R2Index posIndex = indexes.get(pop);
             final int range = posIndex.size();
             int n20 = posIndex.entries().size();
 

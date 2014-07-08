@@ -16,7 +16,7 @@ import java.util.function.Supplier;
  * modified by: $Author$
  * modified on: $Date$
  */
-public class Partitions extends AbstractRandomList<Supplier<R2Table>> {
+public class Partitions extends AbstractRandomList<Supplier<R2Index>> {
 
     public final PartitionTables partitions;
     public final LePopTable lePopTable;
@@ -47,7 +47,7 @@ public class Partitions extends AbstractRandomList<Supplier<R2Table>> {
     }
 
     @Override
-    public Supplier<R2Table> get(int index) {
+    public Supplier<R2Index> get(int index) {
         return new T2Builder(index) {
             @Override
             protected T0Builder newBuilder() {

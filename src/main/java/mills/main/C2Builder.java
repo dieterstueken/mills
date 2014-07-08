@@ -87,7 +87,7 @@ public class C2Builder {
         return ImmutableList.copyOf(l2);
     }
 
-    public static Map<PopCount, R2Table> build(R2Table index, Function<List<RingEntry>, EntryTable> table_builder) {
+    public static Map<PopCount, R2Index> build(R2Index index, Function<List<RingEntry>, EntryTable> table_builder) {
 
         final List<C2Builder> builders = new ArrayList<>(25);
 
@@ -108,13 +108,13 @@ public class C2Builder {
 
         index.process(processor);
 
-        Map<PopCount, R2Table> indexMap = new HashMap<>(25);
+        Map<PopCount, R2Index> indexMap = new HashMap<>(25);
 
         for(int nb=0; nb<5; ++nb)
             for(int nw=0; nw<5; ++nw) {
                 PopCount clop = PopCount.of(nb, nw);
                 C2Builder builder = builders.get(clop.hashCode());
-                R2Table table = new R2Table(index.pop(), builder.build());
+                R2Index table = new R2Index(index.pop(), builder.build());
                 indexMap.put(clop, table);
             }
 
@@ -126,16 +126,16 @@ public class C2Builder {
         IndexList indexes = IndexList.create();
 
         for(PopCount pop:PopCount.TABLE) {
-            R2Table posIndex = indexes.get(pop);
+            R2Index posIndex = indexes.get(pop);
             int range = posIndex.size();
             int n20 = posIndex.entries().size();
 
             System.out.format("%s %10d, %4d\n", pop, range, n20);
 
-            Map<PopCount, R2Table> indexMap = build(posIndex, EntryTable::of);
+            Map<PopCount, R2Index> indexMap = build(posIndex, EntryTable::of);
 
-            for (Map.Entry<PopCount, R2Table> entry : indexMap.entrySet()) {
-                R2Table index = entry.getValue();
+            for (Map.Entry<PopCount, R2Index> entry : indexMap.entrySet()) {
+                R2Index index = entry.getValue();
                 range = index.size();
                 if(range==0)
                     continue;
