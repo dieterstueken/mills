@@ -43,7 +43,7 @@ abstract class SingleEntry extends EntryTable {
     }
 
     @Override
-    public int findIndex(short ringIndex) {
+    public int findIndex(int ringIndex) {
         int i = entry().index();
         if(i==ringIndex)
             return 0;
@@ -54,7 +54,7 @@ abstract class SingleEntry extends EntryTable {
 
     @Override
     public EntryTable subList(int fromIndex, int toIndex) {
-        if(fromIndex==toIndex)
+        if(fromIndex==0 && toIndex==0)
             return EntryTable.EMPTY;
 
         if(fromIndex==0 && toIndex==1)

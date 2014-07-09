@@ -46,9 +46,9 @@ public class Mop implements Comparable<Mop> {
 
     @Override
     public int compareTo(Mop o) {
-        int c = PopCount.ORDERING.compare(count, o.count);
+        int c = PopCount.INDEX_ORDER.compare(count, o.count);
         if(c==0)
-            c = PopCount.ORDERING.compare(closed, o.closed);
+            c = PopCount.INDEX_ORDER.compare(closed, o.closed);
 
         return c;
     }

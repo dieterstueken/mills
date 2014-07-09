@@ -21,32 +21,32 @@ import java.util.function.Predicate;
 public abstract class EntryTable extends AbstractRandomList<RingEntry> implements SortedSet<RingEntry>, Comparable<EntryTable> {
 
     // fast lookup of table index of a given ring index
-    abstract public int findIndex(short ringIndex);
+    abstract public int findIndex(int ringIndex);
 
     public int indexOf(RingEntry entry) {
         return findIndex(entry.index);
     }
 
     /**
-     * Return the index for which all elements are greater or equals than ringIndex.
+     * Return the index of the first element.index which is greater or equal than ringIndex.
      * The returned index is between [0, size]
      * @param ringIndex to find.
-     * @return index for which all elements are greater or equals than ringIndex.
+     * @return index of the first element which is greater than ringIndex.
      */
-    public int headIndex(short ringIndex) {
+    public int lowerBound(int ringIndex) {
         int index = findIndex(ringIndex);
-        return index>-1 ? index : -(index+1);
+        return index<0 ? -(index+1) : index;
     }
 
     /**
-     * Return the index for which all elements are lesser than ringIndex.
+     * Return the index of the first element.index which is strictly greater than ringIndex.
      * The returned index is between [0, size]
      * @param ringIndex to find.
-     * @return Return the index for which all elements are lesser than ringIndex.
+     * @return index of the first element which is greater than ringIndex.
      */
-    public int tailIndex(short ringIndex) {
+    public int upperBound(int ringIndex) {
         int index = findIndex(ringIndex);
-        return index>-1 ? index+1 : -(index+1);
+        return index<0 ? -(index+1) : index+1;
     }
 
     @Override
@@ -75,18 +75,7 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
     }
 
     @Override
-    public EntryTable subList(int fromIndex, int toIndex) {
-
-        if(toIndex>=fromIndex)
-            return EMPTY;
-
-        if(toIndex==fromIndex+1)
-            return get(fromIndex).singleton;
-
-        List<RingEntry> subList = super.subList(fromIndex, toIndex);
-
-        return EntryTable.of(subList);
-    }
+    abstract public EntryTable subList(int fromIndex, int toIndex);
 
     @Override
     public Comparator<? super RingEntry> comparator() {
@@ -95,17 +84,17 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
 
     @Override
     public EntryTable subSet(RingEntry fromElement, RingEntry toElement) {
-        return subList(headIndex(fromElement.index), tailIndex(toElement.index));
+        return subList(lowerBound(fromElement.index), lowerBound(toElement.index));
     }
 
     @Override
-    public SortedSet<RingEntry> headSet(RingEntry toElement) {
-        return subList(0, tailIndex(toElement.index));
+    public EntryTable headSet(RingEntry toElement) {
+        return subList(0, upperBound(toElement.index));
     }
 
     @Override
-    public SortedSet<RingEntry> tailSet(RingEntry fromElement) {
-        return subList(headIndex(fromElement.index), size());
+    public EntryTable tailSet(RingEntry fromElement) {
+        return subList(lowerBound(fromElement.index), size());
     }
 
     @Override
@@ -264,6 +253,14 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
         return of(ringIndex, 0, size);
     }
 
+    public static EntryTable of(int ... index) {
+        short values[] = new short[index.length];
+        for(int i=0; i<index.length; ++i)
+            values[i] = (short) index[i];
+
+        return of(values, values.length);
+    }
+
     public static EntryTable of(short[] ringIndex, int fromIndex, int toIndex) {
 
         int size = toIndex - fromIndex;
@@ -274,6 +271,7 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
             return SingleEntry.of(ringIndex[fromIndex]);
 
         ringIndex = Arrays.copyOfRange(ringIndex, fromIndex, toIndex);
+
         return IndexTable.of(ringIndex);
     }
 

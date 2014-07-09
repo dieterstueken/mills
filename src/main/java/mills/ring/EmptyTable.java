@@ -28,7 +28,7 @@ class EmptyTable extends EntryTable {
     }
 
     @Override
-    public int findIndex(short ringIndex) {
+    public int findIndex(int ringIndex) {
         return -1;
     }
 
@@ -39,6 +39,9 @@ class EmptyTable extends EntryTable {
 
     @Override
     public EntryTable subList(int fromIndex, int toIndex) {
+        if(fromIndex==0 && toIndex==0)
+            return this;
+
         throw new IllegalArgumentException("EmptyTable.subList");
     }
 

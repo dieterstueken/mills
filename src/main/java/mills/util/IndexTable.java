@@ -87,6 +87,8 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
         if(table.length==1)
             return singleton(table[0]);
 
+        assert isOrdered(table);
+
         return new IndexTable() {
 
             @Override
@@ -110,6 +112,20 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
                 return table[table.length-1];
             }
         };
+    }
+
+    public static boolean isOrdered(int[] table) {
+        if(table!=null && table.length>1) {
+            int k = table[0];
+            for (int i = 1; i < table.length; ++i) {
+                int l = table[i];
+                if(l<=k)
+                    return false;
+                k = l;
+            }
+        }
+
+        return  true;
     }
 
     public static final Indexer<List> SIZE = new Indexer<List>() {

@@ -4,7 +4,6 @@ import mills.bits.BW;
 import mills.bits.PopCount;
 import mills.util.AbstractRandomList;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -20,7 +19,7 @@ abstract public class PopTable extends AbstractRandomList<EntryTable> {
     static PopTable create(EntryTable root) {
 
         final Comparator<RingEntry> natural = Comparator.naturalOrder();
-        final Comparator<RingEntry> poporder = Comparator.comparing(BW::pop, PopCount.ORDERING);
+        final Comparator<RingEntry> poporder = Comparator.comparing(BW::pop, PopCount.INDEX_ORDER);
         final Comparator<RingEntry> sort = poporder.thenComparing(natural);
 
         RingEntry minimized[] = root.toArray();
@@ -30,29 +29,24 @@ abstract public class PopTable extends AbstractRandomList<EntryTable> {
         int start = 0;
         PopCount pop = PopCount.TABLE.get(0);
 
-        final List<EntryTable> table = new ArrayList<>(PopCount.SIZE);
+        final EntryTable tables[] = new EntryTable[PopCount.SIZE];
+        Arrays.fill(tables, EntryTable.EMPTY);
 
         for(int i=0; i<minimized.length; ++i) {
             RingEntry e = minimized[i];
             PopCount p = e.pop();
             if(!p.equals(pop)) {
 
-                assert p.index() == table.size();
-
                 EntryTable et = EntryTable.of(ordered.subList(start, i));
-                table.add(et);
+                tables[pop.index] = et;
 
                 pop = p;
                 start = i;
             }
         }
 
-        assert pop.index() == PopCount.SIZE-1;
-
         EntryTable et = EntryTable.of(ordered.subList(start, ordered.size()));
-        table.add(et);
-
-        assert table.size() == PopCount.SIZE;
+        tables[pop.index] = et;
 
         return new PopTable() {
 
@@ -63,7 +57,7 @@ abstract public class PopTable extends AbstractRandomList<EntryTable> {
 
             @Override
             public EntryTable get(int index) {
-                return table.get(index);
+                return tables[index];
             }
         };
     }

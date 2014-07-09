@@ -23,7 +23,7 @@ public class ProcessIndex implements IndexProcessor {
 
     final PosIndex index;
 
-    final ConcurrentNavigableMap<PopCount, LongAdder> stat = new ConcurrentSkipListMap<>(PopCount.ORDERING);
+    final ConcurrentNavigableMap<PopCount, LongAdder> stat = new ConcurrentSkipListMap<>(PopCount.INDEX_ORDER);
 
     static final Function<PopCount, LongAdder> ADDER = popCount -> new LongAdder();
 

@@ -13,6 +13,7 @@ class IndexTable extends EntryTable {
     private final short ringIndex[];
 
     IndexTable(short[] ringIndex) {
+        assert isOrdered(ringIndex);
         this.ringIndex = ringIndex;
     }
 
@@ -21,8 +22,8 @@ class IndexTable extends EntryTable {
     }
 
     @Override
-    public int findIndex(short ringIndex) {
-        return Arrays.binarySearch(this.ringIndex, ringIndex);
+    public int findIndex(int ringIndex) {
+        return Arrays.binarySearch(this.ringIndex, (short) ringIndex);
     }
 
     public short ringIndex(int i) {
@@ -43,9 +44,27 @@ class IndexTable extends EntryTable {
     @Override
     public EntryTable subList(int fromIndex, int toIndex) {
 
-        if(fromIndex==0 && toIndex==size())
-            return this;
+        if(toIndex>=fromIndex)
+            return EMPTY;
+
+        if(toIndex==fromIndex+1)
+            return get(fromIndex).singleton;
 
         return EntryTable.of(ringIndex, fromIndex, toIndex);
     }
+
+    public static boolean isOrdered(short[] table) {
+        if(table!=null && table.length>1) {
+            short k = table[0];
+            for (int i = 1; i < table.length; ++i) {
+                short l = table[i];
+                if(l<=k)
+                    return false;
+                k = l;
+            }
+        }
+
+        return  true;
+    }
+
 }

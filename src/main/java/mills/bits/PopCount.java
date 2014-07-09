@@ -218,7 +218,7 @@ public class PopCount {
 
     ////////////////////////////////////////////////////////////////////////////
 
-    public static Comparator<PopCount> ORDERING = Comparator.nullsFirst(Comparator.comparingInt(PopCount::index));
+    public static final Comparator<PopCount> INDEX_ORDER = Comparator.nullsFirst(Comparator.comparingInt(PopCount::index));
 
     public static final int SIZE = 100;
 
