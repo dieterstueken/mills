@@ -37,7 +37,7 @@ public class R2Table {
         final short i2 = Positions.i2(i201);
 
         // lookup position of i2
-        final int pos = t2.indexOf(i2);
+        final int pos = t2.findIndex(i2);
         if(pos==-1)
             return -1;
         if(pos<-1)

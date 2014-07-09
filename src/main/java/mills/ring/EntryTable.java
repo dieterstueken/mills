@@ -3,9 +3,7 @@ package mills.ring;
 import com.google.common.collect.Iterables;
 import mills.util.AbstractRandomList;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -20,13 +18,35 @@ import java.util.function.Predicate;
  * In addition it provides utility methods to get the RingEntry.index directly,
  * to find the table indexOf a given RingEntry and to generate filtered subsets of itself.
  */
-public abstract class EntryTable extends AbstractRandomList<RingEntry> implements Comparable<EntryTable> {
+public abstract class EntryTable extends AbstractRandomList<RingEntry> implements SortedSet<RingEntry>, Comparable<EntryTable> {
 
     // fast lookup of table index of a given ring index
-    abstract public int indexOf(short ringIndex);
+    abstract public int findIndex(short ringIndex);
 
     public int indexOf(RingEntry entry) {
-        return indexOf(entry.index);
+        return findIndex(entry.index);
+    }
+
+    /**
+     * Return the index for which all elements are greater or equals than ringIndex.
+     * The returned index is between [0, size]
+     * @param ringIndex to find.
+     * @return index for which all elements are greater or equals than ringIndex.
+     */
+    public int headIndex(short ringIndex) {
+        int index = findIndex(ringIndex);
+        return index>-1 ? index : -(index+1);
+    }
+
+    /**
+     * Return the index for which all elements are lesser than ringIndex.
+     * The returned index is between [0, size]
+     * @param ringIndex to find.
+     * @return Return the index for which all elements are lesser than ringIndex.
+     */
+    public int tailIndex(short ringIndex) {
+        int index = findIndex(ringIndex);
+        return index>-1 ? index+1 : -(index+1);
     }
 
     @Override
@@ -34,6 +54,9 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
 
         if(obj instanceof RingEntry)
             return indexOf((RingEntry) obj);
+        else
+        if(obj instanceof Number)
+            return findIndex((((Number) obj).shortValue()));
         else
             return -1;
     }
@@ -54,9 +77,57 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
     @Override
     public EntryTable subList(int fromIndex, int toIndex) {
 
+        if(toIndex>=fromIndex)
+            return EMPTY;
+
+        if(toIndex==fromIndex+1)
+            return get(fromIndex).singleton;
+
         List<RingEntry> subList = super.subList(fromIndex, toIndex);
 
         return EntryTable.of(subList);
+    }
+
+    @Override
+    public Comparator<? super RingEntry> comparator() {
+        return RingEntry.COMPARATOR;
+    }
+
+    @Override
+    public EntryTable subSet(RingEntry fromElement, RingEntry toElement) {
+        return subList(headIndex(fromElement.index), tailIndex(toElement.index));
+    }
+
+    @Override
+    public SortedSet<RingEntry> headSet(RingEntry toElement) {
+        return subList(0, tailIndex(toElement.index));
+    }
+
+    @Override
+    public SortedSet<RingEntry> tailSet(RingEntry fromElement) {
+        return subList(headIndex(fromElement.index), size());
+    }
+
+    @Override
+    public RingEntry first() {
+
+        if(isEmpty())
+            throw new NoSuchElementException();
+
+        return get(0);
+    }
+
+    @Override
+    public RingEntry last() {
+        if(isEmpty())
+            throw new NoSuchElementException();
+
+        return get(size()-1);
+    }
+
+    @Override
+    public Spliterator<RingEntry> spliterator() {
+        return Spliterators.spliterator(this, Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.ORDERED | Spliterator.IMMUTABLE);
     }
 
     public EntryTable filter(Predicate<? super RingEntry> predicate) {

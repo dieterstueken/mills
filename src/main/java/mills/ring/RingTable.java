@@ -30,7 +30,7 @@ public class RingTable extends EntryTable {
     boolean inRange(int index) {return index>=0 && index<RingEntry.MAX_INDEX;}
 
     // for the full table there is no need to search any entry.
-    public int indexOf(short index) {
+    public int findIndex(short index) {
         return inRange(index) ? index : -1;
     }
 

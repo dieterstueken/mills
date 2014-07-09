@@ -28,7 +28,7 @@ class EmptyTable extends EntryTable {
     }
 
     @Override
-    public int indexOf(short ringIndex) {
+    public int findIndex(short ringIndex) {
         return -1;
     }
 

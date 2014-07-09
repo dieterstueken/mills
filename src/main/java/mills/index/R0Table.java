@@ -44,7 +44,7 @@ public class R0Table {
     int idx01(short i0, short i1) {
 
         // lookup position of i0
-        final int pos = t0.indexOf(i0);
+        final int pos = t0.findIndex(i0);
         if(pos==-1)
             return -1;
         if(pos<-1)
@@ -52,7 +52,7 @@ public class R0Table {
 
         // get relative indexes
         final int idx0 = index.getIndex(pos);
-        final int idx1 = t1.get(pos).indexOf(i1);
+        final int idx1 = t1.get(pos).findIndex(i1);
 
         // if missing return lower bound by negative index
         if(idx1<0)
