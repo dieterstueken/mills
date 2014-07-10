@@ -70,7 +70,7 @@ public class EntryMap<T> extends AbstractMap<RingEntry, T> implements SortedMap<
 
         @Override
         public int size() {
-            return 0;
+            return keys.size();
         }
 
         @Override
