@@ -41,18 +41,6 @@ class IndexTable extends EntryTable {
         return ringIndex.length;
     }
 
-    @Override
-    public EntryTable subList(int fromIndex, int toIndex) {
-
-        if(fromIndex>=toIndex)
-            return EMPTY;
-
-        if(toIndex==fromIndex+1)
-            return get(fromIndex).singleton;
-
-        return EntryTable.of(ringIndex, fromIndex, toIndex);
-    }
-
     public static boolean isOrdered(short[] table) {
         if(table!=null && table.length>1) {
             short k = table[0];

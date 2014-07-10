@@ -18,7 +18,7 @@ public class EntryMap<T> extends AbstractMap<RingEntry, T> implements SortedMap<
 
     final List<T> values;
 
-    private EntryMap(EntryTable keys, List<T> values) {
+    protected EntryMap(EntryTable keys, List<T> values) {
         this.keys = keys;
         this.values = values;
 

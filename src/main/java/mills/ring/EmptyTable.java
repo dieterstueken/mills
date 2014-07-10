@@ -37,14 +37,6 @@ class EmptyTable extends EntryTable {
         return Collections.emptyIterator();
     }
 
-    @Override
-    public EntryTable subList(int fromIndex, int toIndex) {
-        if(fromIndex==0 && toIndex==0)
-            return this;
-
-        throw new IllegalArgumentException("EmptyTable.subList");
-    }
-
     public final RingEntry empty[] = new RingEntry[0];
 
     @Override

@@ -61,8 +61,9 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
             return -1;
     }
 
+    @Override
     public boolean contains(Object obj) {
-        return obj instanceof RingEntry && indexOf((RingEntry) obj) >= 0;
+        return indexOf(obj) >= 0;
     }
 
     // shortcut
@@ -70,12 +71,42 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
         return get(index).index;
     }
 
+    @Override
     public RingEntry[] toArray() {
         return Iterables.toArray(this, RingEntry.class);
     }
 
     @Override
-    abstract public EntryTable subList(int fromIndex, int toIndex);
+    public EntryTable subList(int fromIndex, int toIndex) {
+
+        int range = checkRange(fromIndex, toIndex);
+
+        if(range==0)
+            return EntryTable.EMPTY;
+
+        if(range==1)
+            return get(fromIndex).singleton;
+
+        if(range==size())
+            return this;
+
+        return new SubTable(this, fromIndex, range);
+    }
+
+    protected int checkRange(int fromIndex, int toIndex) {
+
+        if(fromIndex<0)
+            throw new IndexOutOfBoundsException("fromIndex = " + fromIndex);
+
+        if (toIndex > size())
+            throw new IndexOutOfBoundsException("toIndex = " + toIndex);
+
+        if (fromIndex > toIndex)
+            throw new IllegalArgumentException("fromIndex(" + fromIndex +
+                    ") > toIndex(" + toIndex + ")");
+
+        return toIndex-fromIndex;
+    }
 
     @Override
     public Comparator<? super RingEntry> comparator() {

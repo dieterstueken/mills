@@ -53,17 +53,6 @@ abstract class SingleEntry extends EntryTable {
     }
 
     @Override
-    public EntryTable subList(int fromIndex, int toIndex) {
-        if(fromIndex==0 && toIndex==0)
-            return EntryTable.EMPTY;
-
-        if(fromIndex==0 && toIndex==1)
-            return this;
-
-        throw new IllegalArgumentException("EmptyTable.subList");
-    }
-
-    @Override
     public Iterator<RingEntry> iterator() {
         //return Iterators.singletonIterator(entry());
         return super.iterator();
