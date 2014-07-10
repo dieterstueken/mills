@@ -79,7 +79,7 @@ public class ScoreFiles {
         final File file = file(situation, "map");
 
         final PosIndex posIndex = indexes.get(situation.pop);
-        final int size = posIndex.size();
+        final int size = posIndex.range();
 
         final ByteBuffer scores = ByteBuffer.allocateDirect(size);
 
@@ -99,7 +99,7 @@ public class ScoreFiles {
         final File file = file(situation, "map");
 
         final PosIndex posIndex = indexes.get(situation.pop);
-        final int size = posIndex.size();
+        final int size = posIndex.range();
 
         final FileChannel fc = FileChannel.open(file.toPath(), WRITE);
         final MappedByteBuffer scores = fc.map(FileChannel.MapMode.READ_WRITE, 0, size);
@@ -136,7 +136,7 @@ public class ScoreFiles {
         }
 
         final PosIndex posIndex = indexes.get(situation.pop);
-        final int size = posIndex.size();
+        final int size = posIndex.range();
 
         try (FileChannel fc = FileChannel.open(file.toPath(), READ)) {
 

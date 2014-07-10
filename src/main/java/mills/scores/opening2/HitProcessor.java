@@ -36,7 +36,7 @@ public class HitProcessor extends RecursiveTask<Integer> {
         this.analyzer = analyzer;
         this.index = index;
         this.player = player;
-        this.hits = new DirectBitMap(index.size());
+        this.hits = new DirectBitMap(index.range());
     }
 
     @Override
@@ -55,7 +55,7 @@ public class HitProcessor extends RecursiveTask<Integer> {
     }
 
     private List<SliceProcessor> processors() {
-        int count = (index.size() + SIZE - 1) / SIZE;
+        int count = (index.range() + SIZE - 1) / SIZE;
 
         return AbstractRandomArray.generate(count, SliceProcessor::new);
     }

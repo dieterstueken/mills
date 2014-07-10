@@ -129,20 +129,20 @@ public class HitMap {
     }
 
     public static HitMap full(Situation situation, PosIndex index) {
-        return new HitMap(situation, index, BitMap.FULL, index.size()) {
+        return new HitMap(situation, index, BitMap.FULL, index.range()) {
             @Override
             public MoveProcessor processMoved() {
                 return MoveProcessor.ANY;
             }
 
             public String toString() {
-                return String.format("HitMap %s -%s full %d", situation, situation.popTaken(), index.size());
+                return String.format("HitMap %s -%s full %d", situation, situation.popTaken(), index.range());
             }
         };
     }
 
     public static HitMap empty(Situation situation, PosIndex index) {
-        return new HitMap(situation, index, BitMap.EMPTY, index.size()) {
+        return new HitMap(situation, index, BitMap.EMPTY, index.range()) {
             @Override
             public MoveProcessor processMoved() {
                 return MoveProcessor.NONE;
@@ -156,8 +156,8 @@ public class HitMap {
 
     public String toString() {
 
-        double p2 = count==0 ? -1 : (Math.log(index.size() / (double)count)/Math.log(2.0));
+        double p2 = count==0 ? -1 : (Math.log(index.range() / (double)count)/Math.log(2.0));
 
-        return String.format("HitMap %s -%s %d/%d (%.1f)", situation, situation.popTaken(), count, index.size(), p2);
+        return String.format("HitMap %s -%s %d/%d (%.1f)", situation, situation.popTaken(), count, index.range(), p2);
     }
 }

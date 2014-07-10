@@ -53,7 +53,7 @@ public class ProcessIndex implements IndexProcessor {
                 count += e.getValue().sum();
         }
 
-        System.out.format("pop: %s  %10d %10d\n", index.pop(), index.size(), count);
+        System.out.format("pop: %s  %10d %10d\n", index.pop(), index.range(), count);
 
         for(int nb=0; nb<10; nb++) {
             PopCount p0 = PopCount.of(nb, 0);

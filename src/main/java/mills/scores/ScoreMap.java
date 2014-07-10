@@ -39,7 +39,7 @@ public class ScoreMap implements Position.Factory, Closeable {
         this.situation = situation;
 
         assert situation.pop.equals(index.pop());
-        assert scores.limit() >= index.size();
+        assert scores.limit() >= index.range();
     }
 
     public String toString() {
@@ -81,7 +81,7 @@ public class ScoreMap implements Position.Factory, Closeable {
     }
 
     public int size() {
-        return index.size();
+        return index.range();
     }
 
     public long i201(int posIndex) {

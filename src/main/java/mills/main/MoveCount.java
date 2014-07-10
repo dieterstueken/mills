@@ -37,7 +37,7 @@ public class MoveCount extends RecursiveAction {
 
             pi.process(processor);
 
-            System.out.format("%d %9d %9d %3d\n", i, pi.size(), m0, m1);
+            System.out.format("%d %9d %9d %3d\n", i, pi.range(), m0, m1);
         }
     }
 

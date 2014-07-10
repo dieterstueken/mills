@@ -28,11 +28,11 @@ public class R2Index implements PosIndex {
         return pop;
     }
 
-    public List<R2Entry> entries() {
+    public List<R2Entry> values() {
         return entries;
     }
 
-    public int size() {
+    public int range() {
         if(entries.isEmpty())
             return 0;
 

@@ -51,7 +51,7 @@ public class HitAnalyzer extends RecursiveTask<HitMap> {
 
     private class Computer implements IndexProcessor {
 
-        final BitMap bits = new DirectBitMap(index.size());
+        final BitMap bits = new DirectBitMap(index.range());
 
         int count = 0;
 
@@ -78,7 +78,7 @@ public class HitAnalyzer extends RecursiveTask<HitMap> {
             if(count==0)
                 return HitMap.empty(situation, index);
 
-            if(count==index.size())
+            if(count==index.range())
                 return HitMap.full(situation, index);
 
             return new HitMap(situation, index, bits, count);

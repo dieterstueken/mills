@@ -35,8 +35,8 @@ public class IndexDigest extends RecursiveAction {
 
         for(PopCount pop:PopCount.TABLE) {
             final R2Index posIndex = indexes.get(pop);
-            final int range = posIndex.size();
-            int n20 = posIndex.entries().size();
+            final int range = posIndex.range();
+            int n20 = posIndex.values().size();
 
             System.out.format("l%d%d%10d, %4d\n", pop.nb, pop.nw, range, n20);
             digest.update(range);

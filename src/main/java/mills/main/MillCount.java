@@ -42,9 +42,9 @@ public class MillCount extends RecursiveAction implements IndexProcessor {
 
             pi.process(mc);
 
-            double db = 10*Math.log10(pi.size()/(double)mc.count);
+            double db = 10*Math.log10(pi.range()/(double)mc.count);
 
-            System.out.format("%d: %6d %6d %4.1f\n", i, pi.size(), mc.count, db);
+            System.out.format("%d: %6d %6d %4.1f\n", i, pi.range(), mc.count, db);
         }
     }
 }

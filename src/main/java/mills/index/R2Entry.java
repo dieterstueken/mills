@@ -27,11 +27,11 @@ public class R2Entry {
     }
 
     public int size() {
-        return index + t0.size();
+        return index + t0.range();
     }
 
     public int count() {
-        return t0.size();
+        return t0.range();
     }
 
     int posIndex(long n201) {

@@ -13,7 +13,7 @@ public interface PosIndex {
 
     PopCount pop();
 
-    int size();
+    int range();
 
     int posIndex(long i201);
 

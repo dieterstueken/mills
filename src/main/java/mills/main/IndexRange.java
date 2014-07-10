@@ -32,7 +32,7 @@ public class IndexRange extends RecursiveAction {
     }
 
     private void verify(final PosIndex pi) {
-        final int size = pi.size();
+        final int size = pi.range();
 
         System.out.format("verify %s\n", pi.pop());
 

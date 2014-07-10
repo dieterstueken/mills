@@ -72,7 +72,7 @@ public class C2Builder {
                 R0Table t0 = R0Table.of(r0, ImmutableList.copyOf(t1));
                 R2Entry entry = new R2Entry(index, r2.index, t0);
                 l2.add(entry);
-                index += t0.size();
+                index += t0.range();
                 l0.clear();
                 t1.clear();
             }
@@ -127,8 +127,8 @@ public class C2Builder {
 
         for(PopCount pop:PopCount.TABLE) {
             R2Index posIndex = indexes.get(pop);
-            int range = posIndex.size();
-            int n20 = posIndex.entries().size();
+            int range = posIndex.range();
+            int n20 = posIndex.values().size();
 
             System.out.format("%s %10d, %4d\n", pop, range, n20);
 
@@ -136,11 +136,11 @@ public class C2Builder {
 
             for (Map.Entry<PopCount, R2Index> entry : indexMap.entrySet()) {
                 R2Index index = entry.getValue();
-                range = index.size();
+                range = index.range();
                 if(range==0)
                     continue;
 
-                n20 = index.entries().size();
+                n20 = index.values().size();
                 PopCount clop = entry.getKey();
 
                 System.out.format("\t%s %10d, %4d\n", clop, range, n20);

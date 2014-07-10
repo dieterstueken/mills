@@ -17,21 +17,15 @@ import static mills.position.Positions.i1;
  * Date: 07.07.12
  * Time: 12:25
  */
-public class R0Table {
+public class R0Table extends IndexedMap<EntryTable> {
 
-    final IndexTable index;
-
-    final EntryTable t0;
-
-    final List<EntryTable> t1;
-
-    public int size() {
-        final int t = index.size()-1;
-        return t<0 ? 0 : index.getIndex(t) + t1.get(t).size();
+    public int range() {
+        final int t = it.size()-1;
+        return t<0 ? 0 : it.getIndex(t) + values.get(t).size();
     }
 
-    public List<EntryTable> entries() {
-        return t1;
+    public List<EntryTable> values() {
+        return values;
     }
 
     int idx01(long i201) {
@@ -44,15 +38,15 @@ public class R0Table {
     int idx01(short i0, short i1) {
 
         // lookup position of i0
-        final int pos = t0.findIndex(i0);
+        final int pos = keys.findIndex(i0);
         if(pos==-1)
             return -1;
         if(pos<-1)
-            return -index.getIndex(-2-pos);
+            return -it.getIndex(-2-pos);
 
         // get relative indexes
-        final int idx0 = index.getIndex(pos);
-        final int idx1 = t1.get(pos).findIndex(i1);
+        final int idx0 = it.getIndex(pos);
+        final int idx1 = values.get(pos).findIndex(i1);
 
         // if missing return lower bound by negative index
         if(idx1<0)
@@ -69,22 +63,22 @@ public class R0Table {
      */
     public long i201(short i2, int idx01) {
 
-        int pos = index.lowerBound(idx01);
-        int i0 = t0.ringIndex(pos);
-        idx01 -= index.getIndex(pos);
+        int pos = it.lowerBound(idx01);
+        int i0 = keys.ringIndex(pos);
+        idx01 -= it.getIndex(pos);
 
-        int i1 = t1.get(pos).ringIndex(idx01);
+        int i1 = values.get(pos).ringIndex(idx01);
 
         return Positions.i201(i2, i0, i1) | Positions.NORMALIZED;
     }
 
     boolean process(final int base, final short i2, final IndexProcessor processor, final int start, final int end) {
 
-        int i = start>base ? index.lowerBound(start-base) : 0;
+        int i = start>base ? it.lowerBound(start-base) : 0;
         boolean any = false;
 
-        for(; i<index.size(); i++) {
-            if(!foreach(base + index.getIndex(i), i2, t0.ringIndex(i), t1.get(i), processor, start, end))
+        for(; i< it.size(); i++) {
+            if(!foreach(base + it.getIndex(i), i2, keys.ringIndex(i), values.get(i), processor, start, end))
                 break;
             any = true;
         }
@@ -110,33 +104,30 @@ public class R0Table {
         return true;
     }
 
-    R0Table(IndexTable it, EntryTable t0, List<EntryTable> t1) {
-        this.index = it;
-        this.t0 = t0;
-        this.t1 = t1;
+    R0Table(EntryTable t0, List<EntryTable> t1, IndexTable it) {
+        super(t0, t1, it);
     }
 
     public static final Indexer<R0Table> INDEXER = new Indexer<R0Table>() {
 
         @Override
         public int index(R0Table t) {
-            return t.size();
+            return t.range();
         }
     };
 
     public static final R0Table EMPTY = new R0Table(
-            IndexTable.EMPTY,
-            EntryTable.EMPTY,
-            Collections.<EntryTable>emptyList());
+            EntryTable.EMPTY, Collections.<EntryTable>emptyList(), IndexTable.EMPTY
+    );
 
-    public static R0Table of(IndexTable it, EntryTable r0, List<EntryTable> t1) {
+    public static R0Table of(EntryTable r0, List<EntryTable> t1, IndexTable it) {
         assert r0.size() == it.size();
         assert r0.size() == t1.size();
 
-        return new R0Table(it, r0, t1);
+        return new R0Table(r0, t1, it);
     }
 
     public static R0Table of(EntryTable r0, List<EntryTable> t1) {
-        return of(IndexTable.build(t1), r0, t1);
+        return of(r0, t1, IndexTable.build(t1));
     }
 }

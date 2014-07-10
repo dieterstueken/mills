@@ -3,6 +3,7 @@ package mills.util;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.ToIntFunction;
 
 /**
  * Created by IntelliJ IDEA.
@@ -136,7 +137,7 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
         }
     };
 
-    public static <E> IndexTable build(final List<? extends E> table, final Indexer<E> indexer) {
+    public static <E> IndexTable build(final List<? extends E> table, final ToIntFunction<E> indexer) {
 
         if(table.isEmpty())
             return EMPTY;
@@ -146,7 +147,7 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
 
         for(int i=0; i<table.size(); ++i) {
             index[i] = idx;
-            idx += indexer.index(table.get(i));
+            idx += indexer.applyAsInt(table.get(i));
         }
 
         return IndexTable.of(index);

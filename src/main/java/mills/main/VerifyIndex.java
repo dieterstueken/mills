@@ -82,11 +82,11 @@ public class VerifyIndex {
 
                 final IndexProcessor processor = processor(pop);
 
-                final int size = (index.size() + SIZE - 1) / SIZE;
+                final int size = (index.range() + SIZE - 1) / SIZE;
 
                 List<RecursiveAction> tasks = AbstractRandomList.generate(size, i->{
                         final int start = i * SIZE;
-                        final int end = Math.min(start+SIZE, index.size());
+                        final int end = Math.min(start+SIZE, index.range());
 
                         return new RecursiveAction() {
 

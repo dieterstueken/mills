@@ -60,7 +60,7 @@ public class IndexList extends AbstractRandomList<R2Index> {
 
             PopCount pop = PopCount.get(p);
 
-            System.out.format("%d:%d %9d\n", pop.nb, pop.nw, t.size());
+            System.out.format("%d:%d %9d\n", pop.nb, pop.nw, t.range());
         }
     }
 }

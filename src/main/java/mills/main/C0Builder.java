@@ -37,15 +37,15 @@ public class C0Builder {
     private void verify(final PopCount pop) {
 
         R2Index posIndex = indexes.get(pop);
-        int range = posIndex.size();
-        int n20 = posIndex.entries().size();
+        int range = posIndex.range();
+        int n20 = posIndex.values().size();
 
         System.out.format("%s %10d, %4d\n", pop, range, n20);
         posIndex = null;
 
         final R2Table r2t = buildR2(pop);
-        range = r2t.size();
-        n20 = r2t.entries().size();
+        range = r2t.range();
+        n20 = r2t.values().size();
 
         System.out.format("%s %10d, %4d\n", pop, range, n20);
     }
@@ -66,7 +66,7 @@ public class C0Builder {
                  continue;
 
              R0Table r0 = buildR0(pop2, e2);
-             if(r0.entries().isEmpty())
+             if(r0.values().isEmpty())
                  continue;
 
              t2.add(e2);

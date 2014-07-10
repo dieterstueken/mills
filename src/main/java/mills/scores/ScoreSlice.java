@@ -37,7 +37,7 @@ public class ScoreSlice extends MapSlice {
     }
 
     public static int sliceCount(PosIndex index) {
-        return (index.size() + SIZE - 1) / SIZE;
+        return (index.range() + SIZE - 1) / SIZE;
     }
 
     static List<ScoreSlice> slices(final ScoreMap map) {

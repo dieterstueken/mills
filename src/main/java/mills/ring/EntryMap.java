@@ -14,9 +14,9 @@ import java.util.function.BiConsumer;
  */
 public class EntryMap<T> extends AbstractMap<RingEntry, T> implements SortedMap<RingEntry, T> {
 
-    final EntryTable keys;
+    protected final EntryTable keys;
 
-    final List<T> values;
+    protected final List<T> values;
 
     protected EntryMap(EntryTable keys, List<T> values) {
         this.keys = keys;
@@ -24,10 +24,6 @@ public class EntryMap<T> extends AbstractMap<RingEntry, T> implements SortedMap<
 
         if(keys.size() != values.size())
             throw new IllegalArgumentException("different sizes");
-    }
-
-    public static <T> EntryMap<T> of(EntryTable keys, List<T> values) {
-        return new EntryMap<T>(keys, values);
     }
 
     @Override
@@ -38,7 +34,7 @@ public class EntryMap<T> extends AbstractMap<RingEntry, T> implements SortedMap<
     public SortedMap<RingEntry, T> subMap(int fromIndex, int toIndex) {
         final EntryTable subKeys = keys.subList(fromIndex, toIndex);
         final List<T> subValues = values.subList(fromIndex, toIndex);
-        return of(subKeys, subValues);
+        return new EntryMap<T>(subKeys, subValues);
     }
 
     @Override

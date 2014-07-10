@@ -3,6 +3,7 @@ package mills.util;
 import com.google.common.collect.Ordering;
 
 import java.util.List;
+import java.util.function.ToIntFunction;
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,10 +20,15 @@ import java.util.List;
  *
  * @param <T>
  */
-abstract public class Indexer<T> extends Ordering<T> {
+abstract public class Indexer<T> extends Ordering<T> implements ToIntFunction<T> {
 
     // mapping to be implemented.
     abstract public int index(T element);
+
+    @Override
+    public int applyAsInt(T value) {
+        return index(value);
+    }
 
     public int compare(T e1, T e2) {
         return index(e1) - index(e2);

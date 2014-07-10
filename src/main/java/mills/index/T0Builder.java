@@ -76,6 +76,6 @@ class T0Builder extends R1Table {
         EntryTable r0 = EntryTable.of(t0, size);
         R1Table table = copyOf(size);
 
-        return R0Table.of(it, r0, table);
+        return R0Table.of(r0, table, it);
     }
 }

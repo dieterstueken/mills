@@ -105,7 +105,7 @@ public class CountOpen {
                     @Override
                     protected void compute() {
                         int start = i * Slice.SIZE;
-                        int size = posIndex.size();
+                        int size = posIndex.range();
                         int end = Math.min(start + Slice.SIZE, size);
                         Count count = new Count(s);
                         posIndex.process(count, start, end);
