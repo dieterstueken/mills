@@ -46,11 +46,12 @@ public class IndexDigest extends RecursiveAction {
         System.out.format("%.3f s\n", (stop - start) / 1000);
 
         System.out.println("digest: " + digest.digest());
-
-        //executor.shutdown();
     }
 
     public static void main(String ... args) throws NoSuchAlgorithmException, IOException {
+
         new IndexDigest().invoke();
+
+        //System.in.read();
     }
 }

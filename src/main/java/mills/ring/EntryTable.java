@@ -158,7 +158,7 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
         if(predicate == NONE)
             return EMPTY;
 
-        int i0;
+        int i0; // first match
 
         // find start of sequence
         for(i0=0; i0<size(); ++i0) {
@@ -170,8 +170,9 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
         if(i0==size())
             return EMPTY;
 
+        int i1; // first miss
+
         // find end of sequence
-        int i1;
         for(i1=i0+1; i1<size(); ++i1) {
             final RingEntry e = get(i1);
             if(!predicate.test(e))
@@ -184,7 +185,7 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
 
         // count filtered entries
         int count = i1-i0;
-        int i2 = size();
+        int i2 = size(); // last match (if any)
         for(int i=i1+1; i<size(); ++i) {
             final RingEntry e = get(i);
             if(predicate.test(e)) {
@@ -196,8 +197,11 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
         if(count==1)
             return get(i0).singleton;
 
-        // have to generate a sub list
+        // may be a sub list
+        if(i1-i0 == count)
+            return subList(i0, i1);
 
+        // have to generate a separate list
         short indexes[] = new short[count];
         count = 0;
         for(int i=i0; i<i1; ++i) {
@@ -272,12 +276,12 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
         if(size==1)
             return SingleEntry.of(entries.get(0).index());
 
-        short ringIndex[] = new short[size];
+        short table[] = new short[size];
 
         for(int i=0; i<size; i++)
-            ringIndex[i] = entries.get(i).index();
+            table[i] = entries.get(i).index();
 
-        return IndexTable.of(ringIndex);
+        return IndexTable.of(table);
     }
 
     public static EntryTable of(short[] ringIndex, int size) {
@@ -292,18 +296,18 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
         return of(values, values.length);
     }
 
-    public static EntryTable of(short[] ringIndex, int fromIndex, int toIndex) {
+    public static EntryTable of(short[] table, int fromIndex, int toIndex) {
 
         int size = toIndex - fromIndex;
         if(size==0)
             return EMPTY;
 
         if(size==1)
-            return SingleEntry.of(ringIndex[fromIndex]);
+            return SingleEntry.of(table[fromIndex]);
 
-        ringIndex = Arrays.copyOfRange(ringIndex, fromIndex, toIndex);
+        table = Arrays.copyOfRange(table, fromIndex, toIndex);
 
-        return IndexTable.of(ringIndex);
+        return IndexTable.of(table);
     }
 
     public static void main(final String... args) {

@@ -46,13 +46,17 @@ public class Partitions extends AbstractRandomList<Supplier<R2Index>> {
         return PopCount.SIZE;
     }
 
-    @Override
-    public Supplier<R2Index> get(int index) {
+    R2Index build(int index) {
         return new T2Builder(index) {
             @Override
             protected T0Builder newBuilder() {
-                            return new T0Builder(partitions, lePopTable);
-                        }
-        };
+                return new T0Builder(partitions, lePopTable);
+            }
+        }.build();
+    }
+
+    @Override
+    public Supplier<R2Index> get(int index) {
+        return () -> build(index);
     }
 }

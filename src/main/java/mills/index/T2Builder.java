@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 
 /**
  * Created by IntelliJ IDEA.
@@ -18,7 +17,7 @@ import java.util.function.Supplier;
  * Date: 25.11.12
  * Time: 12:17
  */
-abstract class T2Builder implements Supplier<R2Index> {
+abstract class T2Builder {
 
     final PopCount pop;
 
@@ -73,7 +72,7 @@ abstract class T2Builder implements Supplier<R2Index> {
             helper.join();
     }
 
-    public R2Index get() {
+    public R2Index build() {
 
         fillRemaining();
 
