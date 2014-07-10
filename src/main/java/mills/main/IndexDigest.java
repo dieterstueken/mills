@@ -48,6 +48,8 @@ public class IndexDigest extends RecursiveAction {
         System.out.println("digest: " + digest.digest());
     }
 
+    // e1f9dd6500301e4649063163f3c0d633
+
     public static void main(String ... args) throws NoSuchAlgorithmException, IOException {
 
         new IndexDigest().invoke();
