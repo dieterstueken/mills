@@ -89,7 +89,7 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
 
     @Override
     public EntryTable headSet(RingEntry toElement) {
-        return subList(0, upperBound(toElement.index));
+        return subList(0, lowerBound(toElement.index));
     }
 
     @Override

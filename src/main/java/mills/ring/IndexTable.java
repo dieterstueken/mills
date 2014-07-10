@@ -44,7 +44,7 @@ class IndexTable extends EntryTable {
     @Override
     public EntryTable subList(int fromIndex, int toIndex) {
 
-        if(toIndex>=fromIndex)
+        if(fromIndex>=toIndex)
             return EMPTY;
 
         if(toIndex==fromIndex+1)
