@@ -5,7 +5,8 @@ import mills.index.partitions.LePopTable;
 import mills.index.partitions.PartitionTables;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
-import mills.util.IndexTable;
+
+import java.util.List;
 
 import static mills.ring.RingEntry.MAX_INDEX;
 
@@ -24,8 +25,6 @@ class T0Builder extends R1Table {
 
     final LePopTable lePopTable;
 
-    final int index[] = new int[MAX_INDEX];
-
     final short t0[] = new short[MAX_INDEX];
 
     T0Builder(PartitionTables partitions, LePopTable lePopTable) {
@@ -37,7 +36,6 @@ class T0Builder extends R1Table {
     public R0Table build(final PopCount pop, final RingEntry e2) {
 
         int size = 0;
-        int count = 0;
 
         final EntryTable let = lePopTable.get(pop);
         for (final RingEntry e0 : let) {
@@ -66,16 +64,13 @@ class T0Builder extends R1Table {
 
             t0[size] = e0.index;
             popmsk[size] = msk;
-            index[size] = count;
 
             ++size;
-            count += entries.size();
         }
 
-        IndexTable it = IndexTable.of(index, size);
         EntryTable r0 = EntryTable.of(t0, size);
-        R1Table table = copyOf(size);
+        List<EntryTable> table = copyOf(size);
 
-        return R0Table.of(r0, table, it);
+        return R0Table.of(r0, table);
     }
 }

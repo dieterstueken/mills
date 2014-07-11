@@ -8,17 +8,17 @@ import java.util.Arrays;
  * Date: 22.10.11
  * Time: 20:14
  */
-class IndexTable extends EntryTable {
+class EntryArray extends EntryTable {
 
     private final short ringIndex[];
 
-    IndexTable(short[] ringIndex) {
+    EntryArray(short[] ringIndex) {
         assert isOrdered(ringIndex);
         this.ringIndex = ringIndex;
     }
 
-    static IndexTable of(short[] ringIndex) {
-        return new IndexTable(ringIndex);
+    static EntryArray of(short[] ringIndex) {
+        return new EntryArray(ringIndex);
     }
 
     @Override

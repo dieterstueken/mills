@@ -217,7 +217,7 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
 
         assert count == indexes.length : "filter mismatch";
 
-        return new IndexTable(indexes);
+        return new EntryArray(indexes);
     }
 
     @Override
@@ -281,7 +281,7 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
         for(int i=0; i<size; i++)
             table[i] = entries.get(i).index();
 
-        return IndexTable.of(table);
+        return EntryArray.of(table);
     }
 
     public static EntryTable of(short[] ringIndex, int size) {
@@ -307,7 +307,7 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
 
         table = Arrays.copyOfRange(table, fromIndex, toIndex);
 
-        return IndexTable.of(table);
+        return EntryArray.of(table);
     }
 
     public static void main(final String... args) {

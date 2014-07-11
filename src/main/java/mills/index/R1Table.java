@@ -6,6 +6,8 @@ import mills.ring.EntryTable;
 import mills.util.AbstractRandomList;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * version:     $Revision$
@@ -48,7 +50,13 @@ class R1Table extends AbstractRandomList<EntryTable> {
     }
 
     // create sub table
-    public R1Table copyOf(int size) {
+    public List<EntryTable> copyOf(int size) {
+        if(size==0)
+            return Collections.emptyList();
+
+        if(size==1)
+            return Collections.singletonList(get(0));
+
         final short[] table = Arrays.copyOf(this.popmsk, size);
         return new R1Table(this.partitions, table);
     }

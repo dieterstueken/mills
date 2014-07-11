@@ -36,7 +36,12 @@ abstract public class Indexer<T> extends Ordering<T> implements ToIntFunction<T>
 
     public int lowerBound(List<? extends T> sortedList, int key) {
         int index = binarySearchKey(sortedList, key);
-        return index<0 ? -2-index : index;
+        return index<0 ? -1-index : index;
+    }
+
+    public int upperBound(List<? extends T> sortedList, int key) {
+        int index = binarySearchKey(sortedList, key);
+        return index<0 ? -1-index : index+1;
     }
 
     public int binarySearchKey(List<? extends T> sortedList, int key) {

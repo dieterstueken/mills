@@ -15,6 +15,7 @@ public class R2Entry {
 
     // relative index
     final int index;
+    final int base;
 
     final short i2;
 
@@ -22,16 +23,21 @@ public class R2Entry {
 
     public R2Entry(int index, short i2, R0Table t0) {
         this.index = index;
+        this.base = index - t0.range();
         this.i2 = i2;
         this.t0 = t0;
     }
 
     public int size() {
+        return t0.size();
+    }
+
+    public int range() {
         return index + t0.range();
     }
 
-    public int count() {
-        return t0.range();
+    public String toString() {
+        return String.format("%d %d %d", index, i2, t0.size());
     }
 
     int posIndex(long n201) {
@@ -43,19 +49,19 @@ public class R2Entry {
         // if missing return lower bound by negative index
 
         if(posIndex<0)
-            posIndex -= index;
+            posIndex -= base;
         else
-            posIndex += index;
+            posIndex += base;
 
         return posIndex;
     }
 
     long i201(int posIndex) {
-        return t0.i201(i2, posIndex-index);
+        return t0.i201(i2, posIndex-base);
     }
 
     boolean process(IndexProcessor processor, int start, int end) {
-      return t0.process(index, i2, processor, start, end);
+      return t0.process(base, i2, processor, start, end);
     }
 
     static final Indexer<R2Entry> INDEX = new Indexer<R2Entry>() {
