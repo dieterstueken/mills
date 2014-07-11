@@ -1,7 +1,6 @@
 package mills.util;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.ToIntFunction;
 
@@ -15,7 +14,17 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
 
     abstract public int getIndex(int i);
 
-    abstract public int lowerBound(int index);
+    abstract public int findIndex(int index);
+
+    public int lowerBound(int index) {
+        index = findIndex(index);
+        return index<0 ? -(index+1) : index;
+    }
+
+    public int upperBound(int index) {
+        index = findIndex(index);
+        return index<0 ? -(index+1) : index+1;
+    }
 
     abstract public int range();
 
@@ -40,7 +49,7 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
             throw new IndexOutOfBoundsException("Index: "+i);
         }
 
-        public int lowerBound(int index) {
+        public int findIndex(int index) {
             return -1;
         }
     };
@@ -60,8 +69,13 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
             }
 
             @Override
-            public int lowerBound(int i) {
-                return i<index ? -1 : 0;
+            public int findIndex(int i) {
+                if(i<index)
+                    return -1;
+                if(i==index)
+                    return 0;
+
+                return -2;
             }
 
             @Override
@@ -74,10 +88,6 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
                 return index;
             }
         };
-    }
-
-    public static IndexTable of(final int table[], int size) {
-        return of(Arrays.copyOf(table, size));
     }
 
     public static IndexTable of(final int table[]) {
@@ -98,9 +108,8 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
             }
 
             @Override
-            public int lowerBound(int index) {
-                int offset = Arrays.binarySearch(table, index);
-                return offset<0 ? -2-offset : offset;
+            public int findIndex(int index) {
+                return Arrays.binarySearch(table, index);
             }
 
             @Override
@@ -137,28 +146,36 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
         }
     };
 
-    public static <E> IndexTable build(final List<? extends E> table, final ToIntFunction<E> indexer) {
+    public static <E> IndexTable sum(final List<? extends E> table, final ToIntFunction<? super E> indexer) {
 
         if(table.isEmpty())
             return EMPTY;
 
-        int index[] = new int[table.size()];
-        int idx = 0;
+        int sum = indexer.applyAsInt(table.get(0));
+        int size = table.size();
+        if(size==1)
+            return singleton(sum);
 
-        for(int i=0; i<table.size(); ++i) {
-            index[i] = idx;
-            idx += indexer.applyAsInt(table.get(i));
+        int index[] = new int[size];
+        index[0] = sum;
+
+        for(int i=1; i<size; ++i) {
+            sum += indexer.applyAsInt(table.get(i));
+            index[i] = sum;
         }
 
         return IndexTable.of(index);
     }
 
-    public static IndexTable build(List<? extends Collection<?>> t) {
-        final int index[] = new int[t.size()];
-        int sum=0;
-        for(int i=0; i<t.size(); ++i) {
+    public static <E> IndexTable sum0(final List<? extends E> table, final ToIntFunction<? super E> indexer) {
+
+        int size = table.size();
+        int index[] = new int[size];
+        int sum = 0;
+
+        for(int i=1; i<size; ++i) {
+            sum += indexer.applyAsInt(table.get(i));
             index[i] = sum;
-            sum += t.get(i).size();
         }
 
         return IndexTable.of(index);

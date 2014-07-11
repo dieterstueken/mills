@@ -70,9 +70,9 @@ public class C2Builder {
             if(!l0.isEmpty()) {
                 EntryTable r0 = table_builder.apply(l0);
                 R0Table t0 = R0Table.of(r0, ImmutableList.copyOf(t1));
+                index += t0.range();
                 R2Entry entry = new R2Entry(index, r2.index, t0);
                 l2.add(entry);
-                index += t0.range();
                 l0.clear();
                 t1.clear();
             }

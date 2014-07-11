@@ -3,10 +3,11 @@ package mills.index;
 import mills.position.Positions;
 import mills.ring.EntryTable;
 import mills.util.IndexTable;
-import mills.util.Indexer;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.ToIntFunction;
 
 import static mills.position.Positions.i0;
 import static mills.position.Positions.i1;
@@ -18,15 +19,6 @@ import static mills.position.Positions.i1;
  * Time: 12:25
  */
 public class R0Table extends IndexedMap<EntryTable> {
-
-    public int range() {
-        final int t = it.size()-1;
-        return t<0 ? 0 : it.getIndex(t) + values.get(t).size();
-    }
-
-    public List<EntryTable> values() {
-        return values;
-    }
 
     int idx01(long i201) {
         final short i0 = i0(i201);
@@ -42,10 +34,10 @@ public class R0Table extends IndexedMap<EntryTable> {
         if(pos==-1)
             return -1;
         if(pos<-1)
-            return -it.getIndex(-2-pos);
+            return -baseIndex(-2 - pos);
 
         // get relative indexes
-        final int idx0 = it.getIndex(pos);
+        final int idx0 = baseIndex(pos);
         final int idx1 = values.get(pos).findIndex(i1);
 
         // if missing return lower bound by negative index
@@ -63,9 +55,12 @@ public class R0Table extends IndexedMap<EntryTable> {
      */
     public long i201(short i2, int idx01) {
 
-        int pos = it.lowerBound(idx01);
+        assert idx01>=0;
+
+        int pos = it.upperBound(idx01);
+
         int i0 = keys.ringIndex(pos);
-        idx01 -= it.getIndex(pos);
+        idx01 -= baseIndex(pos);
 
         int i1 = values.get(pos).ringIndex(idx01);
 
@@ -74,11 +69,11 @@ public class R0Table extends IndexedMap<EntryTable> {
 
     boolean process(final int base, final short i2, final IndexProcessor processor, final int start, final int end) {
 
-        int i = start>base ? it.lowerBound(start-base) : 0;
+        int i = start>base ? it.upperBound(start-base) : 0;
         boolean any = false;
 
         for(; i< it.size(); i++) {
-            if(!foreach(base + it.getIndex(i), i2, keys.ringIndex(i), values.get(i), processor, start, end))
+            if(!foreach(base + baseIndex(i), i2, keys.ringIndex(i), values.get(i), processor, start, end))
                 break;
             any = true;
         }
@@ -108,14 +103,6 @@ public class R0Table extends IndexedMap<EntryTable> {
         super(t0, t1, it);
     }
 
-    public static final Indexer<R0Table> INDEXER = new Indexer<R0Table>() {
-
-        @Override
-        public int index(R0Table t) {
-            return t.range();
-        }
-    };
-
     public static final R0Table EMPTY = new R0Table(
             EntryTable.EMPTY, Collections.<EntryTable>emptyList(), IndexTable.EMPTY
     );
@@ -124,10 +111,15 @@ public class R0Table extends IndexedMap<EntryTable> {
         assert r0.size() == it.size();
         assert r0.size() == t1.size();
 
+        if(r0.isEmpty())
+            return EMPTY;
+
         return new R0Table(r0, t1, it);
     }
 
+    public static final ToIntFunction<Collection<?>> SIZE_OF = Collection::size;
+
     public static R0Table of(EntryTable r0, List<EntryTable> t1) {
-        return of(r0, t1, IndexTable.build(t1));
+        return of(r0, t1, IndexTable.sum(t1, SIZE_OF));
     }
 }

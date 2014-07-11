@@ -90,6 +90,7 @@ abstract class T2Builder {
 
             R0Table r0t = entries[i2];
             int count = r0t.range();
+            index += count;
 
             if(count!=0 || fullTable!=null) {
                 final R2Entry entry = new R2Entry(index, i2, r0t);
@@ -99,8 +100,6 @@ abstract class T2Builder {
                     fullTable.add(entry);
             }
 
-            // increment index
-            index += count;
         }
 
         if(fullTable==null)

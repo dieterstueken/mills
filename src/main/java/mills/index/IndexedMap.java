@@ -5,7 +5,6 @@ import mills.ring.EntryTable;
 import mills.util.IndexTable;
 
 import java.util.List;
-import java.util.function.ToIntFunction;
 
 /**
  * version:     $Revision$
@@ -18,6 +17,15 @@ public class IndexedMap<T> extends EntryMap<T> {
 
     final IndexTable it;
 
+    public int range() {
+        int size = it.size();
+        return size>0 ? it.get(size-1) : 0;
+    }
+
+    public int baseIndex(int pos) {
+        return pos==0 ? 0 : it.get(pos-1);
+    }
+
     protected IndexedMap(EntryTable keys, List<T> values, IndexTable it) {
         super(keys, values);
 
@@ -25,9 +33,4 @@ public class IndexedMap<T> extends EntryMap<T> {
 
         assert it.size() == size();
     }
-
-    protected IndexedMap(EntryTable keys, List<T> values, ToIntFunction<T> count) {
-        this(keys, values, IndexTable.build(values, count));
-    }
-
 }
