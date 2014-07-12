@@ -73,7 +73,7 @@ public class C0Builder {
              t0.add(r0);
          }
 
-         return R2Table.of(EntryTable.of(t2), ImmutableList.copyOf(t0));
+         return R2Table.of(pop, EntryTable.of(t2), ImmutableList.copyOf(t0));
     }
 
     R0Table buildR0(final PopCount pop, final RingEntry e2) {

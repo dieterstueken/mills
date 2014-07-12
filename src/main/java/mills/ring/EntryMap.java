@@ -3,7 +3,6 @@ package mills.ring;
 import mills.util.AbstractRandomList;
 
 import java.util.*;
-import java.util.function.BiConsumer;
 
 /**
  * version:     $Revision$
@@ -12,7 +11,7 @@ import java.util.function.BiConsumer;
  * modified by: $Author$
  * modified on: $Date$
  */
-public class EntryMap<T> extends AbstractMap<RingEntry, T> implements SortedMap<RingEntry, T> {
+public class EntryMap<T> implements SortedMap<RingEntry, T> {
 
     protected final EntryTable keys;
 
@@ -66,48 +65,14 @@ public class EntryMap<T> extends AbstractMap<RingEntry, T> implements SortedMap<
         return keys.last();
     }
 
-    private class Entries extends AbstractRandomList<Entry<RingEntry, T>> implements Set<Entry<RingEntry, T>> {
-
-        @Override
-        public int size() {
-            return keys.size();
-        }
-
-        @Override
-        public Entry<RingEntry, T> get(final int index) {
-            return new Entry<RingEntry, T>() {
-
-                @Override
-                public RingEntry getKey() {
-                    return keys.get(index);
-                }
-
-                @Override
-                public T getValue() {
-                    return values.get(index);
-                }
-
-                @Override
-                public T setValue(T value) {
-                    throw new UnsupportedOperationException();
-                }
-            };
-        }
-
-        @Override
-        public Spliterator<Entry<RingEntry, T>> spliterator() {
-            return Spliterators.spliterator(this, Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.ORDERED | Spliterator.IMMUTABLE);
-        }
-    }
-
-    @Override
-    public Set<Entry<RingEntry, T>> entrySet() {
-        return new Entries();
-    }
-
     @Override
     public int size() {
         return keys.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return keys.isEmpty();
     }
 
     @Override
@@ -126,14 +91,80 @@ public class EntryMap<T> extends AbstractMap<RingEntry, T> implements SortedMap<
     }
 
     @Override
+    public boolean containsValue(Object value) {
+        return values.contains(value);
+    }
+
+    @Override
     public T get(Object key) {
         int index = keys.indexOf(key);
         return index<0 ? null : values.get(index);
     }
 
     @Override
-    public void forEach(BiConsumer<? super RingEntry, ? super T> action) {
-        // todo: loop by index?
-        super.forEach(action);
+    public T put(RingEntry key, T value) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public T remove(Object key) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void putAll(Map<? extends RingEntry, ? extends T> m) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException();
+    }
+
+    public class Entry implements Map.Entry<RingEntry, T> {
+
+        protected final int index;
+
+        protected Entry(int index) {
+            this.index = index;
+        }
+
+        @Override
+        public RingEntry getKey() {
+            return keys.get(index);
+        }
+
+        @Override
+        public T getValue() {
+            return values.get(index);
+        }
+
+        @Override
+        public T setValue(T value) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public class EntrySet extends AbstractRandomList<Map.Entry<RingEntry, T>> implements Set<Map.Entry<RingEntry, T>> {
+
+        @Override
+        public int size() {
+            return keys.size();
+        }
+
+        @Override
+        public Entry get(final int index) {
+            return new Entry(index);
+        }
+
+        @Override
+        public Spliterator<Map.Entry<RingEntry, T>> spliterator() {
+            return Spliterators.spliterator(this, Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.ORDERED | Spliterator.IMMUTABLE);
+        }
+    }
+
+    @Override
+    public Set<Map.Entry<RingEntry, T>> entrySet() {
+        return new EntrySet();
     }
 }

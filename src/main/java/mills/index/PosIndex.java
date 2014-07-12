@@ -22,5 +22,7 @@ public interface PosIndex {
     // run processor for a given range
     IndexProcessor process(IndexProcessor processor, int start, int end);
 
-    IndexProcessor process(IndexProcessor processor);
+    default IndexProcessor process(IndexProcessor receiver) {
+        return process(receiver, 0, Integer.MAX_VALUE);
+    }
 }

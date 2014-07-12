@@ -75,10 +75,6 @@ public class R2Index implements PosIndex {
         return entry.i201(posIndex);
     }
 
-    public IndexProcessor process(IndexProcessor receiver) {
-        return process(receiver, 0, Integer.MAX_VALUE);
-    }
-
     public IndexProcessor process(IndexProcessor processor, int start, int end) {
         final int i0 = start>0 ? findBase(start) : 0;
 

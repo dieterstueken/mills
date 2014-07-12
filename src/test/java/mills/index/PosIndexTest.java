@@ -22,12 +22,10 @@ public class PosIndexTest {
 
         assertEquals(posIndex, m);
 
-        IndexProcessor verify = new IndexProcessor() {
-            @Override
-            public void process(int posIndex, long i201) {
-                assertEquals("posIndex", posIndex, index.posIndex(i201));
-                assertEquals("i201", i201, index.i201(posIndex));
-            }
+        IndexProcessor verify = (posIndex1, j201) -> {
+            assertEquals("posIndex", posIndex1, index.posIndex(j201));
+            assertEquals("i201", j201, index.i201(posIndex1));
+            //System.out.format("%d %d\n", posIndex1, j201);
         };
 
         index.process(verify);

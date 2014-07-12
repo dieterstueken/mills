@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /**
  * Created by IntelliJ IDEA.
@@ -17,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Date: 25.11.12
  * Time: 12:17
  */
-abstract class T2Builder {
+class T2Builder {
 
     final PopCount pop;
 
@@ -27,15 +28,12 @@ abstract class T2Builder {
 
     final AtomicInteger count = new AtomicInteger(0);
 
-    T2Builder(PopCount pop) {
+    final Supplier<T0Builder> builders;
+
+    T2Builder(PopCount pop, Supplier<T0Builder> builders) {
         this.pop = pop;
+        this.builders = builders;
     }
-
-    T2Builder(int pop) {
-         this(PopCount.TABLE.get(pop));
-     }
-
-    abstract protected T0Builder newBuilder();
 
     private void fillRemaining() {
 
@@ -54,7 +52,7 @@ abstract class T2Builder {
                 entries[i] = R0Table.EMPTY;
             else {
                 if (builder == null) // get a local builder
-                    builder = newBuilder();
+                    builder = builders.get();
                 entries[i] = builder.build(p2, e2);
                 count.incrementAndGet();
             }

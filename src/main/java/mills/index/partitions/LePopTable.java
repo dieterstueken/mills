@@ -1,7 +1,6 @@
 package mills.index.partitions;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import mills.bits.Player;
 import mills.bits.PopCount;
@@ -11,9 +10,9 @@ import mills.util.AbstractRandomList;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
 /**
@@ -31,19 +30,13 @@ import java.util.function.Predicate;
  */
 public class LePopTable extends AbstractRandomList<EntryTable> {
 
+    public static final LePopTable INSTANCE = new LePopTable();
+
+    public static LePopTable open() {
+        return INSTANCE;
+    }
+
     public static final int SIZE = PopCount.TABLE.size();
-
-    protected final EntryTable[] tables;
-
-    private LePopTable(final EntryTable[] tables) {
-        this.tables = tables;
-        assert tables.length == SIZE;
-    }
-
-    @Override
-    public EntryTable get(int index) {
-        return tables[index];
-    }
 
     @Override
     public int size() {
@@ -54,23 +47,43 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
         return pop==null ? EntryTable.EMPTY : get(pop.index());
     }
 
-    public static LePopTable open() {
-        return BUILDER.join();
-    }
+    private List<EntryTable> table = new AbstractRandomList<EntryTable>() {
 
-    private static final ForkJoinTask<LePopTable> BUILDER = new  RecursiveTask<LePopTable>() {
+        final AtomicBoolean started = new AtomicBoolean(false);
+
+        final Builder builder = new Builder() {
+
+            // reset self if ready
+            @Override
+            protected List<EntryTable> compute() {
+                List<EntryTable> result = super.compute();
+                table = result;
+                return result;
+            }
+        };
 
         @Override
-        protected LePopTable compute() {
-            return new Builder().compute();
+        public int size() {
+            return SIZE;
         }
-    }.fork();
 
-    //static final ConcurrentLinkedQueue<String> names = new ConcurrentLinkedQueue<>();
+        @Override
+        public EntryTable get(int index) {
+            if(!started.getAndSet(true))
+                builder.fork();
+
+            return builder.tasks.get(index).join();
+        }
+    };
+
+    @Override
+    public EntryTable get(int index) {
+        return table.get(index);
+    }
 
     ///////////////////////////////////////////////////////////////////////////
 
-    private static class Builder extends RecursiveTask<LePopTable> {
+    private static class Builder extends RecursiveTask<List<EntryTable>> {
 
         final List<ForkJoinTask<EntryTable>> tasks = new ArrayList<>(SIZE);
 
@@ -127,19 +140,11 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
         }
 
         @Override
-        protected LePopTable compute() {
+        protected List<EntryTable> compute() {
 
             invokeAll(tasks);
 
-            List<EntryTable> tables = Lists.transform(tasks,
-                    new Function<ForkJoinTask<EntryTable>, EntryTable>() {
-                @Override
-                public EntryTable apply(ForkJoinTask<EntryTable> task) {
-                    return task.join();
-                }
-            });
-
-            return new LePopTable(Iterables.toArray(tables, EntryTable.class));
+            return ImmutableList.copyOf(Lists.transform(tasks, task -> task.join()));
         }
     }
 
@@ -158,10 +163,5 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
 
             System.out.println();
         }
-    }
-
-    public static void main(String ... args) throws ExecutionException, InterruptedException {
-        //ForkJoinPool.commonPool().invoke(new Builder()).dump();
-        open().dump();
     }
 }

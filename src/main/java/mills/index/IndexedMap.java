@@ -5,6 +5,7 @@ import mills.ring.EntryTable;
 import mills.util.IndexTable;
 
 import java.util.List;
+import java.util.function.ToIntFunction;
 
 /**
  * version:     $Revision$
@@ -30,7 +31,11 @@ public class IndexedMap<T> extends EntryMap<T> {
         super(keys, values);
 
         this.it = it;
-
         assert it.size() == size();
+    }
+
+    protected IndexedMap(EntryTable keys, List<T> values, final ToIntFunction<? super T> indexer) {
+        super(keys, values);
+        this.it = IndexTable.sum(values, indexer);
     }
 }

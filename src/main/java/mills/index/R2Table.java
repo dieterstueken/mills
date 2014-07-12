@@ -1,9 +1,8 @@
 package mills.index;
 
-import com.google.common.collect.ImmutableList;
+import mills.bits.PopCount;
 import mills.position.Positions;
 import mills.ring.EntryTable;
-import mills.util.IndexTable;
 
 import java.util.List;
 
@@ -14,7 +13,7 @@ import java.util.List;
  * modified by: $Author$
  * modified on: $Date$
  */
-public class R2Table extends IndexedMap<R0Table> {
+public class R2Table extends IndexedMap<R0Table> implements PosIndex {
 
     public int posIndex(long i201) {
         assert Positions.normalized(i201);
@@ -26,7 +25,7 @@ public class R2Table extends IndexedMap<R0Table> {
         if(pos==-1)
             return -1;
         if(pos<-1)
-            return -baseIndex(-2-pos);
+            return -baseIndex(-2 - pos);
 
         R0Table r0 = values.get(pos);
         int posIndex = r0.idx01(i201);
@@ -42,7 +41,7 @@ public class R2Table extends IndexedMap<R0Table> {
         return posIndex;
     }
 
-    long i201(int posIndex) {
+    public long i201(int posIndex) {
 
         final int pos = it.upperBound(posIndex);
         R0Table r0 = values.get(pos);
@@ -67,25 +66,20 @@ public class R2Table extends IndexedMap<R0Table> {
         return processor;
     }
 
-    R2Table(EntryTable t2, List<R0Table> t0, IndexTable it) {
-        super(t2, t0, it);
+    final PopCount pop;
+
+    public final PopCount pop() {
+        return pop;
     }
 
-    static final R2Table EMPTY = new R2Table(EntryTable.EMPTY, ImmutableList.of(), IndexTable.EMPTY);
 
-    public static R2Table of(EntryTable t2, List<R0Table> t0, IndexTable it) {
-        int size = it.size();
+    R2Table(final PopCount pop, EntryTable t2, List<R0Table> t0) {
+        super(t2, t0, R0Table::range);
 
-        assert size == t2.size();
-        assert size == t0.size();
-
-        if(size==0)
-            return EMPTY;
-
-        return new R2Table(t2, ImmutableList.copyOf(t0), it);
+        this.pop = pop;
     }
 
-    public static R2Table of(EntryTable t2, List<R0Table> t0) {
-        return of(t2, t0, IndexTable.sum(t0, R0Table::range));
+    public static R2Table of(final PopCount pop, EntryTable t2, List<R0Table> t0) {
+        return new R2Table(pop, t2, t0);
     }
 }

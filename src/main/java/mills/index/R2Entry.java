@@ -33,7 +33,7 @@ public class R2Entry {
     }
 
     public int range() {
-        return index + t0.range();
+        return index;
     }
 
     public String toString() {
