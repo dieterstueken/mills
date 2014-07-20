@@ -1,9 +1,10 @@
 package mills.ring;
 
-import com.google.common.collect.Iterables;
-import mills.util.AbstractRandomList;
+import mills.util.ListSet;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -18,7 +19,7 @@ import java.util.function.Predicate;
  * In addition it provides utility methods to get the RingEntry.index directly,
  * to find the table indexOf a given RingEntry and to generate filtered subsets of itself.
  */
-public abstract class EntryTable extends AbstractRandomList<RingEntry> implements SortedSet<RingEntry>, Comparable<EntryTable> {
+public abstract class EntryTable extends ListSet<RingEntry> {
 
     // fast lookup of table index of a given ring index
     abstract public int findIndex(int ringIndex);
@@ -72,40 +73,20 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
     }
 
     @Override
-    public RingEntry[] toArray() {
-        return Iterables.toArray(this, RingEntry.class);
-    }
-
-    @Override
     public EntryTable subList(int fromIndex, int toIndex) {
-
-        int range = checkRange(fromIndex, toIndex);
-
-        if(range==0)
-            return EntryTable.EMPTY;
-
-        if(range==1)
-            return get(fromIndex).singleton;
-
-        if(range==size())
-            return this;
-
-        return new SubTable(this, fromIndex, range);
+        return (EntryTable) super.subList(fromIndex, toIndex);
     }
 
-    protected int checkRange(int fromIndex, int toIndex) {
+    public EntryTable empty() {
+        return EntryTable.EMPTY;
+    }
 
-        if(fromIndex<0)
-            throw new IndexOutOfBoundsException("fromIndex = " + fromIndex);
+    public EntryTable singleton(RingEntry entry) {
+        return entry.singleton;
+    }
 
-        if (toIndex > size())
-            throw new IndexOutOfBoundsException("toIndex = " + toIndex);
-
-        if (fromIndex > toIndex)
-            throw new IllegalArgumentException("fromIndex(" + fromIndex +
-                    ") > toIndex(" + toIndex + ")");
-
-        return toIndex-fromIndex;
+    protected EntryTable subset(int fromIndex, int toIndex) {
+        return new SubTable(this, fromIndex, toIndex);
     }
 
     @Override
@@ -126,28 +107,6 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
     @Override
     public EntryTable tailSet(RingEntry fromElement) {
         return subList(lowerBound(fromElement.index), size());
-    }
-
-    @Override
-    public RingEntry first() {
-
-        if(isEmpty())
-            throw new NoSuchElementException();
-
-        return get(0);
-    }
-
-    @Override
-    public RingEntry last() {
-        if(isEmpty())
-            throw new NoSuchElementException();
-
-        return get(size()-1);
-    }
-
-    @Override
-    public Spliterator<RingEntry> spliterator() {
-        return Spliterators.spliterator(this, Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.ORDERED | Spliterator.IMMUTABLE);
     }
 
     public EntryTable filter(Predicate<? super RingEntry> predicate) {
@@ -220,26 +179,9 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
         return new EntryArray(indexes);
     }
 
-    @Override
-    public int compareTo(EntryTable o) {
-        if(o==null)
-            return 1;
-
-        int result = Integer.compare(size(), o.size());
-
-        if(result==0)
-        for(int i=0; i<size(); ++i) {
-            result = Integer.compare(ringIndex(i), o.ringIndex(i));
-            if(result!=0)
-                break;
-        }
-
-        return result;
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static final Comparator<List<RingEntry>> COMPARATOR = new Comparator<List<RingEntry>>() {
+    public static final Comparator<List<RingEntry>> BY_SIZE = new Comparator<List<RingEntry>>() {
         @Override
         public int compare(List<RingEntry> t1, List<RingEntry> t2) {
 
@@ -253,6 +195,29 @@ public abstract class EntryTable extends AbstractRandomList<RingEntry> implement
 
             for(int i=0; result==0 && i<t1.size(); ++i)
                 result = RingEntry.COMPARATOR.compare(t1.get(i), t2.get(i));
+
+            return result;
+        }
+    };
+
+    public static final Comparator<List<RingEntry>> BY_ORDER = new Comparator<List<RingEntry>>() {
+        @Override
+        public int compare(List<RingEntry> t1, List<RingEntry> t2) {
+
+            if(t1==t2)
+                return 0;
+
+            if(t1==null)
+                return -1;
+
+            int size = Math.min(t1.size(), t2.size());
+
+            int result = 0;
+            for(int i=0; result==0 && i<size; ++i)
+                result = RingEntry.COMPARATOR.compare(t1.get(i), t2.get(i));
+
+            if(result==0)
+                result = Integer.compare(t1.size(), t2.size());
 
             return result;
         }

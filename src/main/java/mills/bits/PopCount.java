@@ -40,7 +40,7 @@ public class PopCount {
      * @param nw white population count.
      * @return a compact index for positive populations.
      */
-    public static int index(int nb, int nw) {
+    public static int _index(int nb, int nw) {
 
         // return some negative index, even if it's useless ...
         if (Math.min(nb, nw)<0)
@@ -53,15 +53,28 @@ public class PopCount {
         // create some pseudo index > 99
 
         int index = 10 * (nb%10) + (nw%10);
-        index += 100 * index(nb/10, nw/10);
+        index += 100 * _index(nb/10, nw/10);
 
         return index;
+    }
+
+    public static int index(int nb, int nw) {
+
+        if (Math.min(nb, nw)<0)
+            return -1;
+
+        int m = Math.max(nb, nw)+1;
+        m *= m;
+
+        int d = 2*(nb-nw);
+        m += d>0 ? 1-d : d;
+
+        return m-1;
     }
 
     public byte index() {
         return index;
     }
-
 
     public int sum() {
         return nb + nw;
@@ -165,13 +178,7 @@ public class PopCount {
 
     @Override
     public int hashCode() {
-        int m = Math.max(nb, nw)+1;
-        m *= m;
-
-        int d = 2*(nb-nw);
-        m += d>0 ? 1-d : d;
-
-        return m-1;
+        return index;
     }
 
     /**
@@ -252,24 +259,13 @@ public class PopCount {
      * @param args unused.
      */
     public static void main(String... args) {
+
         System.out.println("PopCount index");
-
-        for (int nw = -2; nw < 12; ++nw) {
-            for (int nb = -2; nb < 12; ++nb) {
-                //final PopCount p = PopCount.of(nb, nw);
-                //System.out.format("%3d", p.index());
-                System.out.format("%5d", index(nb, nw));
-            }
-
-            System.out.println();
-        }
-
-        System.out.println("PopCount hash");
 
         for (int nw = 0; nw < 12; ++nw) {
             for (int nb = 0; nb < 12; ++nb) {
                 final PopCount p = PopCount.of(nb, nw);
-                System.out.format("%5d", p.hashCode());
+                System.out.format("%s %5d", p.toString(), p.index());
             }
 
             System.out.println();

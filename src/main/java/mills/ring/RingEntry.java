@@ -7,7 +7,6 @@ import mills.util.AbstractRandomList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -55,16 +54,16 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     // permutation group fingerprint
     public final PGroup grp;
 
-    public Function<Sector, Player> player = sector -> {
+    public Player player(Sector sector) {
         int p = index/sector.pow3();
         return Player.of(p%3);
-    };
+    }
 
     public List<Player> players = new AbstractRandomArray<Player>(8) {
 
         @Override
         public Player get(int i) {
-            return player.apply(Sector.of(i));
+            return player(Sector.of(i));
         }
     };
 
@@ -292,8 +291,6 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     public static final RingTable TABLE = new RingTable();
 
     public static final EntryTable MINIMIZED = TABLE.filter(IS_MIN);
-
-    public static final PopTable POP_TABLE = PopTable.create(MINIMIZED);
 
     public static RingEntry of(int index) {
         return TABLE.get(index);

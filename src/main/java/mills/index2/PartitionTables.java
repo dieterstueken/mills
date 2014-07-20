@@ -7,11 +7,13 @@ import mills.ring.RingEntry;
 import mills.util.AbstractRandomArray;
 import mills.util.AbstractRandomList;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * Created by IntelliJ IDEA.
@@ -84,7 +86,7 @@ public class PartitionTables extends AbstractRandomList<List<EntryTable>> {
          * PGroup.Set maps some index to an unique index with an equivalent entry which may be copied.
          */
 
-        final Set<PGroup> groups = groups(root);
+        final Set<PGroup> groups = PGroup.groups(root);
 
         // table to populate
         EntryTable[] table = new EntryTable[128];
@@ -97,7 +99,7 @@ public class PartitionTables extends AbstractRandomList<List<EntryTable>> {
                 continue;   // done
 
             // try get an entry which may have been calculated before.
-            int part = pindex(groups, msk);
+            int part = PGroup.pindex(groups, msk);
 
             et = table[part];
             if (et == null) {
@@ -112,32 +114,6 @@ public class PartitionTables extends AbstractRandomList<List<EntryTable>> {
         }
 
         return AbstractRandomList.of(table);
-    }
-
-    private static Set<PGroup> groups(EntryTable table) {
-        // form an enum set of all e.grp groups.
-        return table.stream().map(e->e.grp).collect(Collectors.toCollection(()->EnumSet.noneOf(PGroup.class)));
-    }
-
-    /**
-     * Calculate a partition index for a given restriction mask.
-     * @param msk of prohibited meq bits.
-     * @return the highest partition index of all permitted bits set.
-     */
-    private static int pindex(Set<PGroup> group, int msk) {
-
-        // bits allowed
-        int index = 127;
-
-        for(PGroup pg:group) {
-
-            if ((pg.msk & msk) == 0) {
-                // clear all msk bits from index
-                index &= 127 ^ pg.msk;
-            }
-        }
-
-        return index;
     }
 
     public static final PartitionTables INSTANCE = new PartitionTables();

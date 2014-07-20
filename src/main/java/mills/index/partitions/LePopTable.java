@@ -6,10 +6,12 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
+import mills.ring.SubTable;
 import mills.util.AbstractRandomList;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -158,10 +160,15 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
             for (int nw = 0; nw < 10; nw++) {
                 final PopCount pop = PopCount.of(nb, nw);
                 final EntryTable t = get(pop.index());
-                System.out.format("%5d", t.size());
+                System.out.format("%5d%s", t.size(), (t instanceof SubTable) ? "+" : " ");
             }
 
             System.out.println();
         }
     }
+
+    public static void main(String... args) throws InterruptedException, ExecutionException {
+        INSTANCE.dump();
+    }
+
 }

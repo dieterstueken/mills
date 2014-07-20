@@ -1,11 +1,12 @@
 package mills.index.partitions;
 
+import com.google.common.collect.ImmutableList;
 import mills.bits.PGroup;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 
-import java.util.Arrays;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -27,6 +28,8 @@ public class PartitionTable extends AbstractRandomList<EntryTable> {
 
     private final EntryTable table[];
 
+    public List<EntryTable> tables;
+
     @Override
     public EntryTable get(int index) {
         return table[index];
@@ -37,14 +40,16 @@ public class PartitionTable extends AbstractRandomList<EntryTable> {
         return 128;
     }
 
-    private PartitionTable(EntryTable table[]) {
+    private PartitionTable(EntryTable table[], List<EntryTable> tables) {
         assert table.length == 128 : String.format("unexpected size: %d!=128", table.length);
         this.table = table;
+        this.tables = ImmutableList.copyOf(tables);
     }
 
     private PartitionTable() {
         table = new EntryTable[128];
         Arrays.fill(table, EntryTable.EMPTY);
+        this.tables = Collections.emptyList();
     }
 
     /**
@@ -57,9 +62,10 @@ public class PartitionTable extends AbstractRandomList<EntryTable> {
         if(root.isEmpty())
             return EMPTY;
 
-        final PGroup.Set groups = PGroup.Set.of(root);
+        final Set<PGroup> groups = PGroup.groups(root);
 
         EntryTable[] table = new EntryTable[128];
+        List<EntryTable> tables = new ArrayList<>(20);
 
         // populate all partitions
         for(int msk=0; msk<128; ++msk) {
@@ -69,7 +75,7 @@ public class PartitionTable extends AbstractRandomList<EntryTable> {
                 continue;   // done
 
             // get part mask which may have been already calculated.
-            int part = groups.partition(msk);
+            int part = PGroup.pindex(groups, msk);
 
             et = table[part];
             if(et==null) {
@@ -77,12 +83,13 @@ public class PartitionTable extends AbstractRandomList<EntryTable> {
                 final Predicate<RingEntry> f = PartitionFilter.of(msk);
                 et = root.filter(f);
                 table[part] = et;
+                tables.add(et);
             }
 
             if(part!=msk)
                 table[msk] = et;
         }
 
-        return new PartitionTable(table);
+        return new PartitionTable(table, tables);
     }
 }

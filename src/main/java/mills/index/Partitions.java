@@ -3,6 +3,7 @@ package mills.index;
 import mills.bits.PopCount;
 import mills.index.partitions.LePopTable;
 import mills.index.partitions.PartitionTables;
+import mills.ring.EntryTable;
 import mills.util.AbstractRandomList;
 
 import java.util.concurrent.ForkJoinTask;
@@ -53,5 +54,13 @@ public class Partitions extends AbstractRandomList<Supplier<R2Index>> {
     @Override
     public Supplier<R2Index> get(int index) {
         return () -> build(index);
+    }
+
+    public EntryTable lePop(PopCount pop) {
+        return lePopTable.get(pop);
+    }
+
+    public EntryTable partition(PopCount pop, int mlt) {
+        return partitions.get(pop).get(mlt);
     }
 }

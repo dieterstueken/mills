@@ -33,7 +33,10 @@ public class IndexDigest extends RecursiveAction {
         System.out.format("start %d\n", RingEntry.TABLE.size());
         double start = System.currentTimeMillis();
 
-        for(PopCount pop:PopCount.TABLE) {
+        //for(PopCount pop:PopCount.TABLE) {
+        for(int nw=0; nw<10; ++nw)
+        for(int nb=0; nb<10; ++nb) {
+            PopCount pop = PopCount.of(nb, nw);
             final R2Index posIndex = indexes.get(pop);
             final int range = posIndex.range();
             int n20 = posIndex.values().size();

@@ -47,7 +47,7 @@ public class EntryMap<T> implements SortedMap<RingEntry, T> {
 
     @Override
     public SortedMap<RingEntry, T> headMap(RingEntry toKey) {
-        return subMap(0, keys.upperBound(toKey.index));
+        return subMap(0, keys.lowerBound(toKey.index));
     }
 
     @Override
@@ -80,9 +80,17 @@ public class EntryMap<T> implements SortedMap<RingEntry, T> {
         return keys;
     }
 
+    public RingEntry key(int index) {
+        return keys.get(index);
+    }
+
     @Override
     public List<T> values() {
         return values;
+    }
+
+    public T value(int index) {
+        return values.get(index);
     }
 
     @Override

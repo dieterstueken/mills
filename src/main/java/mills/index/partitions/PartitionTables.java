@@ -107,7 +107,7 @@ public class PartitionTables extends AbstractRandomList<PartitionTable> {
 
     private void dump() {
 
-        System.out.println("leTable");
+        System.out.println("partition tables");
 
         for (int nb = 0; nb < 10; nb++) {
             for (int nw = 0; nw < 10; nw++) {

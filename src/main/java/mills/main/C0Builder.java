@@ -5,9 +5,12 @@ import mills.bits.PopCount;
 import mills.index.*;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
+import mills.ring.RingTable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * version:     $Revision$
@@ -22,19 +25,24 @@ public class C0Builder {
     final IndexList indexes = IndexList.create();
 
     public static void main(String... args) {
-        C0Builder main = new C0Builder();
-        main.run();
+        new C0Builder().run();
     }
 
-    void run() {
+    final Set<EntryTable> tables = new ConcurrentSkipListSet<>(EntryTable.BY_ORDER);
 
-        for (PopCount pop : PopCount.TABLE) {
-            System.out.println(pop);
-            verify(pop);
-        }
+    void run() {
+        PopCount.TABLE.forEach(this::count);
+
+        tables.forEach(
+            t->{
+                t.forEach(e->System.out.format("%d ", e.index()));
+                System.out.println();
+            }
+        );
     }
 
     private void verify(final PopCount pop) {
+        System.out.println(pop);
 
         R2Index posIndex = indexes.get(pop);
         int range = posIndex.range();
@@ -50,7 +58,41 @@ public class C0Builder {
         System.out.format("%s %10d, %4d\n", pop, range, n20);
     }
 
-     R2Table buildR2(PopCount pop) {
+    private void count(final PopCount pop) {
+
+        R2Table index = buildR2(pop);
+
+        int range = index.range();
+        int n20 = index.values().size();
+
+        System.out.format("%s %10d, %4d\n", pop, range, n20);
+
+        ClopIndex ci = new ClopIndex.Builder(index){
+            @Override
+            public EntryTable table(List<RingEntry> list) {
+                EntryTable table = EntryTable.of(list);
+                //tables.add(table);
+                return table;
+            }
+        }.compute();
+
+        for(int i=0; i<25; ++i) {
+            index = ci.get(i);
+
+            if(index.isEmpty())
+                continue;
+
+            PopCount clop = PopCount.TABLE.get(i);
+            range = index.range();
+            n20 = index.values().size();
+
+            System.out.format("\t%s %10d, %4d\n", clop, range, n20);
+        }
+
+        System.out.format("size: %d\n", tables.size());
+    }
+
+    R2Table buildR2(PopCount pop) {
 
          final EntryTable let = partitions.lePopTable.get(pop);
 

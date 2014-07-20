@@ -10,7 +10,9 @@ package mills.bits;
 import mills.ring.RingEntry;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -68,49 +70,55 @@ public enum PGroup {
         return pg;
     }
 
-    /**
-     * A Set of PGroups to calculate restricted / permitted bits.
-     */
-    public static class Set {
+    public static EnumSet<PGroup> groups(final Iterable<RingEntry> entries) {
 
-        final int groups;
-
-        private Set(int groups) {this.groups = groups;}
-
-        public static Set of(final List<RingEntry> entries) {
-
-            int groups = 0;
-
-            // sum up all groups.
-            for(final RingEntry e : entries)
-                groups |= 1 << e.grp.ordinal();
-
-            return new Set(groups);
+        EnumSet<PGroup> groups = EnumSet.noneOf(PGroup.class);
+        for(final RingEntry e : entries) {
+            groups.add(e.grp);
         }
 
-        /**
-         * Calculate a partition index for a given restriction mask.
-         * @param restriction mask of prohibited meq bits.
-         * @return the highest partition index of all permitted bits set.
-         */
-        public int partition(int restriction) {
+        return groups;
+    }
 
-            // sum up all restricted bits.
-            int sum = 0;
+    /**
+     * Calculate a partition index for a given restriction mask.
+     * @param msk of prohibited meq bits.
+     * @return the highest partition index of all permitted bits set.
+     */
+    public static int pindex(Set<PGroup> groups, int msk) {
+        // bits allowed
+            int index = 127;
 
-            for(int i=0; i<9; ++i) {
-                if((groups&(1<<i)) != 0) {
-                    final PGroup pg = PGroup.get(i);
-                    final int msk = pg.msk;
-                    // sum up all permitted groups
-                    if((msk&restriction) == 0)
-                        sum |= msk;
+            for(PGroup pg:groups) {
+
+                if ((pg.msk & msk) == 0) {
+                    // clear all msk bits from index
+                    index &= 127 ^ pg.msk;
                 }
             }
 
-            // the partition index has all bits set which are still unset.
-            return sum ^ 127;
+            return index;
+    }
+
+    public static int code(Set<PGroup> groups) {
+        int code = 0;
+
+        for(PGroup pg:groups) {
+            int m = 1<<pg.ordinal();
+            code |= m;
         }
+
+        return code;
+    }
+
+    public static int mask(Set<PGroup> groups) {
+        int mask = 0;
+
+        for(PGroup pg:groups) {
+            mask |= pg.msk;
+        }
+
+        return mask;
     }
 
     /**
