@@ -19,22 +19,37 @@ public class Partition {
 
     final List<PartitionGroup> groups;
 
-    public Partition(List<EntryTable> tables, List<PartitionGroup> groups) {
+    final List<PartitionGroup> set;
+
+    public Partition(List<EntryTable> tables, List<PartitionGroup> groups, List<PartitionGroup> set) {
         this.tables = tables;
         this.groups = groups;
+        this.set = set;
     }
 
-    public int getKey(int msk, PopCount clop, int radials) {
+    public int getKey(int msk, int clop, int radials) {
         return groups.get(msk).getKey(clop, radials);
     }
 
-    public static Partition EMPTY = new Partition(Collections.emptyList(), null) {
+    public static Partition EMPTY = new Partition(Collections.emptyList(), Collections.emptyList(), Collections.emptyList()) {
 
         @Override
-        public int getKey(int msk, PopCount clop, int radials) {
+        public int getKey(int msk, int clop, int radials) {
             return -1;
         }
     };
+
+    public int count() {
+        int count = 0;
+        for (PartitionGroup pg : set) {
+            count += pg.groups.size();
+        }
+        return count;
+    }
+
+    public boolean isEmpty() {
+        return set.isEmpty();
+    }
 
     static class Builder {
 
@@ -53,7 +68,7 @@ public class Partition {
             for (PopCount clop : PopCount.TABLE.subList(0, 25)) {
                 if(clop.le(pop))
                     for(int rad=0; rad<81; ++rad) {
-                        GroupFilter filter = GroupFilter.of(clop, rad);
+                        GroupFilter filter = GroupFilter.of(clop.index, rad);
                         EntryTable table = root.filter(filter);
                         Integer key = allocateKey(table);
                         if(key!=null)
@@ -73,13 +88,14 @@ public class Partition {
                 return Partition.EMPTY;
 
             PartitionGroup groups[] = new PartitionGroup[128];
+            List<PartitionGroup> gset = new LinkedList<>();
 
             /**
              * The groups[128] contain only a few different entries.
              * PGroup.Set maps some index to an unique index with an equivalent entry which may be copied.
              */
 
-            final Set<PGroup> gset = PGroup.groups(root);
+            final Set<PGroup> pset = PGroup.groups(root);
 
             // populate all partitions
             for (int msk = 0; msk < 128; ++msk) {
@@ -89,13 +105,15 @@ public class Partition {
                     continue;
 
                 // try get an entry which may have been calculated before.
-                int part = PGroup.pindex(gset, msk);
+                int part = PGroup.pindex(pset, msk);
 
                 group = groups[part];
                 if (group == null) {
                     // generate a new partition
                     group = group(pop, root.filter(PGroup.filter(msk)));
                     groups[part] = group;
+                    if(!group.isEmpty())
+                        gset.add(group);
                 }
 
                 // populate entry
@@ -103,7 +121,7 @@ public class Partition {
                     groups[msk] = group;
             }
 
-            return new Partition(tables, Arrays.asList(groups));
+            return new Partition(tables, Arrays.asList(groups), gset);
         }
 
         private Integer allocateKey(EntryTable table) {

@@ -1,6 +1,5 @@
 package mills.partitions;
 
-import mills.bits.PopCount;
 import mills.ring.EntryTable;
 
 import java.util.Collections;
@@ -24,16 +23,20 @@ public class PartitionGroup {
         this.groups = groups;
     }
 
-    public int getKey(PopCount clop, int radials) {
+    public int getKey(int clop, int radials) {
         GroupFilter groupFilter = GroupFilter.of(clop, radials);
         Integer key = groups.get(groupFilter);
 
         return key==null ? -1 : key;
     }
 
+    public boolean isEmpty() {
+        return root.isEmpty();
+    }
+
     public static final PartitionGroup EMPTY = new PartitionGroup(EntryTable.EMPTY, Collections.emptyMap()) {
         @Override
-        public int getKey(PopCount clop, int radials) {
+        public int getKey(int clop, int radials) {
             return -1;
         }
     };

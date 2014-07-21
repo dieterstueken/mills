@@ -22,11 +22,11 @@ import java.util.function.Supplier;
  */
 public class Partitions {
 
-    final List<Partition> partitions;  // pop
+    private final List<Partition> partitions;  // pop
 
-    List<EntryTable> tables = new ArrayList<>();
+    private final List<EntryTable> tables = new ArrayList<>();
 
-    IndexTable ranges;
+    private final IndexTable ranges;
 
     public Partitions(List<Partition> partitions) {
         this.partitions = partitions;
@@ -38,14 +38,12 @@ public class Partitions {
         ranges = IndexTable.sum(partitions, p->p.tables.size());
     }
 
-    public int getKey(PopCount pop, int msk, PopCount clop, int radials) {
-        int key = partitions.get(pop.index).getKey(msk, clop, radials);
-        key += baseKey(pop.index);
-        return key;
-    }
+    public int getKey(int pop, int msk, int clop, int radials) {
+        int key = partitions.get(pop).getKey(msk, clop, radials);
+        if(pop>0)
+            key += ranges.get(pop);
 
-    private short baseKey(int index) {
-        return 0;
+        return key;
     }
 
     public EntryTable getTable(int key) {
@@ -112,7 +110,21 @@ public class Partitions {
     };
 
     public static void main(String ... args) {
-        Partitions p = build();
-        System.out.println(p.tables.size());
+        Partitions pt = get();
+
+        for (PopCount pop : PopCount.TABLE) {
+            Partition p = pt.partitions.get(pop.index);
+
+            if(p.isEmpty())
+                continue;
+
+            System.out.format("%s %3d %3d %4d: ", pop, p.set.size(), p.tables.size(), p.count());
+
+            for (PartitionGroup pg : p.set) {
+                System.out.format(" %d:%d", pg.root.size(), pg.groups.size());
+            }
+
+            System.out.println();
+        }
     }
 }

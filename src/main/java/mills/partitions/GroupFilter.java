@@ -44,8 +44,8 @@ public class GroupFilter implements Predicate<RingEntry>, Comparable<GroupFilter
         return Integer.compare(hashCode(), o.hashCode());
     }
 
-    public static GroupFilter of(PopCount clop, int radials) {
-        int index = 81*clop.index + radials;
+    public static GroupFilter of(int clop, int radials) {
+        int index = 81*clop + radials;
         return FILTERS.get(index);
     }
 }
