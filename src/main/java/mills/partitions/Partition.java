@@ -50,14 +50,15 @@ public class Partition {
 
             final Map<GroupFilter, Integer> groups = new TreeMap<>();
 
-            for (GroupFilter filter : GroupFilter.FILTERS) {
-
-                if(filter.clop.le(pop)) {
-                    EntryTable table = root.filter(filter);
-                    Integer key = allocateKey(table);
-                    if(key!=null)
-                        groups.put(filter, key);
-                }
+            for (PopCount clop : PopCount.TABLE.subList(0, 25)) {
+                if(clop.le(pop))
+                    for(int rad=0; rad<81; ++rad) {
+                        GroupFilter filter = GroupFilter.of(clop, rad);
+                        EntryTable table = root.filter(filter);
+                        Integer key = allocateKey(table);
+                        if(key!=null)
+                            groups.put(filter, key);
+                    }
             }
 
             return new PartitionGroup(root, groups);

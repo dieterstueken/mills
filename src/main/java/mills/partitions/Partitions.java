@@ -10,6 +10,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 /**
  * Created by IntelliJ IDEA.
@@ -80,6 +83,33 @@ public class Partitions {
 
         return new Partitions(Arrays.asList(partitions));
     }
+
+    public static Partitions get() {
+        return SUPPLIER.get();
+    }
+
+    private static Supplier<Partitions> SUPPLIER = new Supplier<Partitions>() {
+
+        final ForkJoinTask<Partitions> task = new RecursiveTask<Partitions>() {
+
+            @Override
+            protected Partitions compute() {
+                Partitions partitions = build();
+                SUPPLIER = () -> partitions;
+                return partitions;
+            }
+        };
+
+        final AtomicBoolean forked = new AtomicBoolean(false);
+
+        @Override
+        public Partitions get() {
+            if(!forked.getAndSet(true))
+                task.fork();
+
+            return task.join();
+        }
+    };
 
     public static void main(String ... args) {
         Partitions p = build();
