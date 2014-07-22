@@ -102,6 +102,22 @@ public class PopCount {
         return of(9 - nb, 9 - nw);
     }
 
+
+    public static int mclop(int count) {
+        if(count>=8)
+            return 4;
+        if(count>=7)
+            return 3;
+        if(count>=5)
+            return 2;
+        return count>=3 ? 1 : 0;
+    }
+
+    // maximum possible closed population
+    public PopCount mclop() {
+        return PopCount.of(mclop(nb), mclop(nw));
+    }
+
     /**
      * Return if this PopCount has less or equal occupations than another one.
      * An instance of PopCount is never le than null.

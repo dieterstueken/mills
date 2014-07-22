@@ -1,9 +1,10 @@
 package mills.partitions;
 
+import mills.bits.PopCount;
 import mills.ring.EntryTable;
+import mills.util.AbstractRandomList;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.function.ToIntFunction;
 
 /**
  * version:     $Revision$
@@ -12,32 +13,71 @@ import java.util.Map;
  * modified by: $Author$
  * modified on: $Date$
  */
-public class PartitionGroup {
+public class PartitionGroup extends AbstractRandomList<RadialGroup> {
 
-    final EntryTable root;
+    public final EntryTable root;
 
-    final Map<GroupFilter, Integer> groups;
+    private final RadialGroup groups[];  // 25
 
-    public PartitionGroup(EntryTable root, Map<GroupFilter, Integer> groups) {
+    public PartitionGroup(EntryTable root, RadialGroup groups[]) {
         this.root = root;
         this.groups = groups;
+        assert groups.length == 25;
     }
 
-    public int getKey(int clop, int radials) {
-        GroupFilter groupFilter = GroupFilter.of(clop, radials);
-        Integer key = groups.get(groupFilter);
+    public static final PartitionGroup EMPTY = new PartitionGroup(EntryTable.EMPTY, new RadialGroup[25]) {
+        @Override
+        public int getKey(PopCount clop, int radials) {
+            return 0;
+        }
 
-        return key==null ? -1 : key;
+        @Override
+        public String toString() {
+            return "empty";
+        }
+    };
+
+    @Override
+    public int size() {
+        return 25;
+    }
+
+    @Override
+    public RadialGroup get(int radials) {
+        return groups[radials];
+    }
+
+    public int getKey(PopCount clop, int radials) {
+        RadialGroup group = groups[clop.index];
+        return group==null ? 0 : group.getKey(radials);
+    }
+
+    int count() {
+        int count = 0;
+        for (RadialGroup group : groups) {
+            if(group!=null)
+                ++count;
+        }
+
+        return count;
     }
 
     public boolean isEmpty() {
         return root.isEmpty();
     }
 
-    public static final PartitionGroup EMPTY = new PartitionGroup(EntryTable.EMPTY, Collections.emptyMap()) {
-        @Override
-        public int getKey(int clop, int radials) {
-            return -1;
+    static PartitionGroup build(PopCount pop, EntryTable root, ToIntFunction<EntryTable> index) {
+
+        if(root.isEmpty()) {
+            return PartitionGroup.EMPTY;
         }
-    };
+
+        RadialGroup groups[] = new RadialGroup[25];
+
+        PopCount.TABLE.subList(0, 25).stream().filter(clop -> clop.le(pop)).forEach(clop -> {
+            groups[clop.index] = RadialGroup.build(root, GroupFilter.filters(clop.index), index);
+        });
+
+        return new PartitionGroup(root, groups);
+    }
 }

@@ -35,6 +35,7 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
     public static final LePopTable INSTANCE = new LePopTable();
 
     public static LePopTable open() {
+        INSTANCE.size();
         return INSTANCE;
     }
 
@@ -66,6 +67,8 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
 
         @Override
         public int size() {
+            if(!started.getAndSet(true))
+                builder.fork();
             return SIZE;
         }
 
@@ -168,7 +171,7 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
     }
 
     public static void main(String... args) throws InterruptedException, ExecutionException {
-        INSTANCE.dump();
+        open().dump();
     }
 
 }

@@ -34,10 +34,15 @@ public class GroupFilter implements Predicate<RingEntry>, Comparable<GroupFilter
 
     @Override
     public boolean test(RingEntry e) {
-        return e.closed().add(radials.apply(e)).equals(clop);
+        return e.clop().add(radials.apply(e)).equals(clop);
     }
 
-    static final List<GroupFilter> FILTERS = AbstractRandomList.generate(81*25, GroupFilter::new);
+    static final List<GroupFilter> FILTERS = AbstractRandomList.generate(25*81, GroupFilter::new);
+
+    static List<GroupFilter> filters(int clop) {
+        int start = 81*clop;
+        return FILTERS.subList(start, start+81);
+    }
 
     @Override
     public int compareTo(GroupFilter o) {

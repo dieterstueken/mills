@@ -1,9 +1,11 @@
 package mills.partitions;
 
+import com.google.common.collect.ImmutableList;
 import mills.bits.PGroup;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
+import mills.util.AbstractRandomList;
 
 import java.util.*;
 
@@ -13,36 +15,56 @@ import java.util.*;
  * Date: 7/21/14
  * Time: 9:14 AM
  */
-public class Partition {
+public class Partition extends AbstractRandomList<PartitionGroup> {
 
     final List<EntryTable> tables;
 
-    final List<PartitionGroup> groups;
+    final List<PartitionGroup> groups; // 128
 
     final List<PartitionGroup> set;
 
-    public Partition(List<EntryTable> tables, List<PartitionGroup> groups, List<PartitionGroup> set) {
+    private Partition(List<EntryTable> tables, List<PartitionGroup> groups, List<PartitionGroup> set) {
         this.tables = tables;
         this.groups = groups;
         this.set = set;
+
+        assert groups.size() == 128;
     }
 
-    public int getKey(int msk, int clop, int radials) {
-        return groups.get(msk).getKey(clop, radials);
-    }
-
-    public static Partition EMPTY = new Partition(Collections.emptyList(), Collections.emptyList(), Collections.emptyList()) {
+    public static Partition EMPTY = new Partition(
+            Collections.emptyList(),
+            AbstractRandomList.virtual(128, i->PartitionGroup.EMPTY),
+            Collections.emptyList()
+    ) {
+        @Override
+        public int getKey(int msk, PopCount clop, int radials) {
+            return 0;
+        }
 
         @Override
-        public int getKey(int msk, int clop, int radials) {
-            return -1;
+        public String toString() {
+            return "empty";
         }
     };
 
-    public int count() {
+    @Override
+    public int size() {
+        return 128;
+    }
+
+    @Override
+    public PartitionGroup get(int index) {
+        return groups.get(index);
+    }
+
+    public int getKey(int msk, PopCount clop, int radials) {
+        return groups.get(msk).getKey(clop, radials);
+    }
+
+    int count() {
         int count = 0;
         for (PartitionGroup pg : set) {
-            count += pg.groups.size();
+            count += pg.count();
         }
         return count;
     }
@@ -51,33 +73,15 @@ public class Partition {
         return set.isEmpty();
     }
 
+    static Partition build(PopCount pop) {
+        return new Partition.Builder().partition(pop);
+    }
+
     static class Builder {
 
         final List<EntryTable> tables = new ArrayList<>();
 
         final Map<EntryTable, Integer> tmap = new TreeMap<>(EntryTable.BY_SIZE);
-
-        PartitionGroup group(PopCount pop, EntryTable root) {
-
-            if(root.isEmpty()) {
-                return PartitionGroup.EMPTY;
-            }
-
-            final Map<GroupFilter, Integer> groups = new TreeMap<>();
-
-            for (PopCount clop : PopCount.TABLE.subList(0, 25)) {
-                if(clop.le(pop))
-                    for(int rad=0; rad<81; ++rad) {
-                        GroupFilter filter = GroupFilter.of(clop.index, rad);
-                        EntryTable table = root.filter(filter);
-                        Integer key = allocateKey(table);
-                        if(key!=null)
-                            groups.put(filter, key);
-                    }
-            }
-
-            return new PartitionGroup(root, groups);
-        }
 
         Partition partition(PopCount pop) {
             tables.clear();
@@ -110,7 +114,7 @@ public class Partition {
                 group = groups[part];
                 if (group == null) {
                     // generate a new partition
-                    group = group(pop, root.filter(PGroup.filter(msk)));
+                    group = PartitionGroup.build(pop, root.filter(PGroup.filter(msk)), this::allocateKey);
                     groups[part] = group;
                     if(!group.isEmpty())
                         gset.add(group);
@@ -121,19 +125,19 @@ public class Partition {
                     groups[msk] = group;
             }
 
-            return new Partition(tables, Arrays.asList(groups), gset);
+            return new Partition(ImmutableList.copyOf(tables), ImmutableList.copyOf(groups), ImmutableList.copyOf(gset));
         }
 
         private Integer allocateKey(EntryTable table) {
             if(table.isEmpty())
-                return null;
+                return 0;
 
             if(table.size()==1)
-                return -2-table.get(0).index;
+                return -1-table.get(0).index;
 
             Integer key = tmap.get(table);
             if(key==null) {
-                key = tables.size();
+                key = tables.size()+1;
                 tables.add(table);
                 tmap.put(table, key);
             }

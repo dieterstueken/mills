@@ -33,8 +33,8 @@ public class Radials implements Function<RingEntry, PopCount> {
     }
 
     PopCount clop(RingEntry ringEntry, Sector sector) {
-        Player p1 = ringEntry.player(sector);
-        return p1==Player.None || p1==radials.player(sector) ? p1.pop : PopCount.EMPTY;
+        Player player = ringEntry.player(sector);
+        return player!=Player.None && player==radials.player(sector) ? player.pop : PopCount.EMPTY;
     }
 
     @Override
@@ -53,5 +53,22 @@ public class Radials implements Function<RingEntry, PopCount> {
 
     public static Radials of(int index) {
         return RADIALS.get(index);
+    }
+
+    public static int index(RingEntry a, RingEntry b) {
+
+        int radials = 0;
+
+        // reverse iteration: high sectors first
+        for(int i=3; i>=0; --i) {
+            Sector s = Sector.EDGES.get(i);
+            Player player = a.player(s);
+
+            radials *= 3;
+            if(player!=Player.None && player==b.player(s))
+                radials += player.ordinal();
+        }
+
+        return radials;
     }
 }

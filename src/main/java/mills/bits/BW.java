@@ -42,7 +42,7 @@ public class BW {
         return pop;
     }
 
-    public PopCount closed() {
+    public PopCount clop() {
         return PopCount.of(b.mcount, w.mcount);
     }
 

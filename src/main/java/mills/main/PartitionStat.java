@@ -37,7 +37,7 @@ public class PartitionStat {
 
         for (PopCount clop : PopCount.TABLE.subList(0, 25)) {
             for (Function<RingEntry, PopCount> r : radials) {
-                Predicate<RingEntry> filter = e -> e.closed().add(r.apply(e)).equals(clop);
+                Predicate<RingEntry> filter = e -> e.clop().add(r.apply(e)).equals(clop);
                 filters.add(filter);
             }
         }

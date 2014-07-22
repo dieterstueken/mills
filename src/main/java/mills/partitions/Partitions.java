@@ -1,12 +1,15 @@
 package mills.partitions;
 
+import com.google.common.collect.ImmutableList;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
+import mills.util.AbstractRandomList;
 import mills.util.IndexTable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
@@ -22,60 +25,89 @@ import java.util.function.Supplier;
  */
 public class Partitions {
 
-    private final List<Partition> partitions;  // pop
+    public final List<Partition> partitions;  // pop
 
-    private final List<EntryTable> tables = new ArrayList<>();
+    public final List<EntryTable> tables;
 
-    private final IndexTable ranges;
+    public final IndexTable ranges;
 
     public Partitions(List<Partition> partitions) {
-        this.partitions = partitions;
+        this.partitions = ImmutableList.copyOf(partitions);
+        ranges = IndexTable.sum(partitions, p -> p.tables.size());
+
+        List<EntryTable> tables = new ArrayList<>(ranges.range());
 
         for (Partition p : partitions) {
             tables.addAll(p.tables);
         }
 
-        ranges = IndexTable.sum(partitions, p->p.tables.size());
+        this.tables = ImmutableList.copyOf(tables);
     }
 
-    public int getKey(int pop, int msk, int clop, int radials) {
-        int key = partitions.get(pop).getKey(msk, clop, radials);
-        if(pop>0)
-            key += ranges.get(pop);
+    // pop or clop may be null after subtraction
+    public int getKey(PopCount pop, int msk, PopCount clop, int radials) {
+        return pop==null||clop==null ? 0 : getKey(pop.index, msk, clop, radials);
+    }
 
+    public int getKey(int pop, int msk, PopCount clop, int radials) {
+        int key = partitions.get(pop).getKey(msk, clop, radials);
+
+        if(key>0 && pop>0)
+            key += ranges.get(pop-1);
+
+        assert key <= tables.size();
         return key;
     }
 
     public EntryTable getTable(int key) {
-        if(key==-1)
-            return EntryTable.EMPTY;
+        if(key<0)
+            return RingEntry.of(-1-key).singleton;
 
-        if(key<-1)
-            return RingEntry.of(1-key).singleton;
-
-        return tables.get(key);
+        return key==0 ? EntryTable.EMPTY : tables.get(key-1);
     }
 
-    public static Partitions build() {
+    public List<EntryTable> r1Table(final short[] keys) {
+        return new AbstractRandomList<EntryTable>() {
+
+            @Override
+            public int size() {
+                return keys.length;
+            }
+
+            @Override
+            public EntryTable get(int index) {
+                return getTable(keys[index]);
+            }
+        };
+    }
+
+    public List<EntryTable> table(final short[] keys, int size) {
+        return keys==null || size==0 ? Collections.emptyList() : r1Table(Arrays.copyOf(keys, size));
+    }
+
+    static Partitions build() {
 
         Partition partitions[] = new Partition[100];
         Arrays.fill(partitions, Partition.EMPTY);
 
         List<RecursiveAction> tasks = new ArrayList<>(100);
 
-        for (PopCount pop : PopCount.TABLE) {
-            if(pop.sum()<=8) {
-                RecursiveAction task = new RecursiveAction() {
-                    @Override
-                    protected void compute() {
-                        Partition partition = new Partition.Builder().partition(pop);
-                        partitions[pop.index] = partition;
-                    }
-                };
+        PopCount.TABLE.stream().filter(pop -> pop.sum() <= 8).forEach(pop -> {
+            RecursiveAction task = new RecursiveAction() {
 
-                tasks.add(task);
-            }
-        }
+                @Override
+                protected void compute() {
+                    partitions[pop.index] = Partition.build(pop);
+                }
+
+                @Override
+                public String toString() {
+                    return String.format("build %s", pop);
+                }
+            };
+
+            tasks.add(task);
+        });
 
         ForkJoinTask.invokeAll(tasks);
 
@@ -118,13 +150,15 @@ public class Partitions {
             if(p.isEmpty())
                 continue;
 
-            System.out.format("%s %3d %3d %4d: ", pop, p.set.size(), p.tables.size(), p.count());
+            System.out.format("%s %3dr %3dt %3ds %4dc: ", pop, p.groups.get(0).root.size(), p.tables.size(), p.set.size(), p.count());
 
             for (PartitionGroup pg : p.set) {
-                System.out.format(" %d:%d", pg.root.size(), pg.groups.size());
+                System.out.format(" %d:%d", pg.root.size(), pg.count());
             }
 
             System.out.println();
         }
+
+        System.out.println(pt.tables.size());
     }
 }

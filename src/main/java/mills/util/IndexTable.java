@@ -129,7 +129,7 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
             int k = table[0];
             for (int i = 1; i < table.length; ++i) {
                 int l = table[i];
-                if(l<=k)
+                if(l<k)
                     return false;
                 k = l;
             }

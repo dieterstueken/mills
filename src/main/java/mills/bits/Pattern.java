@@ -25,6 +25,7 @@ public class Pattern {
 
     public final byte pattern;
     public final byte meq;
+    public final byte count;
     public final byte closed;
     public final byte closes;
     public final byte mcount;
@@ -36,7 +37,8 @@ public class Pattern {
 
     // return the count of occupied bits.
     public int count() {
-        return Integer.bitCount(stones());
+        //return Integer.bitCount(stones());
+        return count;
     }
 
     public int closed() {
@@ -82,14 +84,14 @@ public class Pattern {
     public static int mcount(Pattern p2, Pattern p0, Pattern p1) {
         int radials = (p2.pattern & p0.pattern & p1.pattern & Sector.RADIALS);
 
-        int count = Sector.N.getBit(radials)
+        int mcount = Sector.N.getBit(radials)
                 + Sector.S.getBit(radials)
                 + Sector.W.getBit(radials)
                 + Sector.E.getBit(radials)
                 + p2.mcount + p0.mcount + p1.mcount
                 ;
 
-        return count;
+        return mcount;
     }
 
     public int meq() {
@@ -146,7 +148,11 @@ public class Pattern {
     private Pattern(long pattern, byte meq, byte closed, byte closes, byte mcount) {
         this.patterns = pattern;
         this.pattern = (byte) pattern;
-        this.pow3 = pow3(stones());
+
+        int stones = (int) (0xff & pattern);
+        this.pow3 = pow3(stones);
+        this.count = (byte) Integer.bitCount(stones);
+
         this.meq = meq;
         this.closed = closed;
         this.closes = closes;

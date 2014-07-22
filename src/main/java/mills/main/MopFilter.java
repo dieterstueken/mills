@@ -43,7 +43,7 @@ public class MopFilter implements Runnable {
         return new Predicate<RingEntry>() {
 
             public boolean test(final RingEntry entry) {
-                PopCount count = closed.sub(entry.closed());
+                PopCount count = closed.sub(entry.clop());
 
                 if(count!=null)
                     for (Sector s : Sector.EDGES) {
