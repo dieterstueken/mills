@@ -50,6 +50,16 @@ public class Rindex {
         return it.range();
     }
 
+    private int count() {
+        int count = 0;
+        for (R2Table r2Table : table) {
+            for (R0Table r0Table : r2Table.values()) {
+                count += r0Table.size();
+            }
+        }
+        return count;
+    }
+
     public static Rindex build(PopCount pop) {
         return new Builder(pop).build();
     }
@@ -98,23 +108,23 @@ public class Rindex {
 
         R2Table r2Table(PopCount clop) {
 
-            if(!clop.le(pop.mclop()))
+            if (!clop.le(pop.mclop()))
                 return R2Table.of(pop, EntryTable.EMPTY, Collections.emptyList());
 
             EntryTable t2 = lePop.get(pop);
 
-            if(t2.isEmpty())
+            if (t2.isEmpty())
                 return R2Table.of(pop, EntryTable.EMPTY, Collections.emptyList());
 
             List<RingEntry> l2 = new ArrayList<>(t2.size());
             List<R0Table> l0 = new ArrayList<>(t2.size());
 
             for (RingEntry r2 : t2) {
-                if(!r2.clop().le(clop)) // to many closed mills
+                if (!r2.clop().le(clop)) // to many closed mills
                     continue;
 
                 R0Table t0 = r0Table(clop, r2);
-                if(t0.isEmpty())
+                if (t0.isEmpty())
                     continue;
 
                 l2.add(r2);
@@ -127,11 +137,11 @@ public class Rindex {
         private R0Table r0Table(PopCount clop, RingEntry r2) {
             PopCount pop2 = pop.sub(r2.pop);
             PopCount clop2 = clop.sub(r2.clop());
-            assert clop2!=null;
+            assert clop2 != null;
 
             EntryTable t0 = lePop.get(pop2);
 
-            if(t0.isEmpty())
+            if (t0.isEmpty())
                 return R0Table.EMPTY;
 
             int count = t0.upperBound(r2);
@@ -146,7 +156,7 @@ public class Rindex {
 
                 // remaining closed mills
                 PopCount clop1 = clop2.sub(r0.clop());
-                if(clop1==null)
+                if (clop1 == null)
                     continue;
 
                 // won't be null since lepop
@@ -155,7 +165,7 @@ public class Rindex {
                 int radials = Radials.index(r2, r0);
 
                 int key = partitions.getKey(pop1, msk, clop1, radials);
-                if(key==0)
+                if (key == 0)
                     continue;
 
                 assert verify(clop, r2, r0, key);
@@ -165,7 +175,7 @@ public class Rindex {
                 l1[i] = (short) key;
             }
 
-            if(l0.isEmpty())
+            if (l0.isEmpty())
                 return R0Table.EMPTY;
 
             R0Table result = R0Table.of(EntryTable.of(l0), partitions.table(l1, l0.size()));
@@ -176,13 +186,13 @@ public class Rindex {
         boolean verify(PopCount clop, RingEntry r2, RingEntry r0, int key) {
             EntryTable t0 = partitions.getTable(key);
 
-            for(RingEntry r1:t0) {
+            for (RingEntry r1 : t0) {
                 PopCount p = r2.pop().add(r0.pop).add(r1.pop);
-                if(p!=pop)
+                if (p != pop)
                     return false;
 
                 p = BW.clop(r2, r0, r1);
-                if(p!=clop)
+                if (p != clop)
                     return false;
             }
 
@@ -190,31 +200,45 @@ public class Rindex {
         }
     }
 
-    public static void main(String ... args) {
+    public static void main(String... args) {
+       serial();
+    }
+
+    static void serial() {
+        for (int nw = 0; nw < 10; ++nw)
+        for (int nb = 0; nb < 10; ++nb) {
+            PopCount pop = PopCount.of(nb, nw);
+            Rindex rindex = Rindex.build(pop);
+            System.out.format("%s%,15d %,d\n", rindex.pop, rindex.range(), rindex.count());
+        }
+    }
+
+
+    static void parallel() {
 
         List<RecursiveTask<Rindex>> tasks = new ArrayList<>(100);
 
         AtomicInteger working = new AtomicInteger(0);
         AtomicInteger waiting = new AtomicInteger(0);
 
-        for(int nw=0; nw<10; ++nw)
-        for(int nb=0; nb<10; ++nb) {
-            PopCount pop = PopCount.of(nb, nw);
+        for (int nw = 0; nw < 10; ++nw)
+            for (int nb = 0; nb < 10; ++nb) {
+                PopCount pop = PopCount.of(nb, nw);
 
-            RecursiveTask<Rindex> task = new RecursiveTask<Rindex>() {
-                @Override
-                protected Rindex compute() {
-                    working.incrementAndGet();
-                    Rindex rindex = Rindex.build(pop);
-                    working.decrementAndGet();
-                    waiting.incrementAndGet();
-                    return rindex;
-                }
-            };
+                RecursiveTask<Rindex> task = new RecursiveTask<Rindex>() {
+                    @Override
+                    protected Rindex compute() {
+                        working.incrementAndGet();
+                        Rindex rindex = Rindex.build(pop);
+                        working.decrementAndGet();
+                        waiting.incrementAndGet();
+                        return rindex;
+                    }
+                };
 
-            task.fork();
-            tasks.add(task);
-        }
+                task.fork();
+                tasks.add(task);
+            }
 
         for (int i = 0; i < tasks.size(); i++) {
             RecursiveTask<Rindex> task = tasks.get(i);
