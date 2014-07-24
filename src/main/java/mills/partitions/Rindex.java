@@ -7,19 +7,20 @@ import mills.index.IndexList;
 import mills.index.IndexedMap;
 import mills.index.R0Table;
 import mills.index.R2Table;
-import mills.index.partitions.LePopTable;
 import mills.main.C0Builder;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.IndexTable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.RecursiveTask;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 /**
  * version:     $Revision$
@@ -60,36 +61,29 @@ public class Rindex {
         return count;
     }
 
-    public static Rindex build(PopCount pop) {
-        return new Builder(pop).build();
+    public static Builder builder() {
+        return new Builder();
     }
 
-    static class Builder {
+    public static class Builder implements Function<PopCount, Rindex> {
 
-        final LePopTable lePop = LePopTable.open();
-        final Partitions partitions = Partitions.get();
+        final ForkJoinTask<Partitions> ptask = ForkJoinTask.adapt(Partitions::build).fork();
 
-        final PopCount pop;
+        final ConcurrentLinkedQueue<R0Builder> builders = new ConcurrentLinkedQueue<>();
 
-        final boolean concurrent = true;
-
-        Builder(PopCount pop) {
-            this.pop = pop;
-        }
-
-        Rindex build() {
+        public Rindex apply(PopCount pop) {
 
             R2Table tables[] = new R2Table[25];
 
             List<RecursiveAction> tasks = new ArrayList<>(25);
 
-            PopCount.TABLE.subList(0, 25).forEach(clop -> {
+            LePopTables.CLOP_TABLE.forEach(clop -> {
 
-                if (concurrent && clop.le(pop.mclop())) {
+                if (clop.le(pop.mclop())) {
                     tasks.add(new RecursiveAction() {
                         @Override
                         protected void compute() {
-                            tables[clop.index] = r2Table(clop);
+                            tables[clop.index] = r2Table(pop, clop);
                         }
 
                         @Override
@@ -98,7 +92,7 @@ public class Rindex {
                         }
                     });
                 } else
-                    tables[clop.index] = r2Table(clop);
+                    tables[clop.index] = r2Table(pop, clop);
             });
 
             ForkJoinTask.invokeAll(tasks);
@@ -106,85 +100,173 @@ public class Rindex {
             return new Rindex(pop, ImmutableList.copyOf(tables));
         }
 
-        R2Table r2Table(PopCount clop) {
+        R2Table r2Table(PopCount pop, PopCount clop) {
 
             if (!clop.le(pop.mclop()))
                 return R2Table.of(pop, EntryTable.EMPTY, Collections.emptyList());
 
-            EntryTable t2 = lePop.get(pop);
+            return new R2Builder(pop, clop).build();
+        }
 
-            if (t2.isEmpty())
-                return R2Table.of(pop, EntryTable.EMPTY, Collections.emptyList());
+        class R2Builder {
 
-            List<RingEntry> l2 = new ArrayList<>(t2.size());
-            List<R0Table> l0 = new ArrayList<>(t2.size());
+            final Partitions partitions = ptask.join();
 
-            for (RingEntry r2 : t2) {
-                if (!r2.clop().le(clop)) // to many closed mills
-                    continue;
+            final PopCount pop;
 
-                R0Table t0 = r0Table(clop, r2);
+            final PopCount clop;
+
+            R2Builder(PopCount pop, PopCount clop) {
+                this.pop = pop;
+                this.clop = clop;
+            }
+
+            R2Table build() {
+
+                EntryTable t2 = partitions.lePops.get(pop, clop);
+                if (t2.isEmpty())
+                    return R2Table.of(pop, EntryTable.EMPTY, Collections.emptyList());
+
+                List<ForkJoinTask<R0Table>> tasks = new ArrayList<>(t2.size());
+
+                for (RingEntry r2 : t2) {
+                    tasks.add(task(r2));
+                }
+
+                ForkJoinTask.invokeAll(tasks);
+
+                List<R0Table> t0 = new ArrayList<>(t2.size());
+                short s2[] = new short[t2.size()];
+
+                for (int i = 0; i < tasks.size(); i++) {
+                    ForkJoinTask<R0Table> task = tasks.get(i);
+                    R0Table r0 = task.join();
+                    if (!r0.isEmpty()) {
+                        s2[t0.size()] = t2.get(i).index;
+                        t0.add(r0);
+                    }
+                }
+
+                if (t0.size() != t2.size()) {
+                    // supersede by shorter table
+                    t2 = EntryTable.of(s2, 0, t0.size());
+                }
+
+                return R2Table.of(pop, t2, ImmutableList.copyOf(t0));
+            }
+
+            ForkJoinTask<R0Table> task(RingEntry r2) {
+
+                return new RecursiveTask<R0Table>() {
+
+                    @Override
+                    protected R0Table compute() {
+                        R0Builder builder = builders.poll();
+
+                        if(builder==null)
+                            builder = new R0Builder(partitions);
+
+                        R0Table result = builder.build(pop, clop, r2);
+
+                        builders.offer(builder);
+
+                        return result;
+                    }
+                };
+
+            }
+        }
+
+        /**
+         * Class R0Builder generated R0Tables and is not thread safe
+         */
+        static class R0Builder {
+
+            final Partitions partitions;
+
+            final short l0[] = new short[RingEntry.MAX_INDEX];
+            final short l1[] = new short[RingEntry.MAX_INDEX];
+
+            R0Builder(Partitions partitions) {
+                this.partitions = partitions;
+            }
+
+            R0Table build(PopCount pop, PopCount clop, RingEntry r2) {
+
+                // remaining pop count for e1/e0
+                PopCount pop2 = pop.sub(r2.pop);
+
+                // remaining closed count for e0/e1
+                PopCount clop2 = clop.sub(r2.clop());
+                assert clop2 != null;
+
+                EntryTable t0 = partitions.lePops.get(pop2, clop2);
+
                 if (t0.isEmpty())
-                    continue;
+                    return R0Table.EMPTY;
 
-                l2.add(r2);
-                l0.add(t0);
+                int count = t0.upperBound(r2);
+
+                // verify remaining elements are > r2.index
+                assert count>=t0.size() || r2.index<t0.get(count).index;
+                assert count==0 || r2.index>=t0.get(count-1).index;
+
+                // truncate list;
+                t0 = t0.subList(0, count);
+
+                int size = 0;
+                for (RingEntry r0 : t0) {
+
+                    assert(r0.index <= r2.index);
+
+                    // remaining closed mills
+                    PopCount clop1 = clop2.sub(r0.clop());
+
+                    // should not happen due to lePops
+                    assert clop1!=null;
+
+                    // won't be null since lepop
+                    PopCount pop1 = pop2.sub(r0.pop);
+
+                    // can't be fulfilled
+                    if(pop1.sum()>8)
+                        continue;
+
+                    int msk = r2.mlt20s(r0);
+
+                    if(partitions.getPartition(pop1, msk).isEmpty())
+                        continue;
+
+                    int radials = Radials.index(r2, r0);
+
+                    int key = partitions.getKey(pop1, msk, clop1, radials);
+                    if (key == 0)
+                        continue;
+
+                    assert verify(pop, clop, r2, r0, partitions.getTable(key));
+
+                    // add entry
+                    l0[size] = r0.index;
+                    l1[size] = (short) key;
+                    ++size;
+                }
+
+                if(size==0)
+                    return R0Table.EMPTY;
+
+                if(size!=t0.size()) {
+                    // supersede by shorter table
+                    t0 = EntryTable.of(l0, 0, size);
+                }
+
+                List<EntryTable> t1 = partitions.entryTables(l1, size);
+
+                return  R0Table.of(t0, t1);
             }
-
-            return R2Table.of(pop, EntryTable.of(l2), ImmutableList.copyOf(l0));
         }
 
-        private R0Table r0Table(PopCount clop, RingEntry r2) {
-            PopCount pop2 = pop.sub(r2.pop);
-            PopCount clop2 = clop.sub(r2.clop());
-            assert clop2 != null;
-
-            EntryTable t0 = lePop.get(pop2);
-
-            if (t0.isEmpty())
-                return R0Table.EMPTY;
-
-            int count = t0.upperBound(r2);
-
-            List<RingEntry> l0 = new ArrayList<>(count);
-            short l1[] = new short[count];
-
-            for (RingEntry r0 : t0) {
-                // i2<=t0
-                if (r0.index > r2.index)
-                    break;
-
-                // remaining closed mills
-                PopCount clop1 = clop2.sub(r0.clop());
-                if (clop1 == null)
-                    continue;
-
-                // won't be null since lepop
-                PopCount pop1 = pop2.sub(r0.pop);
-                int msk = r2.mlt20s(r0);
-                int radials = Radials.index(r2, r0);
-
-                int key = partitions.getKey(pop1, msk, clop1, radials);
-                if (key == 0)
-                    continue;
-
-                assert verify(clop, r2, r0, key);
-
-                int i = l0.size();
-                l0.add(r0);
-                l1[i] = (short) key;
-            }
-
-            if (l0.isEmpty())
-                return R0Table.EMPTY;
-
-            R0Table result = R0Table.of(EntryTable.of(l0), partitions.table(l1, l0.size()));
-
-            return result;
-        }
-
-        boolean verify(PopCount clop, RingEntry r2, RingEntry r0, int key) {
-            EntryTable t0 = partitions.getTable(key);
+        static boolean verify(PopCount pop, PopCount clop, RingEntry r2, RingEntry r0, EntryTable t0) {
+            //EntryTable t0 = partitions.getTable(key);
 
             for (RingEntry r1 : t0) {
                 PopCount p = r2.pop().add(r0.pop).add(r1.pop);
@@ -200,63 +282,81 @@ public class Rindex {
         }
     }
 
-    public static void main(String... args) {
-       serial();
+    public static void main(String... args) throws IOException {
+
+        Rindex.Builder builder = Rindex.builder();
+
+        r88(builder);
+        //serial(builder);
     }
 
-    static void serial() {
+    static void stat(Rindex rindex ) {
+
+        int stat[] = new int[16];
+        long sizeOf = 0;
+
+        for (R2Table r2t : rindex.table) {
+            for (R0Table r0t : r2t.values()) {
+                int n = Math.min(r0t.size(), 15);
+                ++stat[n];
+
+                sizeOf += n*(4+2) * 24;
+            }
+        }
+
+        for (int i = 0; i < stat.length; i++) {
+            int n = stat[i];
+            System.out.format("%d %,d\n", i, n);
+        }
+
+        System.out.format("%,dk\n", sizeOf/1024);
+
+    }
+
+    static void serial(Function<PopCount, Rindex> builder) {
+
+        ForkJoinTask<String> task = null;
+
         for (int nw = 0; nw < 10; ++nw)
         for (int nb = 0; nb < 10; ++nb) {
             PopCount pop = PopCount.of(nb, nw);
-            Rindex rindex = Rindex.build(pop);
-            System.out.format("%s%,15d %,d\n", rindex.pop, rindex.range(), rindex.count());
+
+            final ForkJoinTask<String> prev = task;
+            task = new RecursiveTask<String>() {
+
+                @Override
+                protected String compute() {
+
+                    if(prev != null)
+                        System.out.println(prev.join());
+
+                    Rindex rindex = builder.apply(pop);
+                    return String.format("%s%,15d %,d", rindex.pop, rindex.range(), rindex.count());
+                }
+            };
+
+            task.fork();
         }
+
+        if(task!=null)
+            System.out.println(task.join());
     }
 
-
-    static void parallel() {
-
-        List<RecursiveTask<Rindex>> tasks = new ArrayList<>(100);
-
-        AtomicInteger working = new AtomicInteger(0);
-        AtomicInteger waiting = new AtomicInteger(0);
-
-        for (int nw = 0; nw < 10; ++nw)
-            for (int nb = 0; nb < 10; ++nb) {
-                PopCount pop = PopCount.of(nb, nw);
-
-                RecursiveTask<Rindex> task = new RecursiveTask<Rindex>() {
-                    @Override
-                    protected Rindex compute() {
-                        working.incrementAndGet();
-                        Rindex rindex = Rindex.build(pop);
-                        working.decrementAndGet();
-                        waiting.incrementAndGet();
-                        return rindex;
-                    }
-                };
-
-                task.fork();
-                tasks.add(task);
-            }
-
-        for (int i = 0; i < tasks.size(); i++) {
-            RecursiveTask<Rindex> task = tasks.get(i);
-            Rindex rindex = task.join();
-            System.out.format("%s%10d working: %d waiting: %d\n", rindex.pop, rindex.range(), working.get(), waiting.get());
-            tasks.set(i, null);
-            waiting.decrementAndGet();
-        }
-    }
-
-    static void r30() {
+    static void r30(Function<PopCount, Rindex> builder) {
         IndexList indexes = IndexList.create();
 
         PopCount pop = PopCount.of(3, 0);
-        Rindex rIndex = Rindex.build(pop);
+        Rindex rIndex = builder.apply(pop);
         final R2Table pIndex = new C0Builder().buildR2(pop);
 
         System.out.format("%s%10d%10d\n", pop, rIndex.it.range(), pIndex.range());
+    }
 
+    static void r88(Function<PopCount, Rindex> builder) throws IOException {
+        PopCount pop = PopCount.of(8, 8);
+        Rindex rIndex = builder.apply(pop);
+        System.out.format("%s%10d%10d\n", pop, rIndex.it.range(), rIndex.range());
+
+        System.in.read();
     }
 }

@@ -192,7 +192,7 @@ public class Pattern {
 
                 for(int m:mills) {
                     int c = m&i;
-                    if(c == m) {         // if all thee bits are set
+                    if(c!=0 && c == m) {// if all thee bits are set
                         closed |= m;    // mark all of them as closed
                         ++mcount;
                     } else if(Integer.bitCount(c)==2) {

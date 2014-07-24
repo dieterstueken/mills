@@ -249,16 +249,17 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         return EntryArray.of(table);
     }
 
-    public static EntryTable of(short[] ringIndex, int size) {
-        return of(ringIndex, 0, size);
-    }
-
     public static EntryTable of(int ... index) {
         short values[] = new short[index.length];
+
         for(int i=0; i<index.length; ++i)
             values[i] = (short) index[i];
 
         return of(values, values.length);
+    }
+
+    public static EntryTable of(short[] ringIndex, int size) {
+        return of(ringIndex, 0, size);
     }
 
     public static EntryTable of(short[] table, int fromIndex, int toIndex) {

@@ -13,9 +13,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
-import java.util.concurrent.RecursiveTask;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 
 /**
  * Created by IntelliJ IDEA.
@@ -25,13 +22,16 @@ import java.util.function.Supplier;
  */
 public class Partitions {
 
+    public final LePopTables lePops;
+
     public final List<Partition> partitions;  // pop
 
     public final List<EntryTable> tables;
 
     public final IndexTable ranges;
 
-    public Partitions(List<Partition> partitions) {
+    Partitions(LePopTables lePops, List<Partition> partitions) {
+        this.lePops = lePops;
         this.partitions = ImmutableList.copyOf(partitions);
         ranges = IndexTable.sum(partitions, p -> p.tables.size());
 
@@ -42,6 +42,10 @@ public class Partitions {
         }
 
         this.tables = ImmutableList.copyOf(tables);
+    }
+
+    public EntryTable getPartition(PopCount pop, int msk) {
+        return partitions.get(pop.index).groups.get(msk).root;
     }
 
     // pop or clop may be null after subtraction
@@ -81,11 +85,23 @@ public class Partitions {
         };
     }
 
-    public List<EntryTable> table(final short[] keys, int size) {
-        return keys==null || size==0 ? Collections.emptyList() : r1Table(Arrays.copyOf(keys, size));
+    public List<EntryTable> entryTables(final short[] keys, int size) {
+
+        if(keys==null || size==0)
+            return Collections.emptyList();
+
+        if(size>1)
+            return r1Table(Arrays.copyOf(keys, size));
+
+        int key = keys[0];
+        EntryTable table = getTable(key);
+
+        return Collections.singletonList(table);
     }
 
     static Partitions build() {
+
+        ForkJoinTask<LePopTables> lePopTask = LePopTables.task().fork();
 
         Partition partitions[] = new Partition[100];
         Arrays.fill(partitions, Partition.EMPTY);
@@ -111,38 +127,11 @@ public class Partitions {
 
         ForkJoinTask.invokeAll(tasks);
 
-        return new Partitions(Arrays.asList(partitions));
+        return new Partitions(lePopTask.join(), Arrays.asList(partitions));
     }
-
-    public static Partitions get() {
-        return SUPPLIER.get();
-    }
-
-    private static Supplier<Partitions> SUPPLIER = new Supplier<Partitions>() {
-
-        final ForkJoinTask<Partitions> task = new RecursiveTask<Partitions>() {
-
-            @Override
-            protected Partitions compute() {
-                Partitions partitions = build();
-                SUPPLIER = () -> partitions;
-                return partitions;
-            }
-        };
-
-        final AtomicBoolean forked = new AtomicBoolean(false);
-
-        @Override
-        public Partitions get() {
-            if(!forked.getAndSet(true))
-                task.fork();
-
-            return task.join();
-        }
-    };
 
     public static void main(String ... args) {
-        Partitions pt = get();
+        Partitions pt = build();
 
         for (PopCount pop : PopCount.TABLE) {
             Partition p = pt.partitions.get(pop.index);

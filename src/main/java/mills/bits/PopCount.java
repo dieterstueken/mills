@@ -102,6 +102,9 @@ public class PopCount {
         return of(9 - nb, 9 - nw);
     }
 
+    public PopCount truncate(int max) {
+        return of(Math.min(nb, max), Math.min(nw, max));
+    }
 
     public static int mclop(int count) {
         if(count>=8)

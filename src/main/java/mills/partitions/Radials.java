@@ -3,6 +3,7 @@ package mills.partitions;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.bits.Sector;
+import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 
@@ -70,5 +71,18 @@ public class Radials implements Function<RingEntry, PopCount> {
         }
 
         return radials;
+    }
+
+    public static void main(String ... args) {
+
+        for(int i=0; i<5; ++i) {
+            for(int j=0; j<5; ++j) {
+                PopCount clop = PopCount.of(i,j);
+                EntryTable table = RingEntry.TABLE.filter(e -> e.clop().add(e.radials().pop).equals(clop));
+
+                System.out.format("%5d", table.size());
+            }
+            System.out.println();
+        }
     }
 }

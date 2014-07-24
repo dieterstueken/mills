@@ -88,6 +88,11 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         return TABLE.get(swapped);
     }
 
+    public final RingEntry radials() {
+        int radials = index/81;
+        return TABLE.get(81*radials);
+    }
+
     // get permutation
     public final short perm(int i) {
         return perm[i& Perm.MSK];
