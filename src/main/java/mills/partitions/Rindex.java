@@ -123,7 +123,8 @@ public class Rindex {
 
             R2Table build() {
 
-                EntryTable t2 = partitions.lePops.get(pop, clop);
+                EntryTable t2 = partitions.lePop(pop, clop, pop.sum()-16);
+
                 if (t2.isEmpty())
                     return R2Table.of(pop, EntryTable.EMPTY, Collections.emptyList());
 
@@ -200,7 +201,7 @@ public class Rindex {
                 PopCount clop2 = clop.sub(r2.clop());
                 assert clop2 != null;
 
-                EntryTable t0 = partitions.lePops.get(pop2, clop2);
+                EntryTable t0 = partitions.lePop(pop2, clop2, pop.sum()-pop2.sum()-8);
 
                 if (t0.isEmpty())
                     return R0Table.EMPTY;
@@ -227,6 +228,8 @@ public class Rindex {
 
                     // won't be null since lepop
                     PopCount pop1 = pop2.sub(r0.pop);
+
+                    assert pop1!=null;
 
                     // can't be fulfilled
                     if(pop1.sum()>8)
@@ -286,8 +289,8 @@ public class Rindex {
 
         Rindex.Builder builder = Rindex.builder();
 
-        r88(builder);
-        //serial(builder);
+        //r88(builder);
+        serial(builder);
     }
 
     static void stat(Rindex rindex ) {

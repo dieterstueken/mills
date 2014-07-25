@@ -1,14 +1,13 @@
 package mills.partitions;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.RecursiveTask;
@@ -32,12 +31,12 @@ public class LePopTables {
         return tables.get(pop.index).root;
     }
 
-    public EntryTable get(PopCount pop, PopCount clop) {
-        return tables.get(pop.index).tables.get(clop.index);
+    public EntryTable get(PopCount pop, PopCount clop, int count) {
+        return tables.get(pop.index).tables.get(clop.index).get(count);
     }
 
-    public EntryTable get1(PopCount pop, PopCount clop) {
-        return tables.get(pop.index).tables1.get(clop.index);
+    public EntryTable get(PopCount pop, PopCount clop) {
+        return get(pop, clop, 0);
     }
 
     public LePopTables(List<LeClopTable> tables) {
@@ -128,7 +127,6 @@ public class LePopTables {
                         assert clops[pop.index] == null;
                         final LeClopTable result = new LeClopTable(pop, root, tables);
                         clops[pop.index] = result;
-                        assert result.verify();
                         return result;
                     }
 
@@ -195,56 +193,62 @@ public class LePopTables {
 
         final EntryTable root;
 
-        final List<EntryTable> tables;
-
-        final List<EntryTable> tables1;
+        final List<LeCountTable> tables;
 
         LeClopTable(final PopCount pop, EntryTable root, EntryTable tables[]) {
             this.pop = pop;
             this.root = root;
-            this.tables = Arrays.asList(tables);
 
-            this.tables1 = new ArrayList<>(25);
-
-            for (EntryTable t : tables) {
-                EntryTable t1 = t.filter(F1);
-                tables1.add(t1);
-            }
-
-            assert tables.length == 25;
-        }
-
-        boolean verify(PopCount clop) {
-            EntryTable table = tables.get(clop.index);
-
-            assert table!=null;
-
-            EntryTable ref = RingEntry.TABLE.filter(e->e.pop.le(pop) && e.clop().le(clop));
-            return table.equals(ref);
-        }
-
-        boolean verify() {
-            for (PopCount clop : CLOP_TABLE) {
-                if(!verify(clop))
-                    return false;
-            }
-
-            return true;
+            this.tables = ImmutableList.copyOf(Lists.transform(Arrays.asList(tables), LePopTables::lct));
         }
     }
 
-    public boolean verify() {
+    static class LeCountTable {
 
-        for (LeClopTable table : tables) {
-            if(!table.verify())
-                return false;
+        final List<EntryTable> tables;
+
+        LeCountTable(List<EntryTable> tables) {
+           this.tables = tables;
         }
 
-        return true;
+        EntryTable get(int count) {
+            return count<tables.size() ? tables.get(count) : EntryTable.EMPTY;
+        }
+    }
+
+    static final LeCountTable LC_EMPTY = new LeCountTable(Collections.emptyList());
+
+    static LeCountTable lct(EntryTable root) {
+        if(root.isEmpty())
+            return LC_EMPTY;
+
+        List<EntryTable> tables = new ArrayList<>();
+
+        while(!root.isEmpty()) {
+            tables.add(root);
+            int count = tables.size();
+            root = root.filter(e->e.pop.sum()>count);
+        }
+
+        tables = ImmutableList.copyOf(tables);
+
+        return new LeCountTable(tables);
     }
 
     public static void main(String... args) {
         LePopTables lpt = LePopTables.task().invoke();
-        System.out.println(lpt.verify());
+
+        Set<EntryTable> tables = new TreeSet<>(EntryTable.BY_ORDER);
+
+        for (LeClopTable lc : lpt.tables) {
+            for (LeCountTable ln : lc.tables) {
+                for (EntryTable t : ln.tables) {
+                    tables.add(t);
+                }
+            }
+        }
+
+        System.out.format("%d\n", tables.size());
+
     }
 }

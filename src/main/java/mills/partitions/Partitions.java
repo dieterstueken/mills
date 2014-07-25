@@ -48,6 +48,10 @@ public class Partitions {
         return partitions.get(pop.index).groups.get(msk).root;
     }
 
+    public EntryTable lePop(PopCount pop, PopCount clop, int count) {
+        return count>0 ? lePops.get(pop, clop, count) :  lePops.get(pop, clop);
+    }
+
     // pop or clop may be null after subtraction
     public int getKey(PopCount pop, int msk, PopCount clop, int radials) {
         return pop==null||clop==null ? 0 : getKey(pop.index, msk, clop, radials);
