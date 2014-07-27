@@ -38,7 +38,7 @@ import mills.stones.Stones;
  * Bits 54-63 are currently unused
  */
 
-public class Positions {
+public interface Positions {
 
     /**
      * An i201 index takes 3*16 = 48 bits to represent three ringTable entries.
@@ -47,50 +47,50 @@ public class Positions {
      * Thus 16 bits are available to carry additional status information.
      */
 
-    public static int MASK = (1<<16)-1;
-    public static long M201 = (1L<<48)-1;
+    static int MASK = (1<<16)-1;
+    static long M201 = (1L<<48)-1;
 
-    //public static int S2 = 0;
-    //public static int S0 = 16;
-    //public static int S1 = 32;
+    //static int S2 = 0;
+    //static int S0 = 16;
+    //static int S1 = 32;
 
-    public static int S1 = 0;
-    public static int S0 = 16;
-    public static int S2 = 32;
+    static int S1 = 0;
+    static int S0 = 16;
+    static int S2 = 32;
 
-    public static int SP = 48;
+    static int SP = 48;
 
     // bits 48,49,50,51: permutations/swap applied
 
     // bits 52:53 SWP3: swapped rings if jumping
-    public static long SWPX = 1L<<(SP+4);
-    public static long SWPY = 1L<<(SP+5);
+    static long SWPX = 1L<<(SP+4);
+    static long SWPY = 1L<<(SP+5);
 
 
      // if the entry was already normalized
-    public static long NORMALIZED = 1L<<(SP+7);
+    static long NORMALIZED = 1L<<(SP+7);
 
-    public static boolean normalized(long i201) {
+    static boolean normalized(long i201) {
         return (i201&NORMALIZED) != 0;
     }
 
     // the entry results of an elevated close
-    public static long CLOSED = 1L<<(SP+8);
+    static long CLOSED = 1L<<(SP+8);
 
-    public static boolean closed(long i201) {
+    static boolean closed(long i201) {
         return (i201&CLOSED) != 0;
     }
 
-    public static short i2(long i201) {return (short) (MASK&(i201>>S2));}
-    public static short i0(long i201) {return (short) (MASK&(i201>>S0));}
-    public static short i1(long i201) {return (short) (MASK&(i201>>S1));}
-    public static byte perm(long i201) {return (byte) (Perm.PERM&(i201>>SP));}
+    static short i2(long i201) {return (short) (MASK&(i201>>S2));}
+    static short i0(long i201) {return (short) (MASK&(i201>>S0));}
+    static short i1(long i201) {return (short) (MASK&(i201>>S1));}
+    static byte perm(long i201) {return (byte) (Perm.PERM&(i201>>SP));}
 
-    public static RingEntry r2(long i201) {return RingEntry.of(i2(i201));}
-    public static RingEntry r0(long i201) {return RingEntry.of(i0(i201));}
-    public static RingEntry r1(long i201) {return RingEntry.of(i1(i201));}
+    static RingEntry r2(long i201) {return RingEntry.of(i2(i201));}
+    static RingEntry r0(long i201) {return RingEntry.of(i0(i201));}
+    static RingEntry r1(long i201) {return RingEntry.of(i1(i201));}
 
-    public static long stones(int black, int white) {
+    static long stones(int black, int white) {
         short i2 = Stones.i2(black, white);
         short i0 = Stones.i0(black, white);
         short i1 = Stones.i1(black, white);
@@ -101,7 +101,7 @@ public class Positions {
         long i201(int black, int white);
     }
 
-    public static final Builder BW = new Builder() {
+    static final Builder BW = new Builder() {
         @Override
         public long i201(int black, int white) {
             return stones(black, white);
@@ -112,7 +112,7 @@ public class Positions {
         }
     };
 
-    public static final Builder WB = new Builder() {
+    static final Builder WB = new Builder() {
         @Override
         public long i201(int black, int white) {
             return stones(white, black);
@@ -123,7 +123,7 @@ public class Positions {
         }
     };
 
-    public static long swapped(long i201) {
+    static long swapped(long i201) {
         RingEntry r2 = r2(i201).swapped();
         RingEntry r0 = r0(i201).swapped();
         RingEntry r1 = r1(i201).swapped();
@@ -132,7 +132,7 @@ public class Positions {
         return i201(r2.index, r0.index, r1.index, pm);
     }
 
-    public static PopCount pop(long i201) {
+    static PopCount pop(long i201) {
         PopCount pop = r2(i201).pop;
         pop = pop.add(r0(i201).pop);
         pop = pop.add(r1(i201).pop);
@@ -144,23 +144,23 @@ public class Positions {
      * @param i201 position to analyze.
      * @return population count of closed mills.
      */
-    public static PopCount mpop(long i201) {
+    static PopCount mpop(long i201) {
         return PopCount.of(
                 Mills.count(i201, Player.Black),
                 Mills.count(i201, Player.White)
         );
     }
 
-    public static Position position(long i201) {
+    static Position position(long i201) {
         return new Position(i201);
     }
 
-    public static boolean equals(long p1, long p2) {
+    static boolean equals(long p1, long p2) {
         long diff = (p1 ^ p2) & M201;
         return diff == 0;
     }
 
-    public static long i201(int i2, int i0, int i1) {
+    static long i201(int i2, int i0, int i1) {
         long i201;
         i201  = ((long) i2) << S2;
         i201 |= ((long) i0) << S0;
@@ -168,7 +168,7 @@ public class Positions {
         return i201;
     }
 
-    public static long i201(int i2, int i0, int i1, int perm) {
+    static long i201(int i2, int i0, int i1, int perm) {
         long i201 = i201(i2, i0, i1);
         i201 |= ((long) perm) << SP;
         return i201;
@@ -183,7 +183,7 @@ public class Positions {
     }
 
     // decompose, permute and compose an i201 index
-    public static long permute(final long i201, int perm) {
+    static long permute(final long i201, int perm) {
 
         // decompose
         RingEntry r2 = r2(i201);
@@ -205,7 +205,7 @@ public class Positions {
     }
 
     // without perm bits
-    public static long normalize(long i201) {
+    static long normalize(long i201) {
 
         if(!normalized(i201)) {
 
@@ -221,7 +221,7 @@ public class Positions {
     }
 
     // including perm bits
-    public static long normalizepm(final long i201) {
+    static long normalizepm(final long i201) {
         if(normalized(i201))
             return i201;
 
@@ -233,7 +233,7 @@ public class Positions {
         return normalize(r2, r0, r1, pm);
     }
 
-    public static long normalize3(final long i201) {
+    static long normalize3(final long i201) {
         if(normalized(i201))
             return i201;
 
@@ -253,7 +253,7 @@ public class Positions {
         }
     }
 
-    public static long normalize(RingEntry r2, RingEntry r0, RingEntry r1, int pm) {
+    static long normalize(RingEntry r2, RingEntry r0, RingEntry r1, int pm) {
         long m201 = normalize(r2, r0, r1);
         int px = perm(m201);
         px ^= Perm.compose(pm, px); // get changed bits
@@ -261,7 +261,7 @@ public class Positions {
         return m201;
     }
 
-    public static long normalize(RingEntry r2, RingEntry r0, RingEntry r1) {
+    static long normalize(RingEntry r2, RingEntry r0, RingEntry r1) {
 
         // minimize middle ring (1)
         int perm = r1.mix;
@@ -322,7 +322,7 @@ public class Positions {
         return m201;
     }
 
-    private static int m02(long i201) {
+    static int m02(long i201) {
         return i0(i201)*(1<<16) + i2(i201);
     }
 }
