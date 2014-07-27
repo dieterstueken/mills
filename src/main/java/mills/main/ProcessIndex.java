@@ -33,8 +33,8 @@ public class ProcessIndex implements IndexProcessor {
 
     @Override
     public void process(int posIndex, long i201) {
-        PopCount mpop = Positions.mpop(i201);
-        stat.computeIfAbsent(mpop, ADDER).increment();
+        PopCount clop = Positions.clop(i201);
+        stat.computeIfAbsent(clop, ADDER).increment();
     }
 
     public ProcessIndex run() {

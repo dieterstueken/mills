@@ -58,7 +58,7 @@ public interface Positions {
     static int S0 = 16;
     static int S2 = 32;
 
-    static int SP = 48;
+    static int SP = 48; // base of additional bits
 
     // bits 48,49,50,51: permutations/swap applied
 
@@ -144,7 +144,7 @@ public interface Positions {
      * @param i201 position to analyze.
      * @return population count of closed mills.
      */
-    static PopCount mpop(long i201) {
+    static PopCount clop(long i201) {
         return PopCount.of(
                 Mills.count(i201, Player.Black),
                 Mills.count(i201, Player.White)
