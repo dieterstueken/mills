@@ -2,9 +2,11 @@ package mills.ring;
 
 import mills.util.ListSet;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
@@ -231,24 +233,24 @@ public abstract class EntryTable extends ListSet<RingEntry> {
     public static final EmptyTable EMPTY = new EmptyTable();
 
     public static EntryTable of(List<RingEntry> entries) {
+        return of(entries, null);
+    }
 
-        if(entries instanceof EntryTable)
-            return (EntryTable) entries;
+    public static EntryTable of(List<? extends RingEntry> entries, @Nullable Comparator<? super RingEntry> cmp) {
 
-        final int size = entries.size();
+        if(entries instanceof EntryTable) {
+            EntryTable table = (EntryTable) entries;
+            if(Objects.equals(table.comparator(), cmp))
+                return table;
+        }
 
-        if(size==0)
+        if(entries.isEmpty())
             return RingTable.EMPTY;
 
-        if(size==1)
+        if(entries.size()==1)
             return SingleEntry.of(entries.get(0).index());
 
-        short table[] = new short[size];
-
-        for(int i=0; i<size; i++)
-            table[i] = entries.get(i).index();
-
-        return EntryArray.of(table);
+        return EntryArray.of(entries, cmp);
     }
 
     public static EntryTable of(int ... index) {
@@ -275,25 +277,27 @@ public abstract class EntryTable extends ListSet<RingEntry> {
 
         table = Arrays.copyOfRange(table, fromIndex, toIndex);
 
-        return EntryArray.of(table);
+        return EntryArray.of(table, null);
     }
 
-    public static void main(final String... args) {
+    public static boolean isOrdered(List<? extends RingEntry> list, Comparator<? super RingEntry> cmp) {
 
-        int stat[] = new int[256];
+        if(list.size()<2)
+            return true;
 
-        for (final RingEntry e : RingEntry.TABLE) {
-            System.out.println(e.toString());
-            if(e.isMin()) {
-                int m = e.pmeq();
-                ++stat[m];
-            }
+        if(cmp==null)
+            cmp = RingEntry.COMPARATOR;
+
+        RingEntry e = list.get(0);
+        for(int i=1; i<list.size(); ++i) {
+            RingEntry f = list.get(i);
+            if(cmp.compare(e, f)!=-1)
+                return false;
+            e = f;
         }
 
-        for(int i=0; i<256; i++) {
-            int n = stat[i];
-            if(n>0)
-                System.out.format("%02x %d\n", i, n);
-        }
+        list.sort(cmp);
+
+        return  true;
     }
 }

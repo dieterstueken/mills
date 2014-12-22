@@ -1,6 +1,9 @@
 package mills.ring;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -13,12 +16,27 @@ class EntryArray extends EntryTable {
     private final short ringIndex[];
 
     EntryArray(short[] ringIndex) {
-        assert isOrdered(ringIndex);
         this.ringIndex = ringIndex;
+        assert isOrdered(this, comparator());
     }
 
-    static EntryArray of(short[] ringIndex) {
-        return new EntryArray(ringIndex);
+    public static EntryArray of(short[] ringIndex, @Nullable Comparator<? super RingEntry> comparator) {
+
+        return comparator==null ? new EntryArray(ringIndex) :
+            new EntryArray(ringIndex) {
+
+                @Override
+                public Comparator<? super RingEntry> comparator() {
+                    return comparator;
+                }
+            };
+    }
+
+    public static EntryArray of(List<? extends RingEntry> list, @Nullable Comparator<? super RingEntry> comparator) {
+
+        short table[] = EntryList.getIndex(list, comparator);
+
+        return EntryArray.of(table, comparator);
     }
 
     @Override
@@ -40,19 +58,4 @@ class EntryArray extends EntryTable {
     public int size() {
         return ringIndex.length;
     }
-
-    public static boolean isOrdered(short[] table) {
-        if(table!=null && table.length>1) {
-            short k = table[0];
-            for (int i = 1; i < table.length; ++i) {
-                short l = table[i];
-                if(l<=k)
-                    return false;
-                k = l;
-            }
-        }
-
-        return  true;
-    }
-
 }
