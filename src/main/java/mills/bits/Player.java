@@ -72,6 +72,10 @@ public enum Player {
 
     abstract public Player other();
 
+    public Player and(Player other) {
+        return other==this ? this : None;
+    }
+
     public Player other(boolean swap) {
         return swap ? other() : this;
     }

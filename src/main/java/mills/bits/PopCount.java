@@ -2,8 +2,9 @@ package mills.bits;
 
 import mills.util.AbstractRandomList;
 
-import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -19,17 +20,17 @@ import java.util.function.Predicate;
  * PopCounts<100 are provided by a pre calculated lookup table.
  */
 
-public class PopCount {
+public class PopCount implements Comparable<PopCount> {
 
     public final byte nb;
     public final byte nw;
     public final byte index;
 
-    public byte nb() {
+    public final byte nb() {
         return nb;
     }
 
-    public byte nw() {
+    public final byte nw() {
         return nw;
     }
 
@@ -141,8 +142,8 @@ public class PopCount {
      * @return remaining population or null if negative
      */
     public PopCount sub(final PopCount other) {
-        final int nb = this.nb() - other.nb;
-        final int nw = this.nw() - other.nw;
+        final int nb = this.nb - other.nb;
+        final int nw = this.nw - other.nw;
         return of(nb, nw);
     }
 
@@ -151,9 +152,17 @@ public class PopCount {
     }
 
     public PopCount add(final PopCount other) {
-        final int nb = this.nb() + other.nb;
-        final int nw = this.nw() + other.nw;
+        final int nb = this.nb + other.nb;
+        final int nw = this.nw + other.nw;
         return of(nb, nw);
+    }
+
+    public void forEach(Consumer<? super PopCount> action) {
+        Objects.requireNonNull(action);
+        for(int rb = 0; rb<=nb; ++rb)
+            for(int rw = 0; rw<=nw; ++rw) {
+                action.accept(of(rb, rw));
+            }
     }
 
     public boolean equals() {
@@ -174,6 +183,10 @@ public class PopCount {
 
     public int min() {
         return Math.min(nb, nw);
+    }
+
+    public PopCount min(PopCount other) {
+        return of(Math.min(nb, other.nb), Math.min(nw, other.nw));
     }
 
     public int max() {
@@ -200,6 +213,11 @@ public class PopCount {
         return index;
     }
 
+    @Override
+    public int compareTo(PopCount other) {
+        return Integer.compare(index, other.index);
+    }
+
     /**
      * Create a new PopCount.
      * Use factory of() to benefit from pre calculated instances
@@ -212,7 +230,7 @@ public class PopCount {
         this.nw = (byte) nw;
         this.index = (byte) index(nb, nw);
 
-        this.string = String.format("%d:%d", nb, nw);
+        this.string = String.format("%X:%X", nb, nw);
     }
 
     final String string;
@@ -244,14 +262,17 @@ public class PopCount {
 
     ////////////////////////////////////////////////////////////////////////////
 
-    public static final Comparator<PopCount> INDEX_ORDER = Comparator.nullsFirst(Comparator.comparingInt(PopCount::index));
-
     public static final int SIZE = 100;
+
 
     // PopCounts <= (9,9)
     public static final List<PopCount> TABLE = AbstractRandomList.of(table());
 
+    public static final List<PopCount> CLOSED = TABLE.subList(0, 25);
+
     public static final PopCount EMPTY = of(0,0);
+    public static final PopCount P44 = of(4,4);
+    public static final PopCount P88 = of(8,8);
 
     public static PopCount get(int index) {
         return TABLE.get(index);
@@ -284,7 +305,7 @@ public class PopCount {
         for (int nw = 0; nw < 12; ++nw) {
             for (int nb = 0; nb < 12; ++nb) {
                 final PopCount p = PopCount.of(nb, nw);
-                System.out.format("%s %5d", p.toString(), p.index());
+                System.out.format(" %s %5d", p.toString(), p.index());
             }
 
             System.out.println();

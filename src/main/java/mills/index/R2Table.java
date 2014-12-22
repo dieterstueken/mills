@@ -3,6 +3,7 @@ package mills.index;
 import mills.bits.PopCount;
 import mills.position.Positions;
 import mills.ring.EntryTable;
+import mills.ring.IndexedMap;
 
 import java.util.List;
 

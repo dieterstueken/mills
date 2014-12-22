@@ -1,7 +1,5 @@
-package mills.index;
+package mills.ring;
 
-import mills.ring.EntryMap;
-import mills.ring.EntryTable;
 import mills.util.IndexTable;
 
 import java.util.List;
@@ -16,7 +14,7 @@ import java.util.function.ToIntFunction;
  */
 public class IndexedMap<T> extends EntryMap<T> {
 
-    final IndexTable it;
+    protected final IndexTable it;
 
     public int range() {
         int size = it.size();

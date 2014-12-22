@@ -202,6 +202,11 @@ abstract public class ListSet<T> extends AbstractRandomList<T> implements Sorted
         }
 
         @Override
+        public Comparator<? super T> comparator() {
+            return parent.comparator();
+        }
+
+        @Override
         public int findIndex(T key) {
             int index = parent.findIndex(key);
 

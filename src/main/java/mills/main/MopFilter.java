@@ -47,9 +47,9 @@ public class MopFilter implements Runnable {
 
                 if(count!=null)
                     for (Sector s : Sector.EDGES) {
-                        Player p1 = radials.getPlayer(s);
+                        Player p1 = radials.player(s);
                         if(p1!=Player.None) {
-                            Player p2 = entry.getPlayer(s);
+                            Player p2 = entry.player(s);
                             if (p1 == p2) {
                                 count = count.sub(p1.pop);
                                 if (count == null)

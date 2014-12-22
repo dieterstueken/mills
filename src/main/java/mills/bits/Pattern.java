@@ -74,6 +74,11 @@ public class Pattern {
         return radials;
     }
 
+    public Pattern and(Pattern other) {
+        int stones = pattern & other.pattern;
+        return of(stones);
+    }
+
     /**
      * Count # of closed mills
      * @param p2 outer pattern

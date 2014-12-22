@@ -68,15 +68,14 @@ public enum Sector {
         i &= 3;
         i |= (ordinal()&4);
 
-        return sectors[i];
+        return SECTORS.get(i);
     }
 
     public short pow3() {
         return pow3;
     }
 
-    private static final Sector sectors[] = values();
-
+    public static final List<Sector> SECTORS = ImmutableList.copyOf(values());
     public static final List<Sector> EDGES = ImmutableList.of(N,E,S,W);
     public static final List<Sector> CORNERS = ImmutableList.of(NW,NE,SE,SW);
 
@@ -109,7 +108,7 @@ public enum Sector {
     }
 
     public static Sector of(int i) {
-        return sectors[i];
+        return SECTORS.get(i);
     }
 
     // generator function

@@ -23,7 +23,7 @@ import java.util.function.Supplier;
  */
 public class LePopTables {
 
-    public static final List<PopCount> CLOP_TABLE = PopCount.TABLE.subList(0, 25);
+    public static final List<PopCount> CLOP_TABLE = PopCount.CLOSED;
 
     final List<LeClopTable> tables;
 

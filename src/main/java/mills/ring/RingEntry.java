@@ -123,24 +123,24 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         return mix==0;
     }
 
-    public Player getPlayer(final Sector sector) {
-        int p = index / sector.pow3();
-        return Player.of(p%3);
-    }
+    public RingEntry player(final Sector sector, final Player player) {
+        final Player current = player(sector);
 
-    public Player getPlayer(final int sector) {
-        return getPlayer(Sector.of(sector%8));
-    }
+        // noop
+        if(current==player)
+            return this;
 
-    public RingEntry setPlayer(final Sector sector, final Player player) {
-        final Player current = getPlayer(sector);
-        final int pow3 = sector.pow3();
         int index = this.index;
+        final int pow3 = sector.pow3();
         index -= pow3 * current.ordinal();
         index += pow3 * player.ordinal();
+
         return of(index);
     }
 
+    public RingEntry and(RingEntry other) {
+        return of(b.and(other.b), w.and(other.w));
+    }
 
     private RingEntry(short index) {
         super(index);
@@ -301,6 +301,9 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         return TABLE.get(index);
     }
 
+    public static RingEntry of(Pattern b, Pattern w) {
+        return TABLE.get(BW.index(b,w));
+    }
 
     ////////////////////////////////////////////////////////////////////////
 

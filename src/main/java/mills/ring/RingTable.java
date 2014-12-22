@@ -1,8 +1,5 @@
 package mills.ring;
 
-import mills.bits.BW;
-import mills.bits.Pattern;
-
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -39,22 +36,5 @@ public class RingTable extends EntryTable {
         assert inRange(index) : "invalid RingTable index: " + index;
 
         return (short) index;
-    }
-
-    public static void main(String ... args) {
-
-        for(RingEntry e:RingEntry.TABLE) {
-
-            Pattern b = e.b;
-            Pattern w = e.w;
-
-            int index = BW.index(b, w);
-
-            RingEntry f = RingEntry.of(index);
-
-            if(e!=f)
-                System.out.format("%d %d %d\n", index, e.index, f.index);
-
-        }
     }
 }

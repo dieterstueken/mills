@@ -4,11 +4,11 @@ import com.google.common.collect.ImmutableList;
 import mills.bits.BW;
 import mills.bits.PopCount;
 import mills.index.IndexList;
-import mills.index.IndexedMap;
 import mills.index.R0Table;
 import mills.index.R2Table;
 import mills.main.C0Builder;
 import mills.ring.EntryTable;
+import mills.ring.IndexedMap;
 import mills.ring.RingEntry;
 import mills.util.IndexTable;
 
@@ -67,7 +67,7 @@ public class Rindex {
 
     public static class Builder implements Function<PopCount, Rindex> {
 
-        final ForkJoinTask<Partitions> ptask = ForkJoinTask.adapt(Partitions::build).fork();
+        final ForkJoinTask<Partitions> ptask = ForkJoinTask.<Partitions>adapt(Partitions::build).fork();
 
         final ConcurrentLinkedQueue<R0Builder> builders = new ConcurrentLinkedQueue<>();
 

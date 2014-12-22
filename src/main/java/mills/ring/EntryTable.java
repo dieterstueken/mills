@@ -91,7 +91,8 @@ public abstract class EntryTable extends ListSet<RingEntry> {
 
     @Override
     public Comparator<? super RingEntry> comparator() {
-        return RingEntry.COMPARATOR;
+        // defaults to natural ordering
+        return null;
     }
 
     @Override
@@ -230,6 +231,7 @@ public abstract class EntryTable extends ListSet<RingEntry> {
     public static final EmptyTable EMPTY = new EmptyTable();
 
     public static EntryTable of(List<RingEntry> entries) {
+
         if(entries instanceof EntryTable)
             return (EntryTable) entries;
 

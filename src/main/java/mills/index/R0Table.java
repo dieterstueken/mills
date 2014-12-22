@@ -2,6 +2,7 @@ package mills.index;
 
 import mills.position.Positions;
 import mills.ring.EntryTable;
+import mills.ring.IndexedMap;
 import mills.util.IndexTable;
 
 import java.util.Collection;
