@@ -2,11 +2,9 @@ package mills.ring;
 
 import mills.util.ListSet;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
@@ -58,9 +56,6 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         if(obj instanceof RingEntry)
             return indexOf((RingEntry) obj);
         else
-        if(obj instanceof Number)
-            return findIndex((((Number) obj).shortValue()));
-        else
             return -1;
     }
 
@@ -79,11 +74,11 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         return (EntryTable) super.subList(fromIndex, toIndex);
     }
 
-    public EntryTable empty() {
+    protected EntryTable empty() {
         return EntryTable.EMPTY;
     }
 
-    public EntryTable singleton(RingEntry entry) {
+    protected EntryTable singleton(RingEntry entry) {
         return entry.singleton;
     }
 
@@ -92,8 +87,8 @@ public abstract class EntryTable extends ListSet<RingEntry> {
     }
 
     @Override
-    public Comparator<? super RingEntry> comparator() {
-        // defaults to natural ordering
+    public final Comparator<? super RingEntry> comparator() {
+        // always natural ordering
         return null;
     }
 
@@ -232,16 +227,10 @@ public abstract class EntryTable extends ListSet<RingEntry> {
     // an empty table template
     public static final EmptyTable EMPTY = new EmptyTable();
 
-    public static EntryTable of(List<RingEntry> entries) {
-        return of(entries, null);
-    }
-
-    public static EntryTable of(List<? extends RingEntry> entries, @Nullable Comparator<? super RingEntry> cmp) {
+    public static EntryTable of(List<? extends RingEntry> entries) {
 
         if(entries instanceof EntryTable) {
-            EntryTable table = (EntryTable) entries;
-            if(Objects.equals(table.comparator(), cmp))
-                return table;
+            return (EntryTable) entries;
         }
 
         if(entries.isEmpty())
@@ -250,7 +239,7 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         if(entries.size()==1)
             return SingleEntry.of(entries.get(0).index());
 
-        return EntryArray.of(entries, cmp);
+        return EntryArray.of(entries);
     }
 
     public static EntryTable of(int ... index) {
@@ -277,7 +266,7 @@ public abstract class EntryTable extends ListSet<RingEntry> {
 
         table = Arrays.copyOfRange(table, fromIndex, toIndex);
 
-        return EntryArray.of(table, null);
+        return EntryArray.of(table);
     }
 
     public static boolean isOrdered(List<? extends RingEntry> list, Comparator<? super RingEntry> cmp) {

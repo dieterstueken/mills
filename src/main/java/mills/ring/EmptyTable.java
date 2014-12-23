@@ -32,6 +32,10 @@ class EmptyTable extends EntryTable {
         return -1;
     }
 
+    public int findIndex(RingEntry entry) {
+        return -1;
+    }
+
     @Override
     public Iterator<RingEntry> iterator() {
         return Collections.emptyIterator();

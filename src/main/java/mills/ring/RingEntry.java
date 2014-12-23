@@ -67,13 +67,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         }
     };
 
-    public final SingleEntry singleton = new SingleEntry() {
-
-        @Override
-        RingEntry entry() {
-            return RingEntry.this;
-        }
-    };
+    public final SingleEntry singleton = new SingleEntry(this);
 
     public SingleEntry singleton() {
         return singleton;

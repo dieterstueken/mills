@@ -9,16 +9,20 @@ import java.util.function.Predicate;
  * Date: 13.08.11
  * Time: 18:16
  */
-abstract class SingleEntry extends EntryTable {
+class SingleEntry extends EntryTable {
 
-    abstract RingEntry entry();
+    final RingEntry entry;
+
+    SingleEntry(RingEntry entry) {
+        this.entry = entry;
+    }
 
     public static SingleEntry of(RingEntry entry) {
         return entry.singleton;
     }
 
     public static SingleEntry of(int index) {
-        return of(RingEntry.of(index));
+        return RingEntry.of(index).singleton;
     }
 
     @Override
@@ -28,7 +32,7 @@ abstract class SingleEntry extends EntryTable {
 
     @Override
     public EntryTable filter(Predicate<? super RingEntry> predicate) {
-        if (predicate.test(entry()))
+        if (predicate.test(entry))
             return this;
         else
             return EMPTY;
@@ -37,14 +41,14 @@ abstract class SingleEntry extends EntryTable {
     @Override
     public RingEntry get(int index) {
         if (index == 0)
-            return entry();
+            return entry;
         else
             throw new IndexOutOfBoundsException("Index: " + index);
     }
 
     @Override
     public int findIndex(int ringIndex) {
-        int i = entry().index();
+        int i = entry.index();
         if(i==ringIndex)
             return 0;
         if(ringIndex<i)
@@ -60,6 +64,6 @@ abstract class SingleEntry extends EntryTable {
 
     @Override
     public int hashCode() {
-        return entry().hashCode();
+        return entry.hashCode();
     }
 }

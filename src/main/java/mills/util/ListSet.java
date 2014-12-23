@@ -146,7 +146,7 @@ abstract public class ListSet<T> extends AbstractRandomList<T> implements Sorted
     private static final ListSet<?> EMPTY = new Empty<Object>();
 
     @SuppressWarnings("unchecked")
-    public <T> ListSet<T> empty() {
+    protected <T> ListSet<T> empty() {
         return (ListSet<T>) EMPTY;
     }
 
@@ -183,8 +183,18 @@ abstract public class ListSet<T> extends AbstractRandomList<T> implements Sorted
            }
     }
 
-    public ListSet<T> singleton(final T value) {
-        return new Singleton<T>(value);
+    protected ListSet<T> singleton(final T value) {
+        Comparator<? super T>  cmp = comparator();
+
+        if(cmp==null)
+            return new Singleton<T>(value);
+        else
+            return new Singleton<T>(value) {
+                @Override
+                public Comparator<? super T> comparator() {
+                    return cmp;
+                }
+            };
     }
 
     protected static class SubSet<T> extends ListSet<T> {

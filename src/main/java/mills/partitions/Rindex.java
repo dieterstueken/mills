@@ -150,7 +150,7 @@ public class Rindex {
 
                 if (t0.size() != t2.size()) {
                     // supersede by shorter table
-                    t2 = EntryTable.of(s2, 0, t0.size());
+                    t2 = EntryTable.of(s2, t0.size());
                 }
 
                 return R2Table.of(pop, t2, ImmutableList.copyOf(t0));
@@ -259,7 +259,7 @@ public class Rindex {
 
                 if(size!=t0.size()) {
                     // supersede by shorter table
-                    t0 = EntryTable.of(l0, 0, size);
+                    t0 = EntryTable.of(l0, size);
                 }
 
                 List<EntryTable> t1 = partitions.entryTables(l1, size);
