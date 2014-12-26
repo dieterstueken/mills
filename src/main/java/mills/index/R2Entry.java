@@ -36,6 +36,10 @@ public class R2Entry {
         return index;
     }
 
+    public R0Table values() {
+        return t0;
+    }
+
     public String toString() {
         return String.format("%d %d %d", index, i2, t0.size());
     }
