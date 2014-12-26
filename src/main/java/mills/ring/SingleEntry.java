@@ -64,6 +64,6 @@ class SingleEntry extends EntryTable {
 
     @Override
     public int hashCode() {
-        return entry.hashCode();
+        return 31 + entry.hashCode();
     }
 }

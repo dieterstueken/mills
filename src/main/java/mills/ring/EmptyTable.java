@@ -47,4 +47,9 @@ class EmptyTable extends EntryTable {
     public RingEntry[] toArray() {
         return empty;
     }
+
+    @Override
+    public int hashCode() {
+        return -1;
+    }
 }

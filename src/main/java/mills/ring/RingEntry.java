@@ -20,12 +20,12 @@ import java.util.function.Predicate;
  * class RingEntry represents a configuration of 8 W&W stones on 8 positions on a ringTable.
  * There are 3^8 = 6561 possible configurations.
  * Each configuration may be permuted by 8 symmetry operations.
- * All possible entries are kept in a static lookup table.
+ * All possible tables are kept in a static lookup table.
  * The index
  */
 public class RingEntry extends BW implements Comparable<RingEntry> {
 
-    // number of possible entries
+    // number of possible tables
     public static final int MAX_INDEX = 81*81;
 
 
@@ -34,10 +34,10 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
 
     public final short swapped;
 
-    // bit mask of stable permutations (==min for minimized entries)
+    // bit mask of stable permutations (==min for minimized tables)
     public final byte meq;
 
-    // bit mask of permutations which reduces this entry (==min for minimized entries)
+    // bit mask of permutations which reduces this entry (==min for minimized tables)
     public final byte mlt;
 
     // bit mask of minimized permutations
@@ -285,7 +285,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     }
 
     /**
-     * An immutable list of all entries.
+     * An immutable list of all tables.
      */
     public static final RingTable TABLE = new RingTable();
 

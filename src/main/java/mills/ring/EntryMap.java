@@ -25,6 +25,10 @@ public class EntryMap<T> implements SortedMap<RingEntry, T> {
             throw new IllegalArgumentException("different sizes");
     }
 
+    public T get(int index) {
+        return values.get(index);
+    }
+
     @Override
     public Comparator<? super RingEntry> comparator() {
         return RingEntry.COMPARATOR;

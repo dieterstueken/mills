@@ -140,7 +140,7 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         if(i0==0 && i1==size())
             return this;
 
-        // count filtered entries
+        // count filtered tables
         int count = i1-i0;
         int i2 = size(); // last match (if any)
         for(int i=i1+1; i<size(); ++i) {

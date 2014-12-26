@@ -15,6 +15,11 @@ class EntryArray extends EntryTable {
 
     EntryArray(short[] ringIndex) {
         this.ringIndex = ringIndex;
+        this.modCount = Arrays.hashCode(ringIndex);
+    }
+
+    public int hashCode() {
+        return modCount;
     }
 
     static EntryArray of(short[] ringIndex) {
