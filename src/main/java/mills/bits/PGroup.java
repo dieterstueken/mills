@@ -9,11 +9,8 @@ package mills.bits;
 
 import mills.ring.RingEntry;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 
 /**
  * For some reason for a single RingEntry exactly 9 different MEQ permutation masks exist.
@@ -41,6 +38,15 @@ public enum PGroup {
 
     public int meq() {return 2*msk+1;}
 
+    /**
+     * Find if any of the permutations of msk [0,128] collides with any permutation of this group.
+     * @param perm mask of forbidden permutations.
+     * @return if any permutation of perm collides with any permutation of this.
+     */
+    public boolean collides(int perm) {
+        return (this.msk & perm) != 0;
+    }
+
     PGroup(int meq) {
         // drop bit #0
         this.msk = meq/2;
@@ -52,7 +58,7 @@ public enum PGroup {
     static {
         // prepare a reverse lookup table
         // GROUP is a sparse table with unexpected masks == null
-        // bit #1 is not relevant for distinction.
+        // bit #0 and #1 are not relevant for distinction.
         for(PGroup p:VALUES) {
             assert GROUP[p.msk/2]==null : "reverse mapping failed";
             GROUP[p.msk/2] = p;
@@ -66,7 +72,11 @@ public enum PGroup {
      */
     public static PGroup group(int meq) {
         PGroup pg = GROUP[meq/4];
-        assert pg!=null && pg.msk==(meq/2) : "invalid permutation mask";
+
+        // verify
+        if(pg==null || pg.msk!=(meq/2))
+            throw new IllegalArgumentException("no matching PGroup");
+
         return pg;
     }
 
@@ -82,22 +92,22 @@ public enum PGroup {
 
     /**
      * Calculate a partition index for a given restriction mask.
-     * @param msk of prohibited meq bits.
-     * @return the highest partition index of all permitted bits set.
+     * @param msk of prohibited meq bits (for which the rank is unstable)
+     * @return the highest partition index with all permitted bits set.
      */
     public static int pindex(Set<PGroup> groups, int msk) {
         // bits allowed
-            int index = 127;
+        int index = 127;
 
-            for(PGroup pg:groups) {
+        for(PGroup pg:groups) {
 
-                if ((pg.msk & msk) == 0) {
-                    // clear all msk bits from index
-                    index &= 127 ^ pg.msk;
-                }
+            if ((pg.msk & msk) == 0) {
+                // clear all msk bits from index
+                index &= 127 ^ pg.msk;
             }
+        }
 
-            return index;
+        return index;
     }
 
     public static int code(Set<PGroup> groups) {
@@ -130,20 +140,5 @@ public enum PGroup {
      * The given RingEntry is compatible, if i20 won't decrease for any stable permutation.
      */
 
-    private static final List<Predicate<RingEntry>> FILTER = new ArrayList<>(128);
-
-    public static Predicate<RingEntry> filter(int msk) {
-        return FILTER.get(msk);
-    }
-
-    static {
-        for(int msk=0; msk<128; ++msk) {
-
-            // bit #0 is irrelevant
-            int restriction = 2*msk;
-
-            // for each minimizable permutation (pmin) the mask's bit must be zero (= i20 won't decrease).
-            FILTER.add(entry -> (entry.pmin() & restriction) == 0);
-        }
-    }
+    //public static final List<Predicate<RingEntry>> FILTERS = AbstractRandomArray.generate(128, msk-> e -> e.stable(2*msk));
 }

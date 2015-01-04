@@ -87,6 +87,11 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         return TABLE.get(81*radials);
     }
 
+    // get radial index
+    public final int radix() {
+        return index/81;
+    }
+
     // get permutation
     public final short perm(int i) {
         return perm[i& Perm.MSK];
@@ -105,6 +110,11 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     // return minimum permutation mask
     public int pmin() {
         return 0xff & min;  // convert to positive int [0, 256[
+    }
+
+    // remains stable under given permutation mask
+    public boolean stable(int msk) {
+        return (pmin() & msk) == 0;
     }
 
     // return first permutation index which minimizes this entry
@@ -192,10 +202,13 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         return (short) (mlt20(r0)/2);
     }
 
+    // utility function to speed up comparison by mapping to an integer.
     static int i20(int i2, int i0) {
         return i2 | (i0<<16);
     }
 
+    // return a permutation mask of all reducing operations.
+    // Bit#0 is set to 1 if an initial swap reduces the rank.
     public int mlt20(final RingEntry r0) {
 
         // r0 must be <= r2, else swap and tag
@@ -235,7 +248,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
                 i2 = perm[pi];
                 i0 = r0.perm[pi];
 
-                // check both combinations.
+                // check swapped combinations too (swaps are not tagged here)
                 if(i20(i2, i0)<i20 || i20(i0, i2)<i20)
                     result |= (1<<pi);
             }
@@ -290,6 +303,11 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     public static final RingTable TABLE = new RingTable();
 
     public static final EntryTable MINIMIZED = TABLE.filter(IS_MIN);
+
+    // get radial stones
+    public static RingEntry radix(int index) {
+        return TABLE.get(81*index);
+    }
 
     public static RingEntry of(int index) {
         return TABLE.get(index);

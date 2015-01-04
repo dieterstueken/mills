@@ -7,6 +7,7 @@ package mills.bits;
  * Time: 15:43:39
  */
 
+import com.google.common.collect.ImmutableList;
 import mills.util.AbstractRandomList;
 
 import java.util.List;
@@ -79,6 +80,15 @@ public class Pattern {
         return of(stones);
     }
 
+    public Pattern or(Pattern other) {
+        int stones = pattern | other.pattern;
+        return of(stones);
+    }
+
+    public Pattern radials() {
+        return and(RADIALS);
+    }
+
     /**
      * Count # of closed mills
      * @param p2 outer pattern
@@ -126,7 +136,7 @@ public class Pattern {
         return result;
     }
 
-    private static final char SIG[] = {'_', 'O', '?', 'X'};
+    private static final char SIG[] = {'_', '+', '?', 'x'};
 
     public String toString() {
         StringBuilder sb = new StringBuilder(32);
@@ -165,11 +175,14 @@ public class Pattern {
     }
 
     public static Pattern of(int i) {
-        return PATTERNS[i&0xff];
+        return PATTERNS.get(i&0xff);
     }
 
     // a pre calculated list of all 256 Pattern
-    private static final Pattern PATTERNS[] = patterns().toArray(new Pattern[256]);
+    public static final List<Pattern> PATTERNS = ImmutableList.copyOf(patterns());
+
+    public static final Pattern NONE = of(0);
+    public static final Pattern RADIALS = of(Sector.RADIALS);
 
     private static List<Pattern> patterns() {
 

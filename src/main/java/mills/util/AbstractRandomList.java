@@ -3,6 +3,7 @@ package mills.util;
 import java.util.AbstractList;
 import java.util.List;
 import java.util.RandomAccess;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 
 /**
@@ -21,6 +22,11 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
     abstract public T get(int index);
 
     public static <T> AbstractRandomList<T> of(T[] data) {
+        return construct(data);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> AbstractRandomList<T> construct(Object[] data) {
 
         return new AbstractRandomList<T>() {
 
@@ -31,7 +37,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
 
             @Override
             public T get(int index) {
-                return data[index];
+                return (T) data[index];
             }
         };
     }
@@ -57,19 +63,16 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         for(int i=0; i<size; ++i)
             values[i] = generate.apply(i);
 
-        return new AbstractRandomList<T>() {
+        return construct(values);
+    }
 
-            @Override
-            public int size() {
-                return size;
-            }
+    public static <U, T> List<T> map(List<U> source, Function<? super U, ? extends T> mapper) {
+        int size = source.size();
 
-            // The fake cast to E is safe since the generate method returned a T
-            @Override
-            @SuppressWarnings("unchecked")
-            public T get(int index) {
-                return (T) values[index];
-            }
-        };
+        Object values[] = new Object[size];
+        for(int i=0; i<size; ++i)
+            values[i] = mapper.apply(source.get(i));
+
+        return construct(values);
     }
 }

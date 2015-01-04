@@ -195,6 +195,8 @@ public class PopCount implements Comparable<PopCount> {
 
     public final Predicate<BW> eq = (bw) -> bw != null && equals(bw.pop);
 
+    public final Predicate<BW> le = (bw) -> bw != null && bw.pop.le(this);
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

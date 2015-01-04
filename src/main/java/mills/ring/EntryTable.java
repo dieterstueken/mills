@@ -1,5 +1,6 @@
 package mills.ring;
 
+import mills.bits.PopCount;
 import mills.util.ListSet;
 
 import java.util.Arrays;
@@ -175,6 +176,14 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         assert count == indexes.length : "filter mismatch";
 
         return new EntryArray(indexes);
+    }
+
+    public EntryTable eq(PopCount pop) {
+        return pop.sum()>8 ? EMPTY : filter(pop.eq);
+    }
+
+    public EntryTable le(PopCount pop) {
+        return pop.min()<8 ? filter(pop.le) : this;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////
