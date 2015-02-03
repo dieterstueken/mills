@@ -1,5 +1,6 @@
 package mills.index;
 
+import mills.ring.RingEntry;
 import mills.util.Indexer;
 
 import static mills.position.Positions.i0;
@@ -34,6 +35,10 @@ public class R2Entry {
 
     public int range() {
         return index;
+    }
+
+    public RingEntry r2() {
+        return RingEntry.of(i2);
     }
 
     public R0Table values() {
