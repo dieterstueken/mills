@@ -2,9 +2,6 @@ package ico;
 
 import java.util.ArrayList;
 
-import static java.lang.Math.sqrt;
-import static java.lang.Math.toDegrees;
-
 /**
  *   R  = a * sqrt(10+2*sqrt(5))/4 = a * 0.951
  *   Ri = a * sqrt(3)*(3+sqrt(5))/12 = a * 0.75576
@@ -44,28 +41,26 @@ class Vertex {
         return String.format("%10.2f %10.2f", th, ph);
     }
 
-    static final double φ = (sqrt(5)+1)/2;
+    /**
+     * 2φ-1 = sqrt(5)
+     *
+     * 1/φ = φ-1
+     * φ^2 = φ+1
+     * φ^3 = 2φ+1
+     */
 
-    // a = 2 / sqrt(φ*sqrt(5));
-    // a = 2 / sqrt(φ+2);
-    // b = a * φ
-    // tan α =  a / b = 1/φ = φ-1
+    //static final double φ = (sqrt(5)+1)/2;
 
-    // ri = a/2 / sqrt(3);
-    // Ri = ri * φ^2
-    // sin β = ri/Ri = 1/φ^2 = 2-φ
-
-    static final double α = toDegrees(Math.atan(φ-1));
-    static final double β = toDegrees(Math.asin(2-φ));
+    static final double t0 = 90-Math.toDegrees(Math.acos(-3.0/5))/2;
 
     /**
-     *  -0---2---4---0--
-     *  /|\ /|\ /|\ /|\
-     *   | B | 7 | 9 | B
-     *  \|/|\|/|\|/|\|/
-     *   6 | 8 | A | 6
-     *  / \|/ \|/ \|/ \
-     *  ---5---1---3---5
+     *             0
+     *   |   |   |   |   |   |
+     * --2---4---6---8---A---2---  t0
+     * \/ \ / \ / \ / \ / \ / \/
+     * 7---9---B---3---5---7---9-
+     * |   |   |   |   |   |   |
+     *             1
      */
 
     public static class List extends ArrayList<Vertex> {
@@ -73,8 +68,10 @@ class Vertex {
         public List(int level) {
             super(10*(1<<2*level)+2);
 
-            add6(β + α, 0); // top bottom
-            add6(β - α, 0); // upper lower
+            add2(0, 0);
+
+            for(int i=0; i<5; ++i)
+                add2(t0, 72*i);
 
             if(level>0)
                 init(level-1);
@@ -90,11 +87,6 @@ class Vertex {
             add(-th, ph+180);
         }
 
-        public void add6(double th, double ph) {
-            add2(th, ph);
-            add2(th, ph+120);
-            add2(th, ph+240);
-        }
 
         void init(int level) {
 

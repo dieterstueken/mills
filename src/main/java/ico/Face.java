@@ -2,13 +2,6 @@ package ico;
 
 import java.util.ArrayList;
 
-/**
- * 2φ = 1+sqrt(5)
- *
- * 1/φ = φ-1
- * φ^2 = φ+1
- * φ^3 = 2φ+1
- */
 
 class Face {
 
