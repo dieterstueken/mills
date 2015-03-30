@@ -1,0 +1,14 @@
+include "Mills"
+
+rootProject.name = 'Morris'
+
+// lookup alternate module location
+rootProject.children.each { project ->
+    if(!project.projectDir.exists()) {
+        def path = rootProject.projectDir
+        project.name.findAll(~/\p{Upper}\p{Lower}*/, {
+            path = new File(path, it.toLowerCase())
+        })
+        project.projectDir = path;
+    }
+}
