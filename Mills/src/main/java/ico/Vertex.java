@@ -23,4 +23,18 @@ class Vertex implements Comparable<Vertex> {
     public int compareTo(Vertex o) {
         return Integer.compare(i, o.i);
     }
+
+    public double theta() {
+        double th = Math.atan2(p.getZ(), Math.hypot(p.getX(), p.getY()));
+        return Math.toDegrees(th);
+    }
+
+    public double phi() {
+        double phi = Math.atan2(p.getX(), p.getY());
+        return Math.toDegrees(phi);
+    }
+
+    public String toString() {
+        return String.format("%d: %7.1f, %7.1f", i, theta(), phi());
+    }
 }
