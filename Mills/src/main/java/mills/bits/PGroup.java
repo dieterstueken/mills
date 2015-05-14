@@ -7,10 +7,15 @@ package mills.bits;
  * Time: 22:32
  */
 
+import com.google.common.collect.ImmutableList;
+import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
+
+import static mills.bits.Perm.*;
 
 /**
  * For some reason for a single RingEntry exactly 9 different MEQ permutation masks exist.
@@ -18,25 +23,30 @@ import java.util.Set;
  */
 public enum PGroup {
 
-    M01(0x01),
-    M11(0x11),
-    M21(0x21),
-    M81(0x81),
-    M41(0x41),
-    M05(0x05),
-    M55(0x55),
-    MA5(0xa5),
-    MFF(0xff);
+    // no symmetry at all
+    P0(ID),   // 5616:702
 
-    public final int msk;
+    // mirror one axis (54)
+    P1(ID, MH), // 216:54
+    P2(ID, MR), // 216:96
+    P3(ID, ML), // 216:54
+    P4(ID, MV), // 216:12
 
-    public static PGroup get(int i) {return VALUES[i];}
+    // central point mirror (9)
+    P5(ID, RX), // 36:9
 
-    public static int size() {return 9;}
+    // central point plus and two mirror axis
+    P6(ID, RX, MH, MV), // 18:9
+    P7(ID, RX, MR, ML), // 18:9
 
-    public int msk() {return msk;}
+    // fully symmetric
+    P8(Perm.values());  // 9:9
 
-    public int meq() {return 2*msk+1;}
+    public final int meq;
+
+    public int msk() {return meq/2;}
+
+    public int meq() {return meq;}
 
     /**
      * Find if any of the permutations of msk [0,128] collides with any permutation of this group.
@@ -44,24 +54,32 @@ public enum PGroup {
      * @return if any permutation of perm collides with any permutation of this.
      */
     public boolean collides(int perm) {
-        return (this.msk & perm) != 0;
+        return (msk() & perm) != 0;
     }
 
-    PGroup(int meq) {
-        // drop bit #0
-        this.msk = meq/2;
+    PGroup(Perm ... pg) {
+        int m = 0;
+        for(Perm p:pg)
+            m |= 1<<(p.ordinal());
+        this.meq = m;
     }
 
-    private static final PGroup VALUES[] = values();
-    private static final PGroup GROUP[] = new PGroup[64];
+    public String toString() {
+        return String.format("%s(%x)", name(), meq);
+    }
+
+    public static final List<PGroup> VALUES = ImmutableList.copyOf(values());
+
+    private static final PGroup GROUP[] = new PGroup[256/8];
 
     static {
         // prepare a reverse lookup table
         // GROUP is a sparse table with unexpected masks == null
-        // bit #0 and #1 are not relevant for distinction.
+        // bit #0-2 are not relevant for distinction.
         for(PGroup p:VALUES) {
-            assert GROUP[p.msk/2]==null : "reverse mapping failed";
-            GROUP[p.msk/2] = p;
+            int k = p.meq/8;
+            assert GROUP[k]==null : "duplicate mapping";
+            GROUP[k] = p;
         }
     }
 
@@ -71,10 +89,11 @@ public enum PGroup {
      * @return matching PGroup.
      */
     public static PGroup group(int meq) {
-        PGroup pg = GROUP[meq/4];
+        meq &= 0xff;
+        PGroup pg = GROUP[meq/8];
 
         // verify
-        if(pg==null || pg.msk!=(meq/2))
+        if(pg==null || pg.meq!=meq)
             throw new IllegalArgumentException("no matching PGroup");
 
         return pg;
@@ -101,9 +120,9 @@ public enum PGroup {
 
         for(PGroup pg:groups) {
 
-            if ((pg.msk & msk) == 0) {
+            if ((pg.msk() & msk) == 0) {
                 // clear all msk bits from index
-                index &= 127 ^ pg.msk;
+                index &= 127 ^ pg.msk();
             }
         }
 
@@ -125,10 +144,20 @@ public enum PGroup {
         int mask = 0;
 
         for(PGroup pg:groups) {
-            mask |= pg.msk;
+            mask |= pg.msk();
         }
 
         return mask;
+    }
+
+    public static void main(String ... args) {
+
+        VALUES.forEach(
+                pg->{
+                    EntryTable t = RingEntry.TABLE.filter(e->e.grp==pg);
+                    System.out.format("%s: %2d\n", pg.toString(), t.size());
+                }
+        );
     }
 
     /**

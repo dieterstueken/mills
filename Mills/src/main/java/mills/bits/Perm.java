@@ -1,5 +1,9 @@
 package mills.bits;
 
+import com.google.common.collect.ImmutableList;
+
+import java.util.List;
+
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -17,21 +21,21 @@ package mills.bits;
     Each sequence may be reduced to:
     M^i * R^k with i:[01] and k:[0123]
 
+    Introducing an iversion with X = R*R a sequence may be represented as:
+
+    M^i * X^j * R^k with i,j,k of [0,1]
+
     Thus there are 8 possible combinations:
 
-    R0  identity
-    R1  rotate  +90
-    R2  rotate +180
-    R3  rotate +270
+    ___   ID identity
+    __R   RR rotate  90
+    _X_   RL rotate 180
+    _XR   RX rotate 270
 
-    M0  \ mirror
-    M1  | M * R1
-    M2  / M * R2
-    M3  - M * R3
-
-    given three bits i,j,k a permutation may be expressed as:
-
-    P = M^i * R2^j * R1^k
+    M__   MH           | mirror
+    M_R   MR = M * RR  /
+    MX_   ML = M * RL  -
+    MXR   MV = M * RX  \
 
     The permutation will be applied to a pattern of stones.
     8 positions (a single ringTable) are enumerated by two groups of four:
@@ -45,122 +49,78 @@ package mills.bits;
 
 public enum Perm {
 
-    R0,R1,R2,R3, M0,M1,M2,M3;
+    ID(0), RR(1), RL(3), RX(2),
+    MH(4), MR(5), ML(7), MV(6);
 
-    private static final Perm VALUES[] = values();
+    public static final List<Perm> VALUES = ImmutableList.copyOf(values());
 
-    public static int MSK = 7;
+    public static final int MSK = 7;
 
     // get by index [0,8[
-    public static Perm get(int i) { return VALUES[i&MSK];}
+    public static Perm get(int i) { return VALUES.get(i & MSK);}
 
-    // generate from operations
-    static Perm get(boolean mirror, int rotations) {
-        int i = mirror?4:0;
-        i += rotations&3;
-        return get(i);
-    }
+    private final Operation op;
 
-    byte perm() {
-        return (byte) ordinal();
+    private Perm compose[] = new Perm[8];
+
+    Perm(int pm) {
+        op = Operation.combine(pm);
     }
 
     /**
-     * Apply permutation on a given position mask.
+     * Apply permutation to a given position mask.
      * The mask may be composed of three 8-bit patterns to represent a full 24-bit position.
      * @param pattern of stones.
      * @return permuted pattern.
      */
     int apply(int pattern) {
-
-        int i = ordinal();
-
-        if((i&4)!=0)
-            pattern = Operation.MIRROR.apply(pattern);
-
-        if((i&2)!=0)  // reflection is equivalent to R2
-            pattern = Operation.REFLECT.apply(pattern);
-
-        if((i&1)!=0)
-            pattern = Operation.ROTATE.apply(pattern);
-
-        return pattern;
-    }
-
-    // return # of rotations [0,4[
-    public int rotations() {
-        return ordinal()&7;
-    }
-
-    // return if operation performs mirroring
-    public boolean mirrors() {
-        return (ordinal()&4) != 0;
+        return op.apply(pattern);
     }
 
     // return inverse operation
     public Perm inverse() {
-        if(mirrors())
-            return this;
-        else
-            return get(false, -rotations());
+
+        if(this==RL)
+            return RR;
+
+        if(this==RR)
+            return RL;
+
+        // all others are self inverting.
+        return this;
     }
 
     // return composed operation
     public Perm compose(final Perm p) {
-        if(p.mirrors())
-            return get(!mirrors(), p.rotations() - rotations());
-        else
-            return get(mirrors(), p.rotations() + rotations());
+        Perm c = compose[p.ordinal()];
+
+        if(c==null) {
+            int result = p.apply(this.apply(0x11));
+            for (Perm px : VALUES) {
+                if(px.apply(0x11) == result) {
+                    if(c!=null) {
+                        throw new RuntimeException(String.format("duplicate composition of %s X %s", name(), p.name()));
+                    }
+                    c = px;
+                }
+            }
+
+            if(c==null)
+                throw new RuntimeException(String.format("missing composition of %s X %s", name(), p.name()));
+
+            compose[p.ordinal()] = c;
+        }
+
+        return c;
     }
 
     /////////////////////// static utilities ///////////////////////
 
     // take 4th bit into account to reflect 2:0 swaps
-    public static int SWP = 8;
+    public static final int SWP = 8;
 
     // 4 bit mask
-    public static int PERM = 0x0f;
-
-    // lookup tables
-    private static final byte composed[] = new byte[64];
-    private static final byte inversed[] = new byte[8];
-
-    // compose a 8*8 index
-    static int p12(int p1, int p2) {
-        return (p1&MSK)|((p2&MSK)*SWP);
-    }
-
-    static {
-        for(int i=0; i<64; ++i) {
-            final Perm p1 = get(i&MSK);
-            final Perm p2 = get((i*SWP)&MSK);
-            composed[i] = (byte) p1.compose(p2).ordinal();
-        }
-
-        for(int i1=0; i1<8; ++i1) {
-            final Perm p1 = get(i1);
-            inversed[i1] = (byte) p1.inverse().ordinal();
-
-            for(int i2=0; i2<8; ++i2) {
-                final Perm p2 = get(i2);
-                final Perm px = p1.compose(p2);
-                composed[p12(i1,i2)] = px.perm();
-            }
-        }
-    }
-
-    public static byte compose(int p1, int p2) {
-        int px = (p1&MSK)|((p2&MSK)<<3);
-        byte bx = composed[px];     // lookup combination
-        bx |= (p1^p2)& SWP;         // apply swap
-        return bx;
-    }
-
-    public static int inverse(int p) {
-        int px = inversed[(p&MSK)];
-        px ^= p&SWP;
-        return px;
-    }
+    public static final int PERM = 0x0f;
 
     public static void main(String ... args) {
 

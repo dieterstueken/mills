@@ -8,10 +8,7 @@ import mills.position.Positions;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -121,9 +118,16 @@ public class C2Builder {
         return indexMap;
     }
 
+    public static Set<EntryTable> stat(R2Index index) {
+        Set<EntryTable> tset = new TreeSet<>(EntryTable.BY_SIZE);
+        index.values().forEach(r2e -> r2e.values().values().stream().filter(t -> t.size() > 1).forEach(tset::add));
+        return tset;
+    }
+
     public static void main(String ... args) {
 
         IndexList indexes = IndexList.create();
+        Set<EntryTable> tall = new TreeSet<>(EntryTable.BY_SIZE);
 
         for(PopCount pop:PopCount.TABLE) {
             R2Index posIndex = indexes.get(pop);
@@ -134,6 +138,8 @@ public class C2Builder {
 
             Map<PopCount, R2Index> indexMap = build(posIndex, EntryTable::of);
 
+            Set<EntryTable> tindex = new TreeSet<>(EntryTable.BY_SIZE);
+
             for (Map.Entry<PopCount, R2Index> entry : indexMap.entrySet()) {
                 R2Index index = entry.getValue();
                 range = index.range();
@@ -143,10 +149,18 @@ public class C2Builder {
                 n20 = index.values().size();
                 PopCount clop = entry.getKey();
 
-                System.out.format("\t%s %10d, %4d\n", clop, range, n20);
+                Set<EntryTable> tset = stat(index);
+
+                System.out.format("\t%s %10d, %4d, %4d\n", clop, range, n20, tset.size());
+
+                tindex.addAll(tset);
             }
 
-            System.out.println();
+            System.out.format("total: %d\n\n", tindex.size());
+
+            tall.addAll(tindex);
         }
+
+        System.out.format("total: %d\n\n", tall.size());
     }
 }

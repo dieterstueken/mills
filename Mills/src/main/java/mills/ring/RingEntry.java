@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -54,6 +55,10 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     // permutation group fingerprint
     public final PGroup grp;
 
+    public final PGroup grp() {
+        return grp;
+    }
+
     public Player player(Sector sector) {
         int p = index/sector.pow3();
         return Player.of(p%3);
@@ -95,6 +100,10 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     // get permutation
     public final short perm(int i) {
         return perm[i& Perm.MSK];
+    }
+
+    public final RingEntry permute(Perm p) {
+        return TABLE.get(perm(p.ordinal()));
     }
 
     // return stable permutation mask
@@ -144,6 +153,10 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
 
     public RingEntry and(RingEntry other) {
         return of(b.and(other.b), w.and(other.w));
+    }
+
+    private static RingEntry create(int index) {
+        return new RingEntry((short) index);
     }
 
     private RingEntry(short index) {
@@ -285,7 +298,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
 
     //////////////////// static utilities functions on RinEntry index ////////////////////
 
-    public static Predicate<RingEntry> IS_MIN = RingEntry::isMin;
+    public static final Predicate<RingEntry> IS_MIN = RingEntry::isMin;
 
     /**
      * A virtual list of of RinEntries to be materialized be a copy.
@@ -293,8 +306,12 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
      */
     static RingEntry[] entries() {
         RingEntry[] entries = new RingEntry[MAX_INDEX];
-        Arrays.setAll(entries, index -> new RingEntry((short) index));
+        Arrays.setAll(entries, RingEntry::create);
         return entries;
+    }
+
+    static RingEntry[] _entries() {
+        return IntStream.range(0, MAX_INDEX).mapToObj(RingEntry::create).toArray(RingEntry[]::new);
     }
 
     /**

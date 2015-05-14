@@ -19,21 +19,27 @@ public abstract class Operation {
 
     abstract int apply(int pattern);
 
+    final String name;
+
+    public Operation(String name) {
+        this.name = name;
+    }
+
+    public String toString() {
+        return name;
+    }
+
     /**
      * Apply a mask operation on a given pattern.
      * @param mask bits to return.
      * @return an Operation returning a given set of bits.
      */
     static Operation mask(final int mask) {
-        return new Operation() {
+        return new Operation(String.format("p & 0x%06x", mask)) {
 
             @Override
             int apply(int pattern) {
                 return pattern & mask;
-            }
-
-            public String toString() {
-                return String.format("p & 0x%06x", mask);
             }
         };
     }
@@ -70,7 +76,7 @@ public abstract class Operation {
         final Operation m2 = mask(s2);
         final int shift = s2.ordinal()-s1.ordinal();
 
-        return new Operation() {
+        return new Operation(String.format("(%s)<<%d | (%s)>>%d", m1, shift, m2, shift)) {
 
             @Override
             int apply(int pattern) {
@@ -78,21 +84,32 @@ public abstract class Operation {
                 int p2 = m2.apply(pattern) >> shift;
                 return p1 | p2;
             }
-
-            public String toString() {
-                return String.format("(%s)<<%d | (%s)>>%d", m1, shift, m2, shift);
-            }
         };
     }
+
+    public static final Operation ID = new Operation("ID") {
+
+        @Override
+        int apply(int pattern) {
+            return pattern;
+        }
+
+        public Operation join(Operation other) {
+            return other;
+        }
+    };
 
     /**
      *    NW N NE       NE N NW
      *    W     E  -->  E  |  W
      *    SW S SE       SE S SW
+     *
+     *    |-1  0|
+     *    | 0  1|
      */
 
 
-    public static Operation MIRROR = new Operation() {
+    public static final Operation MIRROR = new Operation("MIRROR") {
 
         final Operation keep_NS = mask(N, S);
         final Operation swapNEW = swap(NW, NE);
@@ -107,10 +124,6 @@ public abstract class Operation {
             result |= swapSEW.apply(pattern);
             return result;
         }
-
-        public String toString() {
-            return "MIRROR";
-        }
     };
 
 
@@ -119,9 +132,12 @@ public abstract class Operation {
      * W     E  -->  S  ↷ N
      * SW S SE       SE E NE
      *
+     * | 0 1|
+     * |-1 0|
+     *
      */
 
-    public static Operation ROTATE = new Operation() {
+    public static final Operation ROTATE = new Operation("ROTATE") {
 
         final Operation lower = mask(N,E,S, NW,NE,SE);
         final Operation upper = mask(W, SW);
@@ -132,10 +148,6 @@ public abstract class Operation {
             int p2 = upper.apply(pattern)>>3;
             return p1 | p2;
         }
-
-        public String toString() {
-            return "ROTATE";
-        }
     };
 
     /**
@@ -145,9 +157,11 @@ public abstract class Operation {
      * W     E  -->  E  X  W
      * SW S SE       NE N NW
      *
+     *  |-1 0|
+     *  |0 -1|
      */
     
-    public static Operation REFLECT = new Operation() {
+    public static final Operation INVERT = new Operation("INVERT") {
 
         final Operation lower = mask(N,E, NW,NE);
         final Operation upper = mask(S,W, SE,SW);
@@ -158,21 +172,16 @@ public abstract class Operation {
             int p2 = upper.apply(pattern)>>2;
             return p1 | p2;
         }
-
-        public String toString() {
-            return "REFLECT";
-        }
     };
 
     /**
      * The SWAP Operation acts on whole rings and swaps the outer with the inner ring.
      */
-    public static Operation SWAP = new Operation() {
+    public static final Operation SWAP = new Operation("SWAP") {
         final Operation outer = mask(Ring.OUTER);
         final Operation middle = mask(Ring.MIDDLE);
         final Operation inner = mask(Ring.INNER);
         final int shift = 8*(Ring.INNER.ordinal() - Ring.OUTER.ordinal());
-        final String name = "SWAP";
 
         @Override
         int apply(int pattern) {
@@ -181,9 +190,41 @@ public abstract class Operation {
             int i = outer.apply(pattern) << shift;
             return m | i | o;
         }
-
-        public String toString() {
-            return name;
-        }
     };
+
+    public static Operation product(Operation op1, Operation op2) {
+
+        if(op2==ID)
+            return op1;
+
+        return new Operation(String.format("%s·%s", op1.toString(), op2.toString())) {
+            @Override
+            int apply(int pattern) {
+                pattern = op1.apply(pattern);
+                pattern = op2.apply(pattern);
+                return pattern;
+            }
+        };
+    }
+
+    public Operation join(Operation other) {
+        return product(this, other);
+    }
+
+    public static Operation combine(int msk) {
+        Operation op = Operation.ID;
+        if((msk&8)!=0)
+            op = op.join(SWAP);
+
+        if((msk&4)!=0)
+            op = op.join(MIRROR);
+
+        if((msk&2)!=0)
+            op = op.join(INVERT);
+
+        if((msk&1)!=0)
+            op = op.join(ROTATE);
+
+        return op;
+    }
 }

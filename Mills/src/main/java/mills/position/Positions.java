@@ -7,6 +7,8 @@ import mills.ring.RingEntry;
 import mills.stones.Mills;
 import mills.stones.Stones;
 
+import java.util.function.IntBinaryOperator;
+
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -97,7 +99,7 @@ public interface Positions {
         return i201(i2, i0, i1);
     }
 
-    public interface Builder {
+    interface Builder {
         long i201(int black, int white);
     }
 
@@ -195,7 +197,7 @@ public interface Positions {
         int i2 = r2.perm(perm);
         int i0 = r0.perm(perm);
         int i1 = r1.perm(perm);
-        pm = Perm.compose(pm, perm);
+        pm = compose(pm, perm);
 
         // compose
         if((perm&Perm.SWP)==0)
@@ -256,7 +258,7 @@ public interface Positions {
     static long normalize(RingEntry r2, RingEntry r0, RingEntry r1, int pm) {
         long m201 = normalize(r2, r0, r1);
         int px = perm(m201);
-        px ^= Perm.compose(pm, px); // get changed bits
+        px ^= compose(pm, px); // get changed bits
         m201 ^= (long) px << SP;    // assume px is unsigned
         return m201;
     }
@@ -325,4 +327,29 @@ public interface Positions {
     static int m02(long i201) {
         return i0(i201)*(1<<16) + i2(i201);
     }
+
+    static byte compose(int p1, int p2) {
+        return (byte) PERMS.applyAsInt(p1, p2);
+    }
+
+    IntBinaryOperator PERMS = new IntBinaryOperator() {
+
+        // put into the protected context of a class
+        private byte composed[] = new byte[64];
+
+        {
+            for (Perm p1 : Perm.VALUES) {
+                for (Perm p2 : Perm.VALUES) {
+                    Perm px = p1.compose(p2);
+                    composed[8*p1.ordinal() + p2.ordinal()] = (byte) px.ordinal();
+                }
+            }
+
+        }
+
+        @Override
+        public int applyAsInt(int left, int right) {
+            return composed[8*left + right];
+        }
+    };
 }
