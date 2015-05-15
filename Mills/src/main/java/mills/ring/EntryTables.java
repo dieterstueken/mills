@@ -27,6 +27,7 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
         if(table.isEmpty())
             return -1;
 
+        // turn into singleton table.
         if(table.size()==1)
             return table.get(0).index;
 
@@ -35,7 +36,12 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
         if(key!=null)
             return key;
 
-        return entries.computeIfAbsent(RingTable.of(table), REGISTER);
+        synchronized (this) {
+            // beware:
+            // value may have been added just before by an other thread.
+            // thus an additional check is needed before finally adding.
+            return entries.computeIfAbsent(RingTable.of(table), REGISTER);
+        }
     }
 
     private final Function<List<RingEntry>, Short> REGISTER = table -> {
@@ -122,7 +128,7 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
         short indexes[] = new short[size];
 
         for(int i=0; i<size; ++i) {
-            final EntryTable table = tables.get(i);
+            final List<RingEntry> table = list.get(i);
             indexes[i] = index(table);
         }
 
