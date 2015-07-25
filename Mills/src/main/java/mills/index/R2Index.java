@@ -40,6 +40,14 @@ public class R2Index implements PosIndex {
         return entries.get(tail).range();
     }
 
+    public int n20() {
+        int n20 = 0;
+        for (R2Entry e : entries) {
+            n20 += e.size();
+        }
+        return n20;
+    }
+
     boolean verify(long i201) {
         PopCount p = Positions.pop(i201);
         return p == pop;
