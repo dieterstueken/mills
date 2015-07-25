@@ -175,7 +175,7 @@ public abstract class EntryTable extends ListSet<RingEntry> {
 
         assert count == indexes.length : "filter mismatch";
 
-        return new EntryArray(indexes);
+        return EntryArray.of(indexes);
     }
 
     public EntryTable eq(PopCount pop) {
@@ -241,14 +241,32 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         if(entries instanceof EntryTable) {
             return (EntryTable) entries;
         }
+        
+        final int size = entries.size();
 
-        if(entries.isEmpty())
+        if(size==0)
             return EntryTable.EMPTY;
 
-        if(entries.size()==1)
-            return SingleEntry.of(entries.get(0).index());
+        RingEntry e = entries.get(0);
 
-        return EntryArray.of(entries);
+        if(size==1)
+            return SingleEntry.of(e.index);
+
+        short index[] = new short[size];
+
+        index [0] = e.index;
+        boolean ordered = true;
+
+        for(int i=1; i<size; i++) {
+            RingEntry f = entries.get(i);
+            index[i] = f.index;
+            ordered &= e.index>f.index;
+        }
+
+        if(!ordered)
+            Arrays.sort(index);
+
+        return EntryArray.of(index);
     }
 
     public static EntryTable of(int ... index) {
@@ -274,7 +292,6 @@ public abstract class EntryTable extends ListSet<RingEntry> {
             return SingleEntry.of(table[fromIndex]);
 
         table = Arrays.copyOfRange(table, fromIndex, toIndex);
-
         return EntryArray.of(table);
     }
 
@@ -289,13 +306,13 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         RingEntry e = list.get(0);
         for(int i=1; i<list.size(); ++i) {
             RingEntry f = list.get(i);
-            if(cmp.compare(e, f)!=-1)
+            if(cmp.compare(e, f)>=0)
                 return false;
             e = f;
         }
 
-        list.sort(cmp);
+        //list.sort(cmp);
 
-        return  true;
+        return true;
     }
 }
