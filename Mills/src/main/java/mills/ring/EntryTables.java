@@ -40,13 +40,13 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
             // beware:
             // value may have been added just before by an other thread.
             // thus an additional check is needed before finally adding.
-            return entries.computeIfAbsent(RingTable.of(table), REGISTER);
+            return entries.computeIfAbsent(EntryTable.of(table), REGISTER);
         }
     }
 
     private final Function<List<RingEntry>, Short> REGISTER = table -> {
         int size = tables.size() + RingEntry.MAX_INDEX;
-        tables.add(RingTable.of(table));
+        tables.add(EntryTable.of(table));
 
         if(size>=Short.MAX_VALUE)
             throw new RuntimeException("too many entries");

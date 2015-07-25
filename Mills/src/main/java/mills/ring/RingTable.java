@@ -7,16 +7,25 @@ package mills.ring;
  * Time: 13:37:50
  */
 
+import java.util.Arrays;
+
+import static mills.ring.RingEntry.MAX_INDEX;
+
 /**
  * Class RingTable is the complete EntryTable of 6561 RingEntries.
  */
-public class RingTable extends EntryTable {
+class RingTable extends EntryTable {
 
-    private final RingEntry entries[] = RingEntry.entries();
+    private final RingEntry entries[];
+
+    RingTable() {
+        this.entries = new RingEntry[MAX_INDEX];
+        Arrays.setAll(entries, RingEntry::create);
+    }
 
     @Override
     public int size() {
-        return RingEntry.MAX_INDEX;
+        return MAX_INDEX;
     }
 
     @Override
@@ -24,7 +33,7 @@ public class RingTable extends EntryTable {
         return entries[index];
     }
 
-    boolean inRange(int index) {return index>=0 && index<RingEntry.MAX_INDEX;}
+    boolean inRange(int index) {return index>=0 && index<MAX_INDEX;}
 
     // for the full table there is no need to search any entry.
     public int findIndex(int index) {

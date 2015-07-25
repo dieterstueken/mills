@@ -155,7 +155,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         return of(b.and(other.b), w.and(other.w));
     }
 
-    private static RingEntry create(int index) {
+    static RingEntry create(int index) {
         return new RingEntry((short) index);
     }
 
@@ -296,6 +296,21 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         return index;
     }
 
+    public static final Comparator<RingEntry> COMPARATOR = (o1, o2) -> {
+        if(o1==o2)
+            return 0;
+
+        if(o1==null)
+            return -1;
+
+        return Short.compare(o1.index, o2.index);
+    };
+
+    @Override
+    public int compareTo(RingEntry o) {
+        return Short.compare(index, o.index);
+    }
+
     //////////////////// static utilities functions on RinEntry index ////////////////////
 
     public static final Predicate<RingEntry> IS_MIN = RingEntry::isMin;
@@ -317,7 +332,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     /**
      * An immutable list of all tables.
      */
-    public static final RingTable TABLE = new RingTable();
+    public static final EntryTable TABLE = new RingTable();
 
     public static final EntryTable MINIMIZED = TABLE.filter(IS_MIN);
 
@@ -357,20 +372,5 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
 
             System.out.format("%02x %d %4d %4d\n", meq, Integer.bitCount(meq), count1, count2);
         }
-    }
-
-    public static final Comparator<RingEntry> COMPARATOR = (o1, o2) -> {
-        if(o1==o2)
-            return 0;
-
-        if(o1==null)
-            return -1;
-
-        return Short.compare(o1.index, o2.index);
-    };
-
-    @Override
-    public int compareTo(RingEntry o) {
-        return Short.compare(index, o.index);
     }
 }

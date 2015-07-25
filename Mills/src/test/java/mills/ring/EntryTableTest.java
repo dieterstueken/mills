@@ -89,7 +89,7 @@ public class EntryTableTest {
         testIndexOf(RingEntry.TABLE);
         testIndexOf(RingEntry.MINIMIZED);
         testIndexOf(RingEntry.of(77).singleton);
-        testIndexOf(RingTable.EMPTY);
+        testIndexOf(EntryTable.EMPTY);
 
     }
 

@@ -243,7 +243,7 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         }
 
         if(entries.isEmpty())
-            return RingTable.EMPTY;
+            return EntryTable.EMPTY;
 
         if(entries.size()==1)
             return SingleEntry.of(entries.get(0).index());
