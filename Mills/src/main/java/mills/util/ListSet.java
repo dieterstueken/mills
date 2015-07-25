@@ -11,6 +11,12 @@ import java.util.*;
 abstract public class ListSet<T> extends AbstractRandomList<T> implements SortedSet<T> {
 
     @Override
+    abstract public T get(int index);
+
+    @Override
+    abstract public int size();
+
+    @Override
     public boolean contains(Object obj) {
             return indexOf(obj) >= 0;
         }

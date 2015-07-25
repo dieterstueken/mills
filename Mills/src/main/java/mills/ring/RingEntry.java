@@ -336,6 +336,8 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
 
     public static final EntryTable MINIMIZED = TABLE.filter(IS_MIN);
 
+    public static final EntryTable RADIALS = EntryTable.of(AbstractRandomList.virtual(81, RingEntry::radix));
+
     // get radial stones
     public static RingEntry radix(int index) {
         return TABLE.get(81*index);

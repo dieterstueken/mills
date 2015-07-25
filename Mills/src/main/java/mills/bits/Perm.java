@@ -95,6 +95,7 @@ public enum Perm {
         Perm c = compose[p.ordinal()];
 
         if(c==null) {
+            // try to find inverse using most asymmetric position: 0x11
             int result = p.apply(this.apply(0x11));
             for (Perm px : VALUES) {
                 if(px.apply(0x11) == result) {

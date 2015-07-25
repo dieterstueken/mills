@@ -33,10 +33,14 @@ public enum Mills {
     }
 
     static int closed(int i) {
-        if(i<4)
+
+        if(i<4) // radial mills
             return 0x010101<<i;
 
+        // ring
         int r = (i-4)/4;
+
+        // sector
         int s = i%4;
 
         int m = Pattern.of(0x31).perm(s).stones();
