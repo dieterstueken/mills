@@ -183,6 +183,7 @@ public class Pattern {
 
     public static final Pattern NONE = of(0);
     public static final Pattern RADIALS = of(Sector.RADIALS);
+    public static final Pattern ALL = of(0xff);
 
     private static List<Pattern> patterns() {
 

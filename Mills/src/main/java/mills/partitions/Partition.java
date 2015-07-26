@@ -2,7 +2,6 @@ package mills.partitions;
 
 import mills.ring.EntryTable;
 import mills.ring.EntryTables;
-import mills.util.AbstractRandomList;
 
 import java.util.List;
 
@@ -14,7 +13,7 @@ import java.util.List;
  */
 public class Partition {
 
-    public static final List<Partition> TABLE = AbstractRandomList.generate(128, new Generator());
+    public static final List<Partition> TABLE = Generator.partitions();
 
     public final EntryTable root;
 

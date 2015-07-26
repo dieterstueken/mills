@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 /**
  * Created by IntelliJ IDEA.
@@ -22,29 +21,26 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
 
     final Map<List<RingEntry>, Short> entries = new ConcurrentHashMap<>();
 
-    public Short index(List<RingEntry> table) {
+    public Short index(List<RingEntry> list) {
 
-        if(table.isEmpty())
+        if(list.isEmpty())
             return -1;
 
         // turn into singleton table.
-        if(table.size()==1)
-            return table.get(0).index;
+        if(list.size()==1)
+            return list.get(0).index;
 
-        Short key = entries.get(table);
+        Short key = entries.get(list);
 
         if(key!=null)
             return key;
 
-        synchronized (this) {
-            // beware:
-            // value may have been added just before by an other thread.
-            // thus an additional check is needed before finally adding.
-            return entries.computeIfAbsent(EntryTable.of(table), REGISTER);
-        }
+        EntryTable table =  EntryTable.of(list);
+
+        return entries.computeIfAbsent(table, this::newEntry);
     }
 
-    private final Function<List<RingEntry>, Short> REGISTER = table -> {
+    private synchronized Short newEntry(List<RingEntry> table) {
         int size = tables.size() + RingEntry.MAX_INDEX;
         tables.add(EntryTable.of(table));
 
@@ -52,11 +48,16 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
             throw new RuntimeException("too many entries");
 
         return (short) size;
-    };
+    }
 
-    public EntryTable table(List<RingEntry> table) {
-        int index = index(table);
-        return get(index);
+    public EntryTable table(List<RingEntry> list) {
+        int index = index(list);
+
+        EntryTable table = get(index);
+
+        assert table!=null;
+
+        return table;
     }
 
     public int size() {
@@ -147,10 +148,14 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
     }
 
     public void stat(PrintStream out) {
+
+        List<List<RingEntry>> tables = new ArrayList<>(entries.keySet());
+        Collections.sort(tables, EntryTable.BY_SIZE);
+
         int size=0;
         int count=0;
 
-        for (List<RingEntry> e : entries.keySet()) {
+        for (List<RingEntry> e : tables) {
             if(size==e.size())
                 ++count;
             else {

@@ -57,6 +57,21 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         };
     }
 
+    public static <U, T> List<T> virtual(List<U> source, Function<? super U, ? extends T> mapper) {
+         return new AbstractRandomList<T>() {
+
+             @Override
+             public int size() {
+                 return source.size();
+             }
+
+             @Override
+             public T get(int index) {
+                 return mapper.apply(source.get(index));
+             }
+         };
+    }
+
     public static <T> List<T> generate(int size, IntFunction<? extends T> generate) {
 
         Object values[] = new Object[size];

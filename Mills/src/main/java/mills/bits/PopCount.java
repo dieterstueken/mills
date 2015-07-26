@@ -73,8 +73,8 @@ public class PopCount implements Comparable<PopCount> {
         return m-1;
     }
 
-    public byte index() {
-        return index;
+    public int index() {
+        return 0xff&index;
     }
 
     public int sum() {

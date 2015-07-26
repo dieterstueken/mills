@@ -351,6 +351,8 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         return TABLE.get(BW.index(b,w));
     }
 
+    public static final RingEntry EMPTY = of(0);
+
     ////////////////////////////////////////////////////////////////////////
 
     public static void main(String ... args) {

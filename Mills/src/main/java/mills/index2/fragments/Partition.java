@@ -15,10 +15,10 @@ public class Partition {
 
     final EntryTable root;
 
-    final List<Fragments> fragments;  // 128
-    final List<Fragments> fragset;
+    final List<Radials> fragments;  // 128
+    final List<Radials> fragset;
 
-    Partition(EntryTable root, List<Fragments> fragments, List<Fragments> fragset) {
+    Partition(EntryTable root, List<Radials> fragments, List<Radials> fragset) {
         this.root = root;
         this.fragments = fragments;
         this.fragset = fragset;
