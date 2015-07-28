@@ -13,13 +13,13 @@ import java.util.List;
  */
 public class Partitions {
 
-    final List<Partition> partitions;
+    final List<PartitionTable> partitions;
 
-    public Partitions(List<Partition> partitions) {
+    public Partitions(List<PartitionTable> partitions) {
         this.partitions = partitions;
     }
 
-    public Partition get(PopCount pop) {
+    public PartitionTable get(PopCount pop) {
         return partitions.get(pop.index);
     }
 }

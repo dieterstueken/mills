@@ -1,6 +1,7 @@
 package mills.util;
 
 import java.util.AbstractList;
+import java.util.Collections;
 import java.util.List;
 import java.util.RandomAccess;
 import java.util.function.Function;
@@ -25,8 +26,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         return construct(data);
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T> AbstractRandomList<T> construct(Object[] data) {
+    private static <T> AbstractRandomList<T> construct(T[] data) {
 
         return new AbstractRandomList<T>() {
 
@@ -72,22 +72,36 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
          };
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> List<T> generate(int size, IntFunction<? extends T> generate) {
+
+        if(size==0)
+            return Collections.emptyList();
+
+        if(size==1)
+            return Collections.singletonList(generate.apply(0));
 
         Object values[] = new Object[size];
         for(int i=0; i<size; ++i)
             values[i] = generate.apply(i);
 
-        return construct(values);
+        return construct((T[]) values);
     }
 
+    @SuppressWarnings("unchecked")
     public static <U, T> List<T> map(List<U> source, Function<? super U, ? extends T> mapper) {
         int size = source.size();
+
+        if(size==0)
+            return Collections.emptyList();
+
+        if(size==1)
+            return Collections.singletonList(mapper.apply(source.get(0)));
 
         Object values[] = new Object[size];
         for(int i=0; i<size; ++i)
             values[i] = mapper.apply(source.get(i));
 
-        return construct(values);
+        return construct((T[])values);
     }
 }

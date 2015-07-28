@@ -49,12 +49,21 @@ public enum PGroup {
     public int meq() {return meq;}
 
     /**
-     * Find if any of the permutations of msk [0,128] collides with any permutation of this group.
-     * @param perm mask of forbidden permutations.
+     * Return colliding bits of given permutation mask.
+     * @param msk of permutations (mlt20/2).
+     * @return mask of colliding bits.
+     */
+    public int collisions(int msk) {
+        return msk & this.msk();
+    }
+
+    /**
+     * Find if any of the permutations of msk (mlt20/2) collides with any permutation of this group.
+     * @param msk of permutations (mlt20/2).
      * @return if any permutation of perm collides with any permutation of this.
      */
-    public boolean collides(int perm) {
-        return (msk() & perm) != 0;
+    public boolean collides(int msk) {
+        return collisions(msk) != 0;
     }
 
     PGroup(Perm ... pg) {
@@ -90,6 +99,8 @@ public enum PGroup {
      */
     public static PGroup group(int meq) {
         meq &= 0xff;
+
+        // lower bits #0-2 are irrelevant for distinction.
         PGroup pg = GROUP[meq/8];
 
         // verify
@@ -110,8 +121,8 @@ public enum PGroup {
     }
 
     /**
-     * Calculate a partition index for a given restriction mask.
-     * @param msk of prohibited meq bits (for which the rank is unstable)
+     * Calculate maximum partition index for a given restriction mask.
+     * @param msk of volatile bits (1=reducing permutation).
      * @return the highest partition index with all permitted bits set.
      */
     public static int pindex(Set<PGroup> groups, int msk) {
@@ -127,6 +138,19 @@ public enum PGroup {
         }
 
         return index;
+    }
+
+    /**
+     * Calculate lowest index for a given restriction mask.
+     * @param groups occurring permutation groups.
+     * @param msk given mlt mask.
+     * @return lowest relevant mask filtering the same permutations.
+     */
+    public static int lindex(Set<PGroup> groups, int msk) {
+        // or ing all collisions.
+        return groups.stream()
+                .mapToInt(pg->pg.collisions(msk))
+                .reduce(0, (a,b) -> a|b);
     }
 
     public static int code(Set<PGroup> groups) {

@@ -88,8 +88,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     }
 
     public final RingEntry radials() {
-        int radials = index/81;
-        return TABLE.get(81*radials);
+        return RADIALS.get(radix());
     }
 
     // get radial index

@@ -8,13 +8,12 @@ import mills.ring.EntryTables;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
+import java.util.stream.IntStream;
 
 /**
  * version:     $Revision$
@@ -38,157 +37,185 @@ public class Builder {
 
             @Override
             protected Partitions compute() {
-                List<RecursiveTask<Partition>> tasks = AbstractRandomList.generate(100, i -> {
+                List<RecursiveTask<MaskTable>> tasks = AbstractRandomList.generate(100, i -> {
                     PopCount pop = PopCount.get(i);
-                    return partition(pop);
+                    return maskTask(pop);
                 });
 
                 invokeAll(tasks);
-
-                List<Partition> partitions = AbstractRandomList.map(tasks, ForkJoinTask::join);
+                List<PartitionTable> partitions = AbstractRandomList.map(tasks, ForkJoinTask::join);
                 return new Partitions(partitions);
             }
         };
     }
 
-    public RecursiveTask<Partition> partition(PopCount pop) {
+    public RecursiveTask<MaskTable> maskTask(PopCount pop) {
 
-        return new RecursiveTask<Partition>() {
+        return new RecursiveTask<MaskTable>() {
 
             @Override
-            protected Partition compute() {
-                EntryTable source = RingEntry.MINIMIZED.filter(pop.eq);
+            protected MaskTable compute() {
+                EntryTable root = RingEntry.MINIMIZED.filter(pop.eq);
 
-                Set<PGroup> groups = PGroup.groups(source);
-                final List<RecursiveTask<Radials>> taskset = new ArrayList<>(1<<groups.size());
+                if(root.isEmpty())
+                    return MaskTable.EMPTY;
 
-                final byte idx[] = new byte[128];
+                Set<PGroup> groups = PGroup.groups(root);
+                final List<RecursiveTask<RadialTable>> taskset = new ArrayList<>(1<<groups.size());
+                final List<RecursiveTask<RadialTable>> tasks = new ArrayList<>(128);
 
-                // back to forth
-                for(int mlt=127; mlt>=0; --mlt) {
+                IntStream.range(0, 128).mapToObj(index -> {
 
-                    int index = PGroup.pindex(groups, mlt);
-                    if(index==mlt) {
-                        RecursiveTask<Radials> task = radials(source, index);
-                        idx[mlt] = (byte) taskset.size();
-                        taskset.add(task);
+                    assert index == tasks.size();
+
+                    int lindex = PGroup.lindex(groups, index);
+                    if (lindex < index) {
+                        return tasks.get(lindex);
                     } else {
-                        idx[mlt] = idx[index];
+                        RecursiveTask<RadialTable> task = radialTask(root, lindex);
+                        taskset.add(task);
+                        return task;
                     }
-                }
+                }).forEach(tasks::add);
 
+                // invoke all but drop empty Radials
                 ForkJoinTask.invokeAll(taskset);
+                taskset.removeIf(task -> task.join().root.isEmpty());
 
-                List<Radials> fragset = AbstractRandomList.map(taskset, ForkJoinTask::join);
-                List<Radials> fragments = AbstractRandomList.generate(128, i -> taskset.get(idx[i]).join());
+                List<RadialTable> fragset = AbstractRandomList.map(taskset, ForkJoinTask::join);
+                List<RadialTable> fragments = AbstractRandomList.map(tasks, ForkJoinTask::join);
 
-                return new Partition(source, fragset, fragments);
+                return new MaskTable(root) {
+
+                    @Override
+                    public RadialTable get(int index) {
+                        return fragments.get(index);
+                    }
+
+                    @Override
+                    Collection<RadialTable> values() {
+                        return fragset;
+                    }
+                };
             }
         };
     }
 
-    RecursiveTask<Radials> radials(EntryTable source, int mlt) {
-        return new RecursiveTask<Radials>() {
-            @Override
-            protected Radials compute() {
-
-                EntryTable filtered = tables.table(source.filter(filters.get(mlt)));
-
-                if(filtered.isEmpty())
-                    return Radials.EMPTY;
-
-                return new FragmentsBuilder(filtered).build();
-            }
-        };
+    static UnaryOperator<RingEntry> clip(Pattern blacks, Pattern whites) {
+        return entry -> RingEntry.of(blacks.and(entry.b), whites.and(entry.w));
     }
 
-    class FragmentsBuilder {
-
-        final EntryTable filtered;
+    static UnaryOperator<RingEntry> clip(EntryTable table) {
 
         Pattern blacks = Pattern.NONE;
         Pattern whites = Pattern.NONE;
 
-        final List<RecursiveTask<Fragments>> tasks = new ArrayList<>(81);
-        final List<RecursiveTask<Fragments>> taskset = new ArrayList<>();
+        for (RingEntry e : table) {
 
-        public FragmentsBuilder(EntryTable filtered) {
-            this.filtered = filtered;
+            e = e.radials(); // radials only
 
-            for (RingEntry e : filtered) {
-                blacks = blacks.or(e.b);
-                whites = whites.or(e.w);
-            }
+            blacks = blacks.or(e.b);
+            whites = whites.or(e.w);
         }
 
-        // return all stones which have any overlap
-        RingEntry clip(RingEntry radial) {
-            return RingEntry.of(
-                    blacks.and(radial.b),
-                    whites.and(radial.w)
-            );
-        }
-
-        RecursiveTask<Fragments> task(RingEntry radial) {
-            RingEntry clipped = clip(radial);
-            if(clipped.equals(radial)) {
-                RecursiveTask<Fragments> task = fragments(filtered, radial);
-                taskset.add(task);
-                return task;
-            } else {
-                // substitute previously prepared task
-                return tasks.get(clipped.radix());
-            }
-        }
-
-        Radials build() {
-
-            for (RingEntry radial : RingEntry.RADIALS) {
-                tasks.add(task(radial));
-            }
-
-            ForkJoinTask.invokeAll(taskset);
-
-            List<Fragments> fragset = AbstractRandomList.map(taskset, ForkJoinTask::join);
-            List<Fragments> fragments = AbstractRandomList.map(tasks, ForkJoinTask::join);
-
-            switch(fragset.size()) {
-                case 1: fragsets_1.incrementAndGet(); break;
-                case 2: fragsets_2.incrementAndGet(); break;
-                default: fragsets_n.incrementAndGet(); break;
-            }
-
-            return new Radials(filtered, fragset, fragments);
-        }
+        return clip(blacks, whites);
     }
 
-    final AtomicInteger fragsets_1 = new AtomicInteger();
-    final AtomicInteger fragsets_2 = new AtomicInteger();
-    final AtomicInteger fragsets_n = new AtomicInteger();
+    RecursiveTask<RadialTable> radialTask(EntryTable source, int mlt) {
 
-    RecursiveTask<Fragments> fragments(EntryTable source, RingEntry radials) {
+        return new RecursiveTask<RadialTable>() {
 
-        return new RecursiveTask<Fragments>() {
+            @Override
+            protected RadialTable compute() {
+                EntryTable root = tables.table(source.filter(filters.get(mlt)));
+
+                if(root.isEmpty())
+                    return RadialTable.EMPTY;
+
+                final List<RecursiveTask<ClopTable>> taskset = new ArrayList<>();
+                final List<RecursiveTask<ClopTable>> tasks = new ArrayList<>(81);
+
+                RingEntry.RADIALS.stream().map(clip(root)).map(radials -> {
+                    int radix = radials.radix();
+                    if (radix < tasks.size()) {
+                        return tasks.get(radix);
+                    } else {
+                        assert radix == tasks.size();
+                        RecursiveTask<ClopTable> task = clopTask(root, radials);
+                        taskset.add(task);
+                        return task;
+                    }
+                });
+
+                List<ClopTable> fragset = AbstractRandomList.map(taskset, ForkJoinTask::join);
+                List<ClopTable> tables = AbstractRandomList.map(tasks, ForkJoinTask::join);
+
+                return new RadialTable(root) {
+
+                    @Override
+                    public ClopTable get(int index) {
+                        return tables.get(index);
+                    }
+
+                    @Override
+                    Collection<ClopTable> values() {
+                        return fragset;
+                    }
+                };
+            }
+        };
+    }
+
+    static ClopTable singletonClop(PopCount clop, EntryTable root) {
+
+        return new ClopTable(root) {
+
+            @Override
+            public EntryTable get(int index) {
+                return index==clop.index ? root : EntryTable.EMPTY;
+            }
+
+            @Override
+            Collection<EntryTable> values() {
+                return Collections.singleton(root);
+            }
+        };
+    }
+
+    static ClopTable indexClop(EntryTable root, byte clops[], List<EntryTable> tables) {
+
+        return new ClopTable(root) {
+            @Override
+            public EntryTable get(int index) {
+
+                int i = Arrays.binarySearch(clops, (byte) index);
+                return i<0 ? EntryTable.EMPTY : tables.get(i);
+            }
+        };
+    }
+
+    RecursiveTask<ClopTable> clopTask(EntryTable root, RingEntry radials) {
+
+        return new RecursiveTask<ClopTable>() {
 
             PopCount clop(RingEntry e) {
                 return e.clop().add(e.radials().and(radials).pop());
             }
 
             @Override
-            protected Fragments compute() {
+            protected ClopTable compute() {
 
-                if(source.isEmpty())
-                    return Fragments.EMPTY;
+                if(root.isEmpty())
+                    return ClopTable.EMPTY;
 
-                if (source.size() == 1) {
-                    fragset_1.incrementAndGet();
-                    RingEntry e = source.get(0);
-                    return Fragments.of(clop(e), source);
+                if (root.size() == 1) {
+                    RingEntry e = root.get(0);
+                    return singletonClop(clop(e), root);
                 }
 
                 int msk = 0;
 
-                for (RingEntry e : source) {
+                for (RingEntry e : root) {
                     final byte index = clop(e).index;
 
                     // may look like 8 mill candidates
@@ -199,22 +226,21 @@ public class Builder {
                 int count = Integer.bitCount(msk);
 
                 if (count == 1) {
-                    fragset_1.incrementAndGet();
-                    RingEntry e = source.get(0);
+                    RingEntry e = root.get(0);
                     PopCount clop = e.clop().add(e.radials().and(radials).pop());
-                    return Fragments.of(clop, source);
+                    return singletonClop(clop, root);
                 }
 
                 byte clops[] = new byte[count];
                 List<EntryTable> frags = new ArrayList<>(count);
 
-                //List<PopCount> cloplist = AbstractRandomList.virtual(source, this::clop);
+                //List<PopCount> cloplist = AbstractRandomList.virtual(root, this::clop);
 
                 for (PopCount clop : PopCount.CLOSED) {
                     if ((msk & (1<<clop.index)) != 0) {
                         int i = frags.size();
                         clops[i] = clop.index;
-                        final EntryTable fragment = source.filter(e -> clop(e).equals(clop));
+                        final EntryTable fragment = root.filter(e -> clop(e).equals(clop));
 
                         assert !fragment.isEmpty();
 
@@ -223,20 +249,10 @@ public class Builder {
                     }
                 }
 
-                switch(count) {
-                    case 1: fragset_1.incrementAndGet(); break;
-                    case 2: fragset_2.incrementAndGet(); break;
-                    default: fragset_n.incrementAndGet(); break;
-                }
-
-                return Fragments.of(clops, msk, tables.register(frags));
+                return indexClop(root, clops, tables.register(frags));
             }
         };
     }
-
-    final AtomicInteger fragset_1 = new AtomicInteger();
-    final AtomicInteger fragset_2 = new AtomicInteger();
-    final AtomicInteger fragset_n = new AtomicInteger();
 
     public static void main(String ... args) {
 
