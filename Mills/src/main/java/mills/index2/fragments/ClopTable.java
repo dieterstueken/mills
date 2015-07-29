@@ -30,5 +30,10 @@ abstract public class ClopTable extends PartitionTable<EntryTable> {
         public EntryTable get(int index) {
             return EntryTable.EMPTY;
         }
+
+        @Override
+        public String toString() {
+            return "empty";
+        }
     };
 }

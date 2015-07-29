@@ -31,5 +31,10 @@ abstract public class RadialTable extends PartitionTable<ClopTable> {
         public ClopTable get(int index) {
             return ClopTable.EMPTY;
         }
+
+        @Override
+        public String toString() {
+            return "empty";
+        }
     };
 }

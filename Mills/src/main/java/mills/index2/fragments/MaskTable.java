@@ -26,5 +26,10 @@ abstract public class MaskTable extends PartitionTable<RadialTable> {
         public RadialTable get(int index) {
             return RadialTable.EMPTY;
         }
+
+        @Override
+        public String toString() {
+            return "empty";
+        }
     };
 }

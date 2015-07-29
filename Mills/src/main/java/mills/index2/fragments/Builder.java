@@ -43,8 +43,8 @@ public class Builder {
                 });
 
                 invokeAll(tasks);
-                List<PartitionTable> partitions = AbstractRandomList.map(tasks, ForkJoinTask::join);
-                return new Partitions(partitions);
+                List<MaskTable> partitions = AbstractRandomList.map(tasks, ForkJoinTask::join);
+                return new Partitions(RingEntry.MINIMIZED, partitions);
             }
         };
     }
@@ -82,21 +82,30 @@ public class Builder {
                 ForkJoinTask.invokeAll(taskset);
                 taskset.removeIf(task -> task.join().root.isEmpty());
 
-                List<RadialTable> fragset = AbstractRandomList.map(taskset, ForkJoinTask::join);
-                List<RadialTable> fragments = AbstractRandomList.map(tasks, ForkJoinTask::join);
+                assert !taskset.isEmpty();
 
-                return new MaskTable(root) {
+                return maskTable(pop, root,
+                        AbstractRandomList.map(tasks, ForkJoinTask::join),
+                        AbstractRandomList.map(taskset, ForkJoinTask::join));
+            }
+        };
+    }
 
-                    @Override
-                    public RadialTable get(int index) {
-                        return fragments.get(index);
-                    }
+    static MaskTable maskTable(PopCount pop, EntryTable root, List<RadialTable> fragments, List<RadialTable> fragset) {
+        return new MaskTable(root) {
 
-                    @Override
-                    Collection<RadialTable> values() {
-                        return fragset;
-                    }
-                };
+            @Override
+            public RadialTable get(int index) {
+                return fragments.get(index);
+            }
+
+            @Override
+            public Collection<RadialTable> content() {
+                return fragset;
+            }
+
+            public PopCount pop() {
+                return pop;
             }
         };
     }
@@ -137,31 +146,38 @@ public class Builder {
 
                 RingEntry.RADIALS.stream().map(clip(root)).map(radials -> {
                     int radix = radials.radix();
-                    if (radix < tasks.size()) {
+                    int size = tasks.size();
+                    if (radix < size) {
                         return tasks.get(radix);
                     } else {
-                        assert radix == tasks.size();
+                        assert radix == size;
                         RecursiveTask<ClopTable> task = clopTask(root, radials);
                         taskset.add(task);
                         return task;
                     }
-                });
+                }).forEach(tasks::add);
+
+                ForkJoinTask.invokeAll(taskset);
 
                 List<ClopTable> fragset = AbstractRandomList.map(taskset, ForkJoinTask::join);
                 List<ClopTable> tables = AbstractRandomList.map(tasks, ForkJoinTask::join);
 
-                return new RadialTable(root) {
+                return radialTable(root, tables, fragset);
+            }
+        };
+    }
 
-                    @Override
-                    public ClopTable get(int index) {
-                        return tables.get(index);
-                    }
+    static RadialTable radialTable(EntryTable root, List<ClopTable> tables, List<ClopTable> fragset) {
+        return new RadialTable(root) {
 
-                    @Override
-                    Collection<ClopTable> values() {
-                        return fragset;
-                    }
-                };
+            @Override
+            public ClopTable get(int index) {
+                return tables.get(index);
+            }
+
+            @Override
+            public Collection<ClopTable> content() {
+                return fragset;
             }
         };
     }
@@ -176,7 +192,7 @@ public class Builder {
             }
 
             @Override
-            Collection<EntryTable> values() {
+            public Collection<EntryTable> content() {
                 return Collections.singleton(root);
             }
         };
@@ -190,6 +206,11 @@ public class Builder {
 
                 int i = Arrays.binarySearch(clops, (byte) index);
                 return i<0 ? EntryTable.EMPTY : tables.get(i);
+            }
+
+            @Override
+            public Collection<EntryTable> content() {
+                return tables;
             }
         };
     }
@@ -256,14 +277,33 @@ public class Builder {
 
     public static void main(String ... args) {
 
-        for(int n=0; n<1000; ++n) {
+        Builder b = new Builder(new EntryTables());
 
-            Builder b = new Builder(new EntryTables());
+        Partitions p = b.partitions().invoke();
 
-            Partitions p = b.partitions().invoke();
+        int n_rads=0, n_msk=0, n_clops=0, n_tables=0;
 
-            //b.tables.stat(System.out);
-            System.out.format("run %d %d \n", b.tables.count(), n);
+        for (MaskTable partition : p.content()) {
+
+            if(!partition.content().isEmpty())
+                ++n_msk;
+
+            for (RadialTable radialTable : partition.content()) {
+                if(!radialTable.content().isEmpty())
+                    ++n_rads;
+
+                for (ClopTable clopTable : radialTable.content()) {
+                    if(!clopTable.content().isEmpty())
+                        ++n_clops;
+
+                    n_tables += clopTable.content().size();
+                }
+            }
         }
+
+        //b.tables.stat(System.out);
+        System.out.format("run msk=%d rad=%d clop=%d tbl=%d all=%d\n", n_msk, n_rads, n_clops, n_tables, b.tables.count());
+
+        p.size();
     }
 }

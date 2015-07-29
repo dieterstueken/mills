@@ -1,7 +1,6 @@
 package mills.index2.fragments;
 
 import mills.ring.EntryTable;
-import mills.util.AbstractRandomList;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -13,7 +12,7 @@ import java.util.Collections;
  * modified by: $Author$
  * modified on: $Date$
  */
-abstract public class PartitionTable<T> extends AbstractRandomList<T> {
+abstract public class PartitionTable<T> {
 
     final EntryTable root;
 
@@ -21,8 +20,17 @@ abstract public class PartitionTable<T> extends AbstractRandomList<T> {
         this.root = root;
     }
 
+    abstract public T get(int index);
+
+    abstract public int size();
+
     // list of different entries
-    Collection<T> values() {
+    public Collection<T> content() {
         return Collections.emptyList();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("size = %d", content().size());
     }
 }
