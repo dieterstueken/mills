@@ -1,4 +1,4 @@
-package mills.index2.fragments;
+package mills.index3.partitions;
 
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
@@ -12,8 +12,10 @@ import mills.ring.EntryTable;
  */
 abstract public class ClopTable extends PartitionTable<EntryTable> {
 
+    public final EntryTable root;
+
     ClopTable(EntryTable root) {
-        super(root);
+        this.root = root;
     }
 
     public EntryTable get(PopCount clop) {

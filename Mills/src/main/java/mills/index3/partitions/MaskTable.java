@@ -1,5 +1,6 @@
-package mills.index2.fragments;
+package mills.index3.partitions;
 
+import mills.bits.PopCount;
 import mills.ring.EntryTable;
 
 /**
@@ -11,20 +12,31 @@ import mills.ring.EntryTable;
  */
 abstract public class MaskTable extends PartitionTable<RadialTable> {
 
+    public final EntryTable root;
+
     MaskTable(EntryTable root) {
-        super(root);
+        this.root=root;
     }
+
+    abstract public RadialTable get(int index);
 
     @Override
     public int size() {
         return 128;
     }
 
+    abstract public PopCount pop();
+
     public static final MaskTable EMPTY = new MaskTable(EntryTable.EMPTY) {
 
         @Override
         public RadialTable get(int index) {
             return RadialTable.EMPTY;
+        }
+
+        @Override
+        public PopCount pop() {
+            return null;
         }
 
         @Override

@@ -1,4 +1,4 @@
-package mills.index2.fragments;
+package mills.index3.partitions;
 
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
@@ -12,8 +12,10 @@ import mills.ring.RingEntry;
  */
 abstract public class RadialTable extends PartitionTable<ClopTable> {
 
+    public final EntryTable root;
+
     RadialTable(EntryTable root) {
-        super(root);
+        this.root=root;
     }
 
     @Override
