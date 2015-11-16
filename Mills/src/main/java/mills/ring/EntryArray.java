@@ -17,6 +17,7 @@ class EntryArray extends EntryTable {
         this.modCount = Arrays.hashCode(indices);
     }
 
+    @Override
     public int hashCode() {
         return modCount;
     }

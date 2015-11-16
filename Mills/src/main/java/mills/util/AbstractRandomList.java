@@ -1,9 +1,6 @@
 package mills.util;
 
-import java.util.AbstractList;
-import java.util.Collections;
-import java.util.List;
-import java.util.RandomAccess;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 
@@ -26,33 +23,40 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         return construct(data);
     }
 
-    private static <T> AbstractRandomList<T> construct(T[] data) {
+    private static <T> AbstractRandomList<T> construct(Object[] data) {
 
-        return new AbstractRandomList<T>() {
+        return new AbstractRandomArray<T>(data.length) {
 
             @Override
-            public int size() {
-                return data.length;
+            @SuppressWarnings("unchecked")
+            public T get(int index) {
+                return (T) data[index];
             }
 
             @Override
-            public T get(int index) {
-                return (T) data[index];
+            public int hashCode() {
+                return modCount;
+            }
+
+            {
+                // misused for pre calculated hash code
+                this.modCount = Arrays.hashCode(data);
             }
         };
     }
 
     public static <T> List<T> virtual(int size, IntFunction<? extends T> generate) {
-        return new AbstractRandomList<T>() {
-
-            @Override
-            public int size() {
-                return size;
-            }
+        return new AbstractRandomArray<T>(size) {
 
             @Override
             public T get(int index) {
                 return generate.apply(index);
+            }
+
+            // no content equal for virtual lists
+            @Override
+            public boolean equals(Object o) {
+                return o == this;
             }
         };
     }
@@ -69,10 +73,15 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
              public T get(int index) {
                  return mapper.apply(source.get(index));
              }
+
+             // no content equal for virtual lists
+             @Override
+             public boolean equals(Object o) {
+                 return o == this;
+             }
          };
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> List<T> generate(int size, IntFunction<? extends T> generate) {
 
         if(size==0)
@@ -85,7 +94,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         for(int i=0; i<size; ++i)
             values[i] = generate.apply(i);
 
-        return construct((T[]) values);
+        return construct(values);
     }
 
     @SuppressWarnings("unchecked")
@@ -98,10 +107,37 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         if(size==1)
             return Collections.singletonList(mapper.apply(source.get(0)));
 
+        // back to forth
         Object values[] = new Object[size];
-        for(int i=0; i<size; ++i)
+        for(int i=size-1; i>=0; --i)
             values[i] = mapper.apply(source.get(i));
 
         return construct((T[])values);
+    }
+
+    // check sizes first
+    // fast RandomAccess compare
+
+    @Override
+    public boolean equals(Object o) {
+        return o==this || (o instanceof List) && (o instanceof RandomAccess) && equals((List) o) || super.equals(o);
+    }
+
+    public boolean equals(List<?> other) {
+
+        int size = size();
+
+        if(size!=other.size()) {
+            return false;
+        } else {
+            for(int i=0; i<size; ++i) {
+                T o1 = get(i);
+                Object o2 = other.get(i);
+                if (!(o1==null ? o2==null : o1.equals(o2)))
+                    return false;
+            }
+        }
+
+        return true;
     }
 }
