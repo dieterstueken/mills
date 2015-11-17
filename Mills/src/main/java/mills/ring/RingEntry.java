@@ -1,12 +1,10 @@
 package mills.ring;
 
 import mills.bits.*;
-import mills.util.AbstractRandomArray;
 import mills.util.AbstractRandomList;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
@@ -50,8 +48,6 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     // permutation group kept as a short index.
     private final short perm[] = new short[8];
 
-    public final List<RingEntry> permutations = AbstractRandomList.virtual(8, index -> TABLE.get(perm[index]));
-
     // permutation group fingerprint
     public final PGroup grp;
 
@@ -63,14 +59,6 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         int p = index/sector.pow3();
         return Player.of(p%3);
     }
-
-    public List<Player> players = new AbstractRandomArray<Player>(8) {
-
-        @Override
-        public Player get(int i) {
-            return player(Sector.of(i));
-        }
-    };
 
     public final SingleEntry singleton = new SingleEntry(this);
 
@@ -102,7 +90,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     }
 
     public final RingEntry permute(Perm p) {
-        return TABLE.get(perm(p.ordinal()));
+        return of(perm(p.ordinal()));
     }
 
     // return stable permutation mask
@@ -152,6 +140,10 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
 
     public RingEntry and(RingEntry other) {
         return of(b.and(other.b), w.and(other.w));
+    }
+
+    public boolean contains(RingEntry other) {
+        return b.contains(other.b) && w.contains(other.w);
     }
 
     static RingEntry create(int index) {

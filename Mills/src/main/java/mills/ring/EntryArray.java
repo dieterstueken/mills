@@ -23,15 +23,17 @@ class EntryArray extends EntryTable {
     }
 
     static EntryTable of(short[] ringIndex) {
+        assert isOrdered(ringIndex);
+
         EntryArray table = new EntryArray(ringIndex) {
 
             @Override
             public EntryTable subList(int fromIndex, int toIndex) {
-                return subsetOf(indices, fromIndex, toIndex);
+                //return subsetOf(indices, fromIndex, toIndex);
+                return of(Arrays.copyOfRange(ringIndex, fromIndex, toIndex));
             }
         };
 
-        assert isOrdered(table, RingEntry.COMPARATOR);
         return table;
     }
 
@@ -55,6 +57,7 @@ class EntryArray extends EntryTable {
         return indices.length;
     }
 
+    @Deprecated
     static EntryTable subsetOf(short[] indices, int from, int to) {
 
         if(from<0 || to<from || to>indices.length)
@@ -68,6 +71,8 @@ class EntryArray extends EntryTable {
 
         if(from==0 && to==indices.length)
             return EntryArray.of(indices);
+
+        assert isOrdered(Arrays.copyOfRange(indices, from, to));
 
         EntryArray table = new EntryArray(indices) {
             @Override
@@ -115,8 +120,6 @@ class EntryArray extends EntryTable {
                 return to-from;
             }
         };
-
-        assert isOrdered(table, RingEntry.COMPARATOR);
 
         return table;
     }

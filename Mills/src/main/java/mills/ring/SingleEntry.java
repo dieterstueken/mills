@@ -2,6 +2,7 @@ package mills.ring;
 
 import java.util.Iterator;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -60,6 +61,11 @@ class SingleEntry extends EntryTable {
     public Iterator<RingEntry> iterator() {
         //return Iterators.singletonIterator(entry());
         return super.iterator();
+    }
+
+    @Override
+    public Stream<RingEntry> stream() {
+        return Stream.of(entry);
     }
 
     @Override

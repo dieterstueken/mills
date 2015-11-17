@@ -85,6 +85,10 @@ public class Pattern {
         return of(stones);
     }
 
+    public boolean contains(Pattern other) {
+        return (pattern&other.pattern) == pattern;
+    }
+
     public Pattern radials() {
         return and(RADIALS);
     }

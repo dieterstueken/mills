@@ -1,9 +1,7 @@
 package mills.index4;
 
 import mills.ring.EntryTable;
-
-import java.util.Collections;
-import java.util.List;
+import mills.util.AbstractRandomList;
 
 /**
  * Created by IntelliJ IDEA.
@@ -15,7 +13,7 @@ import java.util.List;
 /**
  * Class Partition represents a group of RingEntries matching a given PopCount and a given permutation mask.
  */
-abstract class Partition {
+class Partition extends AbstractRandomList<EntryTable> {
 
     // table of entries matching PopCount and permutation mask.
     public final EntryTable root;
@@ -24,20 +22,17 @@ abstract class Partition {
         this.root = root;
     }
 
-    abstract public EntryTable get(RdClop index);
+    public int size() {
+        return 1;
+    }
 
-    abstract public List<EntryTable> tables();
+    public EntryTable get(int index) {
+        return index==0 ? root : EntryTable.EMPTY;
+    }
 
-    public static final Partition EMPTY = new Partition(EntryTable.EMPTY) {
+    public int index(RdClop rdc) {
+        return rdc==null ? 0 : -1;
+    }
 
-        @Override
-        public EntryTable get(RdClop index) {
-            return EntryTable.EMPTY;
-        }
-
-        @Override
-        public List<EntryTable> tables() {
-            return Collections.emptyList();
-        }
-    };
+    public static final Partition EMPTY = new Partition(EntryTable.EMPTY);
 }

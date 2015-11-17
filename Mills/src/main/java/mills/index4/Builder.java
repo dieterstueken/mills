@@ -1,6 +1,5 @@
 package mills.index4;
 
-import com.google.common.collect.ImmutableList;
 import mills.bits.PGroup;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
@@ -10,6 +9,7 @@ import mills.util.AbstractRandomList;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -80,8 +80,6 @@ public class Builder {
 
     final List<Predicate<RingEntry>> filters = AbstractRandomList.generate(128, msk -> e -> e.stable(2 * msk));
 
-    public static final Comparator<RingEntry> RDC_ORDER = Comparator.comparing(RdClop::of, Comparator.nullsFirst((RdClop.CMP)));
-
     Partition partition(EntryTable parent, int mlt) {
 
         EntryTable root = entryTable(parent.filter(filters.get(mlt)));
@@ -89,92 +87,81 @@ public class Builder {
         if(root.isEmpty())
             return Partition.EMPTY;
 
-        List<RingEntry> entries = new ArrayList<>(root);
-        Collections.sort(entries, RDC_ORDER);
+        Map<RdClop, List<RingEntry>> tables = new TreeMap<RdClop, List<RingEntry>>(RdClop.CMP) {
 
-        List<EntryTable> tables = new ArrayList<>();
-
-        while(!entries.isEmpty()) {
-            int l = entries.size();
-            RdClop rdc = RdClop.of(entries.get(l-1));
-            int i = l-1;
-            while(i>=0 && rdc.equals(RdClop.of(entries.get(i)))) {
-                --i;
+            void add(RingEntry entry) {
+                RdClop.of(entry).subsets()
+                        .map(RdClop::closed)
+                        .filter(Objects::nonNull)
+                        .forEach(rdc -> computeIfAbsent(rdc, rdClop -> new ArrayList<>()).add(entry));
             }
 
-            // i+1 was the last valid index
-            List<RingEntry> chunk = entries.subList(i+1, l);
-            tables.add(0, entryTable(chunk));
-            chunk.clear();
-        }
-
-        if(tables.isEmpty())
-            return Partition.EMPTY;
+            {
+                root.forEach(this::add);
+            }
+        };
 
         if(tables.size()==1) {
-            return partition(root, tables.get(0));
+            Map.Entry<RdClop, List<RingEntry>> entry = tables.entrySet().iterator().next();
+            return partition(root, entry.getKey().index(), entryTable(entry.getValue()));
         }
 
-        return partition(root, ImmutableList.copyOf(tables));
+        int index[] = tables.keySet().stream().mapToInt(RdClop::index).toArray();
+        List<EntryTable> entryTables = tables.values().stream().map(this::entryTable).collect(Collectors.toList());
+
+        return partition(root, index, entryTables);
     }
 
-    public static RdClop rdc(EntryTable table) {
-        return table==null || table.isEmpty() ? null : RdClop.of(table.get(0));
-    }
-
-    static Partition partition(EntryTable root, List<EntryTable> tables) {
-
-        List<RdClop> index = AbstractRandomList.map(tables, Builder::rdc);
+    static Partition partition(EntryTable root, int rdcs[], List<EntryTable> tables) {
 
         return new Partition(root) {
 
             @Override
-            public List<EntryTable> tables() {
-                return tables;
+            public int size() {
+                return rdcs.length+1;
             }
 
             @Override
-            public EntryTable get(RdClop rdc) {
-                int i = Collections.binarySearch(index, rdc, RdClop.CMP);
-                return i<0 ? EntryTable.EMPTY : tables.get(i);
+            public EntryTable get(int index) {
+                return index==0 ? root : tables.get(index-1);
+            }
+
+            @Override
+            public int index(RdClop rdc) {
+                if(rdc==null)
+                    return 0;
+
+                int index = Arrays.binarySearch(rdcs, rdc.index());
+                return index<0 ? -1 : index+1;
             }
         };
     }
 
-    static Partition partition(EntryTable root, EntryTable table) {
-        if(table.size()==1)
-            return partition(root, table.get(0).index);
+    static Partition partition(EntryTable root, int rdci, EntryTable table) {
 
         return new Partition(root) {
-
             @Override
-            public EntryTable get(RdClop rdc) {
-                return rdc.equals(rdc(table)) ? table : EntryTable.EMPTY;
+            public int size() {
+                return 2;
             }
 
             @Override
-            public List<EntryTable> tables() {
-                return Collections.singletonList(table);
-            }
-        };
-    }
-
-    static Partition partition(EntryTable root, short index) {
-
-        return new Partition(root) {
-
-            RingEntry entry() {
-                return RingEntry.of(index);
+            public EntryTable get(int index) {
+                switch(index) {
+                    case 0:
+                        return root;
+                    case 1:
+                        return table;
+                }
+                throw new IndexOutOfBoundsException();
             }
 
             @Override
-            public EntryTable get(RdClop rdc) {
-                return RdClop.of(entry()).equals(rdc) ? entry().singleton : EntryTable.EMPTY;
-            }
+            public int index(RdClop rdc) {
+                if(rdc==null)
+                    return 0;
 
-            @Override
-            public List<EntryTable> tables() {
-                return Collections.singletonList(entry().singleton);
+                return rdc.index()==rdci ? 1 : -1;
             }
         };
     }
@@ -195,6 +182,8 @@ public class Builder {
     }
 
     public static void main(String ... args) {
+        //final EntryTables registry = new EntryTables();
+
         Builder builder = new Builder();
 
         //builder.partitionTable(PopCount.of(0,0));
@@ -202,5 +191,26 @@ public class Builder {
         Partitions partitions = builder.partitions();
 
         System.out.println("done");
+
+        Set<EntryTable> tables = new TreeSet<>(EntryTable.BY_SIZE);
+
+        Map<Integer, AtomicInteger> stat = new TreeMap<>();
+        int count=0;
+        for (PopCount pop : PopCount.TABLE) {
+            PartitionTable table = partitions.get(pop);
+            //count += table.pset.size();
+            for (Partition partition : table.pset) {
+                int n = partition.size();
+                count += n;
+                stat.computeIfAbsent(n, i -> new AtomicInteger()).incrementAndGet();
+                tables.addAll(partition);
+            }
+        }
+
+        System.out.format("total: %d / %d\n", count, tables.size());
+
+        for (Map.Entry<Integer, AtomicInteger> e : stat.entrySet()) {
+            System.out.format("%d %4d\n", e.getKey(), e.getValue().get());
+        }
     }
 }

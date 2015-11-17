@@ -295,6 +295,22 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         return EntryArray.of(table);
     }
 
+    public static boolean isOrdered(short[] entries) {
+        if(entries.length<2)
+            return true;
+
+        short entry = entries[0];
+        for(int i=1; i<entries.length; ++i) {
+            short e = entries[i];
+            if(entry>=e)
+                return false;
+            entry = e;
+        }
+
+        return true;
+    }
+
+    /*
     public static boolean isOrdered(List<? extends RingEntry> list, Comparator<? super RingEntry> cmp) {
 
         if(list.size()<2)
@@ -315,4 +331,5 @@ public abstract class EntryTable extends ListSet<RingEntry> {
 
         return true;
     }
+    */
 }

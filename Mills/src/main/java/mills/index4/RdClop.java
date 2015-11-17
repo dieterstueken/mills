@@ -1,11 +1,14 @@
 package mills.index4;
 
 import mills.bits.PopCount;
+import mills.ring.EntryTable;
 import mills.ring.RingEntry;
+import mills.util.AbstractRandomArray;
 import mills.util.AbstractRandomList;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,24 +22,46 @@ import java.util.List;
  */
 public class RdClop {
 
-    public static Comparator<RdClop> CMP = Comparator.comparingInt(RdClop::index);
+    public static final Comparator<RdClop> CMP = Comparator.comparingInt(RdClop::index);
 
     public static final List<RdClop> TABLE = AbstractRandomList.generate(81*25, RdClop::new);
+
+    final List<EntryTable> SUBSETS = AbstractRandomArray.map(RingEntry.RADIALS,
+            rad->RingEntry.RADIALS.filter(rad::contains)
+    );
 
     public static int index(RingEntry radials, PopCount clop) {
         return  81 * clop.index + radials.radix();
     }
 
+    // lookup given radials and clop, or null if clop>4
     public static RdClop get(RingEntry radials, PopCount clop)  {
-        return TABLE.get(index(radials, clop));
+        return clop==null || clop.max()>4? null : TABLE.get(index(radials, clop));
     }
 
     public static RdClop of(RingEntry entry) {
         return get(entry.radials(), entry.clop());
     }
 
+    public final RdClop radials(RingEntry new_radials) {
+        return get(new_radials, this.clop);
+    }
+
     public final RingEntry radials;
     public final PopCount clop;
+
+    /**
+     * Treat all radials as closed and add them to the closed count.
+     * If any count of closed mills is >4 return null.
+     * @return a total RdClop adding all radial positions.
+     */
+    public RdClop closed() {
+        return get(radials, radials.pop().add(clop));
+    }
+
+    public Stream<RdClop> subsets() {
+        return SUBSETS.get(radials.radix()).stream().map(this::radials);
+    }
 
     private RdClop(int index) {
         radials = RingEntry.RADIALS.get((index%81));
@@ -49,5 +74,11 @@ public class RdClop {
 
     public int hashCode() {
         return index();
+    }
+
+    // Object.equal() is sufficient
+
+    public String toString() {
+        return String.format("%s:%02d", clop, radials.radix());
     }
 }

@@ -3,6 +3,7 @@ package mills.ring;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -51,5 +52,10 @@ class EmptyTable extends EntryTable {
     @Override
     public int hashCode() {
         return -1;
+    }
+
+    @Override
+    public Stream<RingEntry> stream() {
+        return Stream.empty();
     }
 }
