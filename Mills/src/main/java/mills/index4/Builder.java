@@ -3,6 +3,7 @@ package mills.index4;
 import mills.bits.PGroup;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
+import mills.ring.EntryTables;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 
@@ -23,18 +24,18 @@ import java.util.stream.IntStream;
  */
 public class Builder {
 
-    final Function<List<RingEntry>, EntryTable> tableBuilder;
+    final EntryTables registry;
 
-    EntryTable entryTable(List<RingEntry> entryList) {
-        return tableBuilder.apply(entryList);
-    }
-
-    public Builder(Function<List<RingEntry>, EntryTable> tableBuilder) {
-        this.tableBuilder = tableBuilder;
+    public Builder(EntryTables registry) {
+        this.registry = registry;
     }
 
     public Builder() {
-        this(EntryTable::of);
+        this(new EntryTables());
+    }
+
+    EntryTable entryTable(List<RingEntry> entryList) {
+        return registry.table(entryList);
     }
 
     public Partitions partitions() {
@@ -84,7 +85,7 @@ public class Builder {
 
         EntryTable root = entryTable(parent.filter(filters.get(mlt)));
 
-        if(root.isEmpty())
+        if (root.isEmpty())
             return Partition.EMPTY;
 
         Map<RdClop, List<RingEntry>> tables = new TreeMap<RdClop, List<RingEntry>>(RdClop.CMP) {
@@ -101,29 +102,41 @@ public class Builder {
             }
         };
 
-        if(tables.size()==1) {
+        int count = tables.size();
+
+        if (count == 1) {
             Map.Entry<RdClop, List<RingEntry>> entry = tables.entrySet().iterator().next();
-            return partition(root, entry.getKey().index(), entryTable(entry.getValue()));
+            int rdci = entry.getKey().index();
+            EntryTable table = registry.table(entry.getValue());
+            return partition(root, rdci, table);
         }
 
-        int index[] = tables.keySet().stream().mapToInt(RdClop::index).toArray();
-        List<EntryTable> entryTables = tables.values().stream().map(this::entryTable).collect(Collectors.toList());
+        int index[] = new int[count];
 
-        return partition(root, index, entryTables);
+        count = 0;
+        for (Map.Entry<RdClop, List<RingEntry>> entry : tables.entrySet()) {
+            int key = registry.index(entry.getValue());
+            assert key >= 0;
+
+            key += entry.getKey().index()<<16;
+            index[count++] = key;
+        }
+
+        return partition(root, registry, index);
     }
 
-    static Partition partition(EntryTable root, int rdcs[], List<EntryTable> tables) {
+    static Partition partition(EntryTable root, EntryTables registry, int keys[]) {
 
         return new Partition(root) {
 
             @Override
             public int size() {
-                return rdcs.length+1;
+                return keys.length+1;
             }
 
             @Override
             public EntryTable get(int index) {
-                return index==0 ? root : tables.get(index-1);
+                return index==0 ? root : registry.get(keys[index-1]%(1<<16));
             }
 
             @Override
@@ -131,8 +144,10 @@ public class Builder {
                 if(rdc==null)
                     return 0;
 
-                int index = Arrays.binarySearch(rdcs, rdc.index());
-                return index<0 ? -1 : index+1;
+                int index = Arrays.binarySearch(keys, rdc.index()<<16);
+
+                // first entry >= rdc (+1)
+                return index<0 ? -index : index + 1;
             }
         };
     }
@@ -182,32 +197,41 @@ public class Builder {
     }
 
     public static void main(String ... args) {
-        //final EntryTables registry = new EntryTables();
 
-        Builder builder = new Builder();
+        final EntryTables registry = new EntryTables();
 
-        //builder.partitionTable(PopCount.of(0,0));
+        Builder builder = new Builder(registry);
 
         Partitions partitions = builder.partitions();
 
         System.out.println("done");
 
-        Set<EntryTable> tables = new TreeSet<>(EntryTable.BY_SIZE);
+        IdentityHashMap<EntryTable, EntryTable> tables = new IdentityHashMap<>();
 
         Map<Integer, AtomicInteger> stat = new TreeMap<>();
         int count=0;
+        int masks = 0;
         for (PopCount pop : PopCount.TABLE) {
             PartitionTable table = partitions.get(pop);
-            //count += table.pset.size();
+            masks += table.pset.size();
             for (Partition partition : table.pset) {
+
                 int n = partition.size();
-                count += n;
+                //int n = partition.root.stream().map(RdClop::of).collect(Collectors.toSet()).size();
+
                 stat.computeIfAbsent(n, i -> new AtomicInteger()).incrementAndGet();
-                tables.addAll(partition);
+
+                for (EntryTable p : partition) {
+                    if(p.size()>1) {
+                        tables.put(p,p);
+                        ++count;
+                        registry.table(p);
+                    }
+                }
             }
         }
 
-        System.out.format("total: %d / %d\n", count, tables.size());
+        System.out.format("total: %d / %d / %d / %d\n", masks, count, tables.size(), registry.count());
 
         for (Map.Entry<Integer, AtomicInteger> e : stat.entrySet()) {
             System.out.format("%d %4d\n", e.getKey(), e.getValue().get());

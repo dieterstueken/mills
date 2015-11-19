@@ -86,7 +86,7 @@ public class Pattern {
     }
 
     public boolean contains(Pattern other) {
-        return (pattern&other.pattern) == pattern;
+        return (pattern | other.pattern) == pattern;
     }
 
     public Pattern radials() {

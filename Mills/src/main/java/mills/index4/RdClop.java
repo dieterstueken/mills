@@ -24,7 +24,8 @@ public class RdClop {
 
     public static final Comparator<RdClop> CMP = Comparator.comparingInt(RdClop::index);
 
-    public static final List<RdClop> TABLE = AbstractRandomList.generate(81*25, RdClop::new);
+    public static final int COUNT = 81*25;
+    public static final List<RdClop> TABLE = AbstractRandomList.generate(COUNT, RdClop::new);
 
     final List<EntryTable> SUBSETS = AbstractRandomArray.map(RingEntry.RADIALS,
             rad->RingEntry.RADIALS.filter(rad::contains)
@@ -79,6 +80,6 @@ public class RdClop {
     // Object.equal() is sufficient
 
     public String toString() {
-        return String.format("%s:%02d", clop, radials.radix());
+        return String.format("%sx%02d", clop, radials.radix());
     }
 }
