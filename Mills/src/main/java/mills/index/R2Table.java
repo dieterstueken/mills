@@ -44,7 +44,7 @@ public class R2Table extends IndexedMap<R0Table> implements PosIndex {
 
     public long i201(int posIndex) {
 
-        final int pos = it.upperBound(posIndex);
+        final int pos = indexOf(posIndex);
         R0Table r0 = values.get(pos);
         short i2 = keys.ringIndex(pos);
         int index = baseIndex(pos);
@@ -54,7 +54,7 @@ public class R2Table extends IndexedMap<R0Table> implements PosIndex {
 
     public IndexProcessor process(IndexProcessor processor, int start, int end) {
 
-        for(int pos = start>0 ? it.upperBound(start) : 0;
+        for(int pos = start>0 ? indexOf(start) : 0;
             pos< values.size(); ++pos) {
             R0Table r0 = values.get(pos);
             short i2 = keys.ringIndex(pos);

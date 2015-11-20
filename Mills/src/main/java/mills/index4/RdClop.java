@@ -32,7 +32,7 @@ public class RdClop {
     );
 
     public static int index(RingEntry radials, PopCount clop) {
-        return  81 * clop.index + radials.radix();
+        return  25*radials.radix() + clop.index;
     }
 
     // lookup given radials and clop, or null if clop>4
@@ -65,8 +65,8 @@ public class RdClop {
     }
 
     private RdClop(int index) {
-        radials = RingEntry.RADIALS.get((index%81));
-        clop = PopCount.TABLE.get(index/81);
+        radials = RingEntry.RADIALS.get((index/25));
+        clop = PopCount.TABLE.get(index%25);
     }
 
     public int index() {

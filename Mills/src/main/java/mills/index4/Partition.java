@@ -1,6 +1,7 @@
 package mills.index4;
 
 import mills.ring.EntryTable;
+import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 
 /**
@@ -23,15 +24,19 @@ class Partition extends AbstractRandomList<EntryTable> {
     }
 
     public int size() {
-        return 1;
+        return 0;
     }
 
     public EntryTable get(int index) {
-        return index==0 ? root : EntryTable.EMPTY;
+        return EntryTable.EMPTY;
     }
 
-    public int index(RdClop rdc) {
-        return rdc==null ? 0 : -1;
+    public int index(RingEntry rad) {
+        return -1;
+    }
+
+    public RdClop rdc(int index) {
+        throw new IndexOutOfBoundsException("Partition::rdc");
     }
 
     public static final Partition EMPTY = new Partition(EntryTable.EMPTY);

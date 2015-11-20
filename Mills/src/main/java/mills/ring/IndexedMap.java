@@ -25,6 +25,10 @@ public class IndexedMap<T> extends EntryMap<T> {
         return pos==0 ? 0 : it.get(pos-1);
     }
 
+    public int indexOf(int index) {
+        return index==0 ? 0 : it.upperBound(index);
+    }
+
     protected IndexedMap(EntryTable keys, List<T> values, IndexTable it) {
         super(keys, values);
 

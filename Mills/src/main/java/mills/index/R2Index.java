@@ -48,10 +48,7 @@ public class R2Index implements PosIndex {
         return n20;
     }
 
-    boolean verify(long i201) {
-        PopCount p = Positions.pop(i201);
-        return p == pop;
-    }
+
 
     public int posIndex(long i201) {
         assert verify(i201) : Positions.position(i201);

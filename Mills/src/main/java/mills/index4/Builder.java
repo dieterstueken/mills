@@ -26,6 +26,8 @@ public class Builder {
 
     final EntryTables registry;
 
+    final ForkJoinTask<Partitions> partitions = submit(this::partitions);
+
     public Builder(EntryTables registry) {
         this.registry = registry;
     }
@@ -38,7 +40,7 @@ public class Builder {
         return registry.table(entryList);
     }
 
-    public Partitions partitions() {
+    private Partitions partitions() {
         List<PartitionTable> tables = computeAll(PopCount.TABLE, this::partitionTable);
         return new Partitions(tables);
     }
@@ -108,7 +110,7 @@ public class Builder {
             Map.Entry<RdClop, List<RingEntry>> entry = tables.entrySet().iterator().next();
             int rdci = entry.getKey().index();
             EntryTable table = registry.table(entry.getValue());
-            return partition(root, rdci, table);
+            return partition(root, RdClop.TABLE.get(rdci), table);
         }
 
         int index[] = new int[count];
@@ -118,7 +120,7 @@ public class Builder {
             int key = registry.index(entry.getValue());
             assert key >= 0;
 
-            key += entry.getKey().index()<<16;
+            key += entry.getKey().index()*Short.MAX_VALUE;
             index[count++] = key;
         }
 
@@ -131,54 +133,108 @@ public class Builder {
 
             @Override
             public int size() {
-                return keys.length+1;
+                return keys.length;
             }
 
             @Override
             public EntryTable get(int index) {
-                return index==0 ? root : registry.get(keys[index-1]%(1<<16));
+                int key = keys[index]%Short.MAX_VALUE;
+                return registry.get(key);
             }
 
             @Override
-            public int index(RdClop rdc) {
-                if(rdc==null)
-                    return 0;
+            public RdClop rdc(int index) {
+                int key = keys[index]/Short.MAX_VALUE;
+                return RdClop.TABLE.get(key);
+            }
 
-                int index = Arrays.binarySearch(keys, rdc.index()<<16);
-
-                // first entry >= rdc (+1)
-                return index<0 ? -index : index + 1;
+            @Override
+            public int index(RingEntry rad) {
+                int index = Arrays.binarySearch(keys, RdClop.index(rad, PopCount.EMPTY)*Short.MAX_VALUE);
+                return index;
             }
         };
     }
 
-    static Partition partition(EntryTable root, int rdci, EntryTable table) {
+    static Partition partition(EntryTable root, RdClop rdc, EntryTable table) {
 
         return new Partition(root) {
             @Override
             public int size() {
-                return 2;
+                return 1;
             }
 
             @Override
             public EntryTable get(int index) {
-                switch(index) {
-                    case 0:
-                        return root;
-                    case 1:
-                        return table;
-                }
-                throw new IndexOutOfBoundsException();
+                if(index!=0)
+                    throw new IndexOutOfBoundsException();
+
+                return table;
             }
 
             @Override
-            public int index(RdClop rdc) {
-                if(rdc==null)
-                    return 0;
-
-                return rdc.index()==rdci ? 1 : -1;
+            public RdClop rdc(int index) {
+                return rdc;
             }
+
+            @Override
+            public int index(RingEntry rad) {
+                int index = rad.radials().compareTo(rdc.radials);
+                return index<1 ? index : -2;
+            }
+
         };
+    }
+
+    private Map<PopCount, IntStream.Builder> r2List(PopCount pop, RingEntry r2) {
+
+        PopCount pop2 = pop.sub(r2.pop);
+        assert pop2!=null : "lePop underflow";
+
+        Partitions partitions = this.partitions.join();
+
+        EntryTable t0 = partitions.get(pop2).lePop;
+
+        if(t0.isEmpty())
+            return Collections.emptyMap();
+
+        Map<PopCount, IntStream.Builder> clops = new HashMap<>();
+
+        for (RingEntry r0 : t0) {
+            if(r0.index()>r2.index())
+                break;
+
+            PopCount pop1 = pop2.sub(r0.pop);
+            assert pop1!=null : "lePop underflow";
+
+            int msk = r2.mlt20s(r0);
+            Partition part = partitions.get(pop1).get(msk);
+            RingEntry rad = r2.radials().and(r0.radials());
+
+            int idx = part.index(rad);
+            if(idx<0)
+                idx = -1-idx;
+
+            for(int n = part.size(); idx<n; ++idx) {
+                RdClop rdc = part.rdc(idx);
+                if(!rdc.radials.equals(rad))
+                    break;
+
+                int key = r0.index;
+                key = 128*key + idx;
+                key = 128*key + msk;
+                key =  25*key + pop1.index;
+
+                clops.computeIfAbsent(rdc.clop, clop-> IntStream.builder()).accept(key);
+            }
+        }
+
+        return clops;
+    }
+
+    static interface T1 extends List<EntryTable> {
+        EntryTable t0();
+        int offset(int index);
     }
 
     static <T> ForkJoinTask<T> submit(Callable<T> compute) {

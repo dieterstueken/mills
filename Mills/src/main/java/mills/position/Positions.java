@@ -170,6 +170,13 @@ public interface Positions {
         return i201;
     }
 
+    static long n201(int i2, int i0, int i1) {
+        long n201 = n201(i2, i0, i1);
+        assert n201 == normalize(n201);
+        return n201;
+    }
+
+
     static long i201(int i2, int i0, int i1, int perm) {
         long i201 = i201(i2, i0, i1);
         i201 |= ((long) perm) << SP;
