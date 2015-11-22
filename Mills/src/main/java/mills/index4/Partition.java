@@ -31,12 +31,17 @@ class Partition extends AbstractRandomList<EntryTable> {
         return EntryTable.EMPTY;
     }
 
-    public int index(RingEntry rad) {
-        return -1;
+    // return first index with rdc.rad >= rad or size()
+    public int tail(RingEntry rad) {
+        return 0;
     }
 
     public RdClop rdc(int index) {
         throw new IndexOutOfBoundsException("Partition::rdc");
+    }
+
+    public short etx(int index) {
+        return -1; // empty
     }
 
     public static final Partition EMPTY = new Partition(EntryTable.EMPTY);

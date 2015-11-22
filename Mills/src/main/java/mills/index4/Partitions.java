@@ -1,6 +1,7 @@
 package mills.index4;
 
 import mills.bits.PopCount;
+import mills.ring.EntryTables;
 
 import java.util.List;
 
@@ -17,15 +18,18 @@ import java.util.List;
  */
 public class Partitions {
 
+    final EntryTables registry;
+
     final List<PartitionTable> tables;
 
-    Partitions(List<PartitionTable> tables) {
+    Partitions(EntryTables registry, List<PartitionTable> tables) {
+        this.registry = registry;
         this.tables = tables;
-        assert tables.size()== PopCount.SIZE;
+        assert tables.size() == PopCount.SIZE;
     }
 
     public PartitionTable get(PopCount pop) {
-        int index = pop==null ? -1 : pop.index;
-        return index<0 ? PartitionTable.EMPTY : tables.get(index);
+        int index = pop == null ? -1 : pop.index;
+        return index < 0 ? PartitionTable.EMPTY : tables.get(index);
     }
 }

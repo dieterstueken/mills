@@ -22,17 +22,17 @@ import java.util.stream.IntStream;
  * Date: 11/15/15
  * Time: 7:22 PM
  */
-public class Builder {
+public class PartitionBuilder {
 
     final EntryTables registry;
 
     final ForkJoinTask<Partitions> partitions = submit(this::partitions);
 
-    public Builder(EntryTables registry) {
+    public PartitionBuilder(EntryTables registry) {
         this.registry = registry;
     }
 
-    public Builder() {
+    public PartitionBuilder() {
         this(new EntryTables());
     }
 
@@ -42,7 +42,7 @@ public class Builder {
 
     private Partitions partitions() {
         List<PartitionTable> tables = computeAll(PopCount.TABLE, this::partitionTable);
-        return new Partitions(tables);
+        return new Partitions(registry, tables);
     }
 
     PartitionTable partitionTable(PopCount pop) {
@@ -71,7 +71,8 @@ public class Builder {
             }
         }).forEach(tasks::add);
 
-        EntryTable lePop = RingEntry.TABLE.filter(pop.le);
+
+        EntryTable lePop = pop.min()<8 ? RingEntry.TABLE.filter(pop.le) : RingEntry.TABLE;
 
         taskset.removeIf(task -> task.join().root.isEmpty());
 
@@ -108,23 +109,69 @@ public class Builder {
 
         if (count == 1) {
             Map.Entry<RdClop, List<RingEntry>> entry = tables.entrySet().iterator().next();
+
             int rdci = entry.getKey().index();
-            EntryTable table = registry.table(entry.getValue());
-            return partition(root, RdClop.TABLE.get(rdci), table);
+            short etx = registry.index(entry.getValue());
+
+            //  single entry: must be complete root
+            assert root.equals(registry.get(etx));
+
+            return partition(root, rdci, etx);
         }
 
         int index[] = new int[count];
 
         count = 0;
         for (Map.Entry<RdClop, List<RingEntry>> entry : tables.entrySet()) {
-            int key = registry.index(entry.getValue());
-            assert key >= 0;
 
-            key += entry.getKey().index()*Short.MAX_VALUE;
-            index[count++] = key;
+            int rdci = entry.getKey().index();
+            int etx = registry.index(entry.getValue());
+
+            assert etx>=0; // not empty
+
+            index[count++] = rdci*Short.MAX_VALUE + etx;
         }
 
         return partition(root, registry, index);
+    }
+
+    static Partition partition(EntryTable root, int rdci, short etx) {
+
+        RdClop rdc = RdClop.TABLE.get(rdci);
+
+        return new Partition(root) {
+            @Override
+            public int size() {
+                return 1;
+            }
+
+            @Override
+            public EntryTable get(int index) {
+                if(index!=0)
+                    throw new IndexOutOfBoundsException();
+
+                return root;
+            }
+
+            @Override
+            public RdClop rdc(int index) {
+                return rdc;
+            }
+
+            public short etx(int index) {
+                if(index!=0)
+                    throw new IndexOutOfBoundsException();
+
+                return etx;
+            }
+
+            @Override
+            public int tail(RingEntry rad) {
+                int cmp = rad.radials().compareTo(rdc.radials);
+                return cmp<=0 ? 0 : 1;
+            }
+
+        };
     }
 
     static Partition partition(EntryTable root, EntryTables registry, int keys[]) {
@@ -149,92 +196,11 @@ public class Builder {
             }
 
             @Override
-            public int index(RingEntry rad) {
+            public int tail(RingEntry rad) {
                 int index = Arrays.binarySearch(keys, RdClop.index(rad, PopCount.EMPTY)*Short.MAX_VALUE);
-                return index;
+                return index<0 ? -1-index : index;
             }
         };
-    }
-
-    static Partition partition(EntryTable root, RdClop rdc, EntryTable table) {
-
-        return new Partition(root) {
-            @Override
-            public int size() {
-                return 1;
-            }
-
-            @Override
-            public EntryTable get(int index) {
-                if(index!=0)
-                    throw new IndexOutOfBoundsException();
-
-                return table;
-            }
-
-            @Override
-            public RdClop rdc(int index) {
-                return rdc;
-            }
-
-            @Override
-            public int index(RingEntry rad) {
-                int index = rad.radials().compareTo(rdc.radials);
-                return index<1 ? index : -2;
-            }
-
-        };
-    }
-
-    private Map<PopCount, IntStream.Builder> r2List(PopCount pop, RingEntry r2) {
-
-        PopCount pop2 = pop.sub(r2.pop);
-        assert pop2!=null : "lePop underflow";
-
-        Partitions partitions = this.partitions.join();
-
-        EntryTable t0 = partitions.get(pop2).lePop;
-
-        if(t0.isEmpty())
-            return Collections.emptyMap();
-
-        Map<PopCount, IntStream.Builder> clops = new HashMap<>();
-
-        for (RingEntry r0 : t0) {
-            if(r0.index()>r2.index())
-                break;
-
-            PopCount pop1 = pop2.sub(r0.pop);
-            assert pop1!=null : "lePop underflow";
-
-            int msk = r2.mlt20s(r0);
-            Partition part = partitions.get(pop1).get(msk);
-            RingEntry rad = r2.radials().and(r0.radials());
-
-            int idx = part.index(rad);
-            if(idx<0)
-                idx = -1-idx;
-
-            for(int n = part.size(); idx<n; ++idx) {
-                RdClop rdc = part.rdc(idx);
-                if(!rdc.radials.equals(rad))
-                    break;
-
-                int key = r0.index;
-                key = 128*key + idx;
-                key = 128*key + msk;
-                key =  25*key + pop1.index;
-
-                clops.computeIfAbsent(rdc.clop, clop-> IntStream.builder()).accept(key);
-            }
-        }
-
-        return clops;
-    }
-
-    static interface T1 extends List<EntryTable> {
-        EntryTable t0();
-        int offset(int index);
     }
 
     static <T> ForkJoinTask<T> submit(Callable<T> compute) {
@@ -256,7 +222,7 @@ public class Builder {
 
         final EntryTables registry = new EntryTables();
 
-        Builder builder = new Builder(registry);
+        PartitionBuilder builder = new PartitionBuilder(registry);
 
         Partitions partitions = builder.partitions();
 
