@@ -29,14 +29,14 @@ public class IndexedMap<T> extends EntryMap<T> {
         return index==0 ? 0 : it.upperBound(index);
     }
 
-    protected IndexedMap(EntryTable keys, List<T> values, IndexTable it) {
+    public IndexedMap(EntryTable keys, List<T> values, IndexTable it) {
         super(keys, values);
 
         this.it = it;
         assert it.size() == size();
     }
 
-    protected IndexedMap(EntryTable keys, List<T> values, final ToIntFunction<? super T> indexer) {
+    public IndexedMap(EntryTable keys, List<T> values, final ToIntFunction<? super T> indexer) {
         super(keys, values);
         this.it = IndexTable.sum(values, indexer);
     }

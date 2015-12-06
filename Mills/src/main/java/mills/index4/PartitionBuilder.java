@@ -6,11 +6,11 @@ import mills.ring.EntryTable;
 import mills.ring.EntryTables;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
+import mills.util.Stat;
 
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -230,7 +230,9 @@ public class PartitionBuilder {
 
         IdentityHashMap<EntryTable, EntryTable> tables = new IdentityHashMap<>();
 
-        Map<Integer, AtomicInteger> stat = new TreeMap<>();
+        Stat sizes = new Stat();
+        Stat groups = new Stat();
+
         int count=0;
         int masks = 0;
         for (PopCount pop : PopCount.TABLE) {
@@ -238,10 +240,8 @@ public class PartitionBuilder {
             masks += table.pset.size();
             for (Partition partition : table.pset) {
 
-                int n = partition.size();
-                //int n = partition.root.stream().map(RdClop::of).collect(Collectors.toSet()).size();
-
-                stat.computeIfAbsent(n, i -> new AtomicInteger()).incrementAndGet();
+                sizes.accept(partition.size());
+                groups.accept(groups(partition));
 
                 for (EntryTable p : partition) {
                     if(p.size()>1) {
@@ -255,8 +255,13 @@ public class PartitionBuilder {
 
         System.out.format("total: %d / %d / %d / %d\n", masks, count, tables.size(), registry.count());
 
-        for (Map.Entry<Integer, AtomicInteger> e : stat.entrySet()) {
-            System.out.format("%d %4d\n", e.getKey(), e.getValue().get());
-        }
+        sizes.dump("sizes");
+        groups.dump("groups");
+    }
+
+    static int groups(Partition p) {
+        Set<RdClop> rdcs = new HashSet<>();
+        p.root.forEach(e -> rdcs.add(RdClop.of(e)));
+        return rdcs.size();
     }
 }

@@ -4,9 +4,12 @@ import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.IndexedMap;
 import mills.ring.RingEntry;
+import mills.util.AbstractRandomArray;
+import mills.util.IndexTable;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
@@ -30,10 +33,24 @@ public class IndexBuilder {
 
         T0Builder(Object dummy) {}
 
-        final IntStream.Builder keys = IntStream.builder();
+        final IntStream.Builder keyset = IntStream.builder();
+
+        RingEntry entry(int key) {
+            return RingEntry.TABLE.get(key%RingEntry.MAX_INDEX);
+        }
 
         @Override
         protected IndexedMap<EntryTable> compute() {
+            int keys[] = keyset.build().toArray();
+            EntryTable t0 = partitions.registry.table(AbstractRandomArray.virtual(keys.length, i -> entry(keys[i])));
+
+            short s1[] = new short[keys.length];
+            for (int i = 0; i < keys.length; ++i)
+                s1[i] = (short) (keys[i] / RingEntry.MAX_INDEX);
+
+            List<EntryTable> t1 = AbstractRandomArray.virtual(keys.length, i -> partitions.registry.get(s1[i]));
+            IndexTable it = IndexTable.sum(t1, EntryTable::size);
+            return new IndexedMap<>(t0, t1, it);
         }
     }
 
@@ -68,13 +85,8 @@ public class IndexBuilder {
                     if(!rdc.radials.equals(rad))
                         break;
 
-                    int key = r0.index;
-                    key = 128*key + idx;
-                    key = 128*key + msk;
-                    // wrong: 100
-                    key =  25*key + pop1.index;
-
-                    clops.computeIfAbsent(rdc.clop, T0Builder::new).keys.accept(key);
+                    int key = RingEntry.MAX_INDEX * part.etx(idx) + r0.index;
+                    clops.computeIfAbsent(rdc.clop, T0Builder::new).keyset.accept(key);
                 }
             }
 
