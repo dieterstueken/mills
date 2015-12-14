@@ -22,7 +22,7 @@ public class ClopIndex implements PosIndex {
 
     final PopCount pop;
 
-    final Map<PopCount, PosIndex> subsets;
+    final Map<PopCount, ? extends PosIndex> subsets;
 
     final List<PosIndex> clops;
 
@@ -33,7 +33,7 @@ public class ClopIndex implements PosIndex {
         return pop;
     }
 
-    public ClopIndex(PopCount pop, Map<PopCount, PosIndex> subsets) {
+    public ClopIndex(PopCount pop, Map<PopCount, ? extends PosIndex> subsets) {
         this.pop = pop;
         this.subsets = subsets;
 

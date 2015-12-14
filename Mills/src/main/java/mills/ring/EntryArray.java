@@ -15,6 +15,7 @@ class EntryArray extends EntryTable {
     protected EntryArray(short[] indices) {
         this.indices = indices;
         this.modCount = Arrays.hashCode(indices);
+        assert isOrdered(indices);
     }
 
     @Override
@@ -23,18 +24,13 @@ class EntryArray extends EntryTable {
     }
 
     static EntryTable of(short[] ringIndex) {
-        assert isOrdered(ringIndex);
+        return new EntryArray(ringIndex);
+    }
 
-        EntryArray table = new EntryArray(ringIndex) {
-
-            @Override
-            public EntryTable subList(int fromIndex, int toIndex) {
-                //return subsetOf(indices, fromIndex, toIndex);
-                return of(Arrays.copyOfRange(ringIndex, fromIndex, toIndex));
-            }
-        };
-
-        return table;
+    @Override
+    protected EntryTable partition(int fromIndex, int toIndex) {
+        // called internally if not empty nor a singleton
+        return of(Arrays.copyOfRange(indices, fromIndex, toIndex));
     }
 
     @Override
@@ -55,72 +51,5 @@ class EntryArray extends EntryTable {
     @Override
     public int size() {
         return indices.length;
-    }
-
-    @Deprecated
-    static EntryTable subsetOf(short[] indices, int from, int to) {
-
-        if(from<0 || to<from || to>indices.length)
-            throw new IllegalArgumentException("invalid index range");
-
-        if(from==to)
-            return EMPTY;
-
-        if(from==to-1)
-            return SingleEntry.of(indices[from]);
-
-        if(from==0 && to==indices.length)
-            return EntryArray.of(indices);
-
-        assert isOrdered(Arrays.copyOfRange(indices, from, to));
-
-        EntryArray table = new EntryArray(indices) {
-            @Override
-            public int findIndex(int ringIndex) {
-                int index = Arrays.binarySearch(this.indices, from, to, (short) ringIndex);
-                index = index<0 ? index+from : index - from;
-                return index;
-            }
-
-            @Override
-            public RingEntry get(int i) {
-                rangeCheck(i);
-                return super.get(i + from);
-            }
-
-            @Override
-            public EntryTable subList(int fromIndex, int toIndex) {
-
-                if(fromIndex==0 && toIndex==size())
-                    return this;
-
-                    // verify smaller range
-                if(fromIndex<0 || toIndex<fromIndex || toIndex-fromIndex>size())
-                    throw new IllegalArgumentException("invalid index range");
-
-                // shift to absolute range
-                return subsetOf(indices, fromIndex+from, toIndex+from);
-            }
-
-            @Override
-            public short ringIndex(int i) {
-                rangeCheck(i);
-                return super.ringIndex(i + from);
-            }
-
-            private void rangeCheck(int i) {
-                if(i<0 || i>=size()) {
-                    String msg = "Index: " + i + ", Size: " + size();
-                    throw new IndexOutOfBoundsException(msg);
-                }
-            }
-
-            @Override
-            public int size() {
-                return to-from;
-            }
-        };
-
-        return table;
     }
 }

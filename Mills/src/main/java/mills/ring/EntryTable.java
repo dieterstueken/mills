@@ -72,6 +72,7 @@ public abstract class EntryTable extends ListSet<RingEntry> {
 
     @Override
     public EntryTable subList(int fromIndex, int toIndex) {
+        // legal up cast since all paths return an EntryTable
         return (EntryTable) super.subList(fromIndex, toIndex);
     }
 
@@ -83,9 +84,9 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         return entry.singleton;
     }
 
-    protected EntryTable subset(int fromIndex, int toIndex) {
-        return new SubTable(this, fromIndex, toIndex);
-    }
+    //protected EntryTable partition(int fromIndex, int toIndex) {
+    //    return new SubTable(this, fromIndex, toIndex);
+    //}
 
     @Override
     public final Comparator<? super RingEntry> comparator() {

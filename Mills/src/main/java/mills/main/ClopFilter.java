@@ -107,7 +107,7 @@ public class ClopFilter extends RecursiveAction {
             System.out.format("%s%s\n", vclops.contains(clop) ? " " : "#", clop);
         }
 
-        System.out.format("\n%d fragments\n", fragments.size());
+        System.out.format("\n%d partitions\n", fragments.size());
 
         int len=0;
         int count=0;

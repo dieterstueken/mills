@@ -6,7 +6,6 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
-import mills.ring.SubTable;
 import mills.util.AbstractRandomList;
 
 import java.util.ArrayList;
@@ -163,7 +162,7 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
             for (int nw = 0; nw < 10; nw++) {
                 final PopCount pop = PopCount.of(nb, nw);
                 final EntryTable t = get(pop.index());
-                System.out.format("%5d%s", t.size(), (t instanceof SubTable) ? "+" : " ");
+                System.out.format("%5d", t.size());
             }
 
             System.out.println();

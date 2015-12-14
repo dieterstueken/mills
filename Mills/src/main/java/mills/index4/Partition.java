@@ -2,7 +2,12 @@ package mills.index4;
 
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
-import mills.util.AbstractRandomList;
+
+import java.util.AbstractMap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.function.IntConsumer;
 
 /**
  * Created by IntelliJ IDEA.
@@ -14,7 +19,7 @@ import mills.util.AbstractRandomList;
 /**
  * Class Partition represents a group of RingEntries matching a given PopCount and a given permutation mask.
  */
-class Partition extends AbstractRandomList<EntryTable> {
+class Partition extends AbstractMap<RdClop, EntryTable> {
 
     // table of entries matching PopCount and permutation mask.
     public final EntryTable root;
@@ -23,26 +28,22 @@ class Partition extends AbstractRandomList<EntryTable> {
         this.root = root;
     }
 
-    public int size() {
-        return 0;
+    @Override
+    public Set<Entry<RdClop, EntryTable>> entrySet() {
+        return Collections.emptySet();
     }
 
-    public EntryTable get(int index) {
-        return EntryTable.EMPTY;
+    @Override
+    public Set<RdClop> keySet() {
+        return super.keySet();
     }
 
-    // return first index with rdc.rad >= rad or size()
-    public int tail(RingEntry rad) {
-        return 0;
+    @Override
+    public Collection<EntryTable> values() {
+        return super.values();
     }
 
-    public RdClop rdc(int index) {
-        throw new IndexOutOfBoundsException("Partition::rdc");
-    }
-
-    public short etx(int index) {
-        return -1; // empty
-    }
+    public void process(RingEntry rad, IntConsumer consumer) {}
 
     public static final Partition EMPTY = new Partition(EntryTable.EMPTY);
 }

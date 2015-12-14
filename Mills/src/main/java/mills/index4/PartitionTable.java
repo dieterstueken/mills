@@ -21,6 +21,7 @@ public class PartitionTable {
 
     public final EntryTable lePop;
 
+    // 128 partitions
     final List<Partition> partitions;
 
     // subset of different partitions (debug only)

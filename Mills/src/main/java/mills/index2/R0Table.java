@@ -40,7 +40,7 @@ abstract public class R0Table implements RingMap<EntryTable> {
             if(l1.isEmpty())
                 return;
 
-            final Short i1 = tables.index(l1);
+            final Short i1 = tables.key(l1);
             s1.add(i1);
             l0.add(r0);
 

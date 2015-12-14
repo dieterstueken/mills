@@ -119,7 +119,7 @@ abstract public class ListSet<T> extends AbstractRandomList<T> implements Sorted
         if(range==size())
             return this;
 
-        return subset(fromIndex, range);
+        return partition(fromIndex, range);
     }
 
     @Override
@@ -242,12 +242,12 @@ abstract public class ListSet<T> extends AbstractRandomList<T> implements Sorted
         }
 
         @Override
-        public ListSet<T> subList(int fromIndex, int toIndex) {
-
+        protected ListSet<T> partition(int fromIndex, int toIndex) {
             // Prevent from extending the range beyond given bounds.
             checkRange(fromIndex, toIndex);
 
-            return parent.subList(fromIndex + offset, toIndex + offset);
+            // no cascading sublists, delegate to parent
+            return parent.partition(fromIndex + offset, toIndex + offset);
         }
 
         @Override
@@ -261,7 +261,9 @@ abstract public class ListSet<T> extends AbstractRandomList<T> implements Sorted
         }
     }
 
-    protected ListSet<T> subset(int fromIndex, int toIndex) {
-        return new SubSet<T>(this, fromIndex, toIndex);
+    // called internally if not empty nor singleton
+    // override to return appropriated type
+    protected ListSet<T> partition(int fromIndex, int toIndex) {
+        return new SubSet<>(this, fromIndex, toIndex);
     }
 }
