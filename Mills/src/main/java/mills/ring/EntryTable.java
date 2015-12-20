@@ -84,9 +84,10 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         return entry.singleton;
     }
 
-    //protected EntryTable partition(int fromIndex, int toIndex) {
-    //    return new SubTable(this, fromIndex, toIndex);
-    //}
+    protected EntryTable partition(int fromIndex, int toIndex) {
+        int range = checkRange(fromIndex, toIndex);
+        return new SubTable(this, fromIndex, range);
+    }
 
     @Override
     public final Comparator<? super RingEntry> comparator() {

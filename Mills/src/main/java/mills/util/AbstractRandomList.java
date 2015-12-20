@@ -115,6 +115,26 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         return construct((T[])values);
     }
 
+    @SuppressWarnings("unchecked")
+    public static <U, T> List<T> collect(Collection<U> source, Function<? super U, ? extends T> mapper) {
+        int size = source.size();
+
+        if(size==0)
+            return Collections.emptyList();
+
+        if(size==1)
+            return Collections.singletonList(mapper.apply(source.iterator().next()));
+
+        // back to forth
+        Object values[] = new Object[size];
+        int i=0;
+        for (U v : source) {
+            values[i++] = v;
+        }
+
+        return construct((T[])values);
+    }
+
     // check sizes first
     // fast RandomAccess compare
 

@@ -97,7 +97,8 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
             return key;
 
         // generate in advance, might be recalculated
-        TableEntry table = entry(list, (key()));
+        //TableEntry table = entry(list, (key()));
+        EntryTable table = EntryTable.of(list);
 
         return entries.computeIfAbsent(table, this::newEntry);
     }

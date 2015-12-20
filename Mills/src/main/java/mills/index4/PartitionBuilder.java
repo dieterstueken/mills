@@ -2,11 +2,16 @@ package mills.index4;
 
 import mills.bits.PGroup;
 import mills.bits.PopCount;
+import mills.index.IndexList;
+import mills.index.PosIndex;
 import mills.ring.EntryTable;
 import mills.ring.EntryTables;
 import mills.ring.IndexedMap;
 import mills.ring.RingEntry;
-import mills.util.*;
+import mills.util.AbstractRandomArray;
+import mills.util.AbstractRandomList;
+import mills.util.ListSet;
+import mills.util.Stat;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -28,11 +33,11 @@ public class PartitionBuilder {
 
     final EntryTables registry;
 
-    final ForkJoinTask<Partitions> ptask;
+    final Partitions partitions;
 
     public PartitionBuilder(EntryTables registry) {
         this.registry = registry;
-        ptask = submit(this::partitions);
+        partitions = partitions();
     }
 
     public PartitionBuilder() {
@@ -184,8 +189,7 @@ public class PartitionBuilder {
 
             @Override
             public void process(RingEntry rad, IntConsumer consumer) {
-                int cmp = rad.radials().compareTo(rdc.radials);
-                if (cmp < 0)
+                if (rad.radials().equals(rdc.radials))
                     consumer.accept(rdci * RDC + etx);
             }
         };
@@ -223,7 +227,7 @@ public class PartitionBuilder {
                     int key = keys[index];
 
                     // verify if within chunk of matching radials
-                    RdClop rdc = RdClop.TABLE.get(key);
+                    RdClop rdc = RdClop.TABLE.get(key/RDC);
                     if (!rdc.radials.equals(rad))
                         break;
 
@@ -238,12 +242,18 @@ public class PartitionBuilder {
         };
     }
 
-    class T0Builder extends RecursiveTask<IndexedMap<EntryTable>> {
+    class T1Builder extends RecursiveTask<IndexedMap<EntryTable>> {
 
-        T0Builder(Object dummy) {
+        final RingEntry e2;
+
+        final PopCount clop;
+
+        T1Builder(RingEntry e2, PopCount clop) {
+            this.clop = clop;
+            this.e2 = e2;
         }
 
-        final IntStream.Builder keyset = IntStream.builder();
+        IntStream.Builder keyset = IntStream.builder();
 
         RingEntry entry(int key) {
             return RingEntry.TABLE.get(key % RingEntry.MAX_INDEX);
@@ -252,6 +262,8 @@ public class PartitionBuilder {
         @Override
         protected IndexedMap<EntryTable> compute() {
             int keys[] = keyset.build().toArray();
+            keyset = null;
+
             EntryTable t0 = registry.table(AbstractRandomArray.virtual(keys.length, i -> entry(keys[i])));
 
             short s1[] = new short[keys.length];
@@ -259,46 +271,71 @@ public class PartitionBuilder {
                 s1[i] = (short) (keys[i] / RingEntry.MAX_INDEX);
 
             List<EntryTable> t1 = AbstractRandomArray.virtual(keys.length, i -> registry.get(s1[i]));
-            IndexTable it = IndexTable.sum(t1, EntryTable::size);
-            return new IndexedMap<>(t0, t1, it);
+            return new IndexedMap<>(t0, t1, EntryTable::size);
+        }
+
+        public void accept(int key) {
+            keyset.accept(key);
         }
     }
 
-    Map<PopCount, T0Builder> t0Map(PopCount pop, RingEntry r2) {
+    List<T1Builder> t1Builders(PopCount pop, RingEntry e2) {
 
-        PopCount pop2 = pop.sub(r2.pop);
+        PopCount pop2 = pop.sub(e2.pop);
         assert pop2 != null : "lePop underflow";
-        Partitions partitions = ptask.join();
         EntryTable t0 = partitions.get(pop2).lePop;
         if (t0.isEmpty())
-            return Collections.emptyMap();
-        Map<PopCount, T0Builder> clops = new HashMap<>();
+            return Collections.emptyList();
+
+        Map<PopCount, T1Builder> clops = new HashMap<>();
 
         for (RingEntry r0 : t0) {
-            if (r0.index() > r2.index())
+            if (r0.index() > e2.index())
                 break;
             PopCount pop1 = pop2.sub(r0.pop);
             assert pop1 != null : "lePop underflow";
-            int msk = r2.mlt20s(r0);
+            int msk = e2.mlt20s(r0);
             Partition part = partitions.get(pop1).get(msk);
-            RingEntry rad = r2.radials().and(r0.radials());
+            RingEntry rad = e2.radials().and(r0.radials());
 
             part.process(rad, index -> {
                 RdClop rdc = RdClop.TABLE.get(index/RDC);
                 // compose new key from lower part of index and r0.index
                 int key = RingEntry.MAX_INDEX * (index%RDC) + r0.index;
-                clops.computeIfAbsent(rdc.clop, T0Builder::new).keyset.accept(key);
+                clops.computeIfAbsent(rdc.clop, clop -> new T1Builder(e2, clop)).accept(key);
             });
         }
 
-        ForkJoinTask.invokeAll(clops.values());
-
-        return clops;
+        return new ArrayList<>(clops.values());
     }
 
+    class T0Builder extends RecursiveTask<List<T1Builder>> {
+
+        final PopCount pop;
+        final RingEntry e2;
+
+        T0Builder(PopCount pop, RingEntry e2) {
+            this.pop = pop;
+            this.e2 = e2;
+        }
+
+        @Override
+        protected List<T1Builder> compute() {
+            List<T1Builder> result = t1Builders(pop, e2);
+            ForkJoinTask.invokeAll(result);
+            return result;
+        }
+    }
+
+    // accumulates entries for a given clop
     class T2Builder extends RecursiveTask<IndexedMap<IndexedMap<EntryTable>> > {
 
-        T2Builder(Object dummy) {
+        final PopCount pop;
+        final PopCount clop;
+
+        T2Builder(PopCount pop, PopCount clop) {
+            this.pop = pop;
+            this.clop = clop;
         }
 
         List<RingEntry> t2 = new ArrayList<>();
@@ -311,31 +348,81 @@ public class PartitionBuilder {
             }
         }
 
+        void add(T1Builder t1b) {
+            final IndexedMap<EntryTable> index = t1b.join();
+            add(t1b.e2, index);
+        }
+
         @Override
         public IndexedMap<IndexedMap<EntryTable>> compute() {
             return new IndexedMap<>(EntryTable.of(t2), t0, IndexedMap::range);
         }
 
+        R2Index index() {
+            return new R2Index(join(), pop);
+        }
     }
 
-    public ClopIndex index(PopCount pop) {
+    Collection<T2Builder> t2Builders(final PopCount pop) {
 
-        Map<PopCount, T2Builder> builders = new HashMap<>();
+        List<T2Builder> builders = new HashMap<PopCount, T2Builder>() {
 
-        RingEntry.TABLE.forEach(e2 ->
-            t0Map(pop, e2).entrySet().stream().forEach(e ->
-                builders.computeIfAbsent(e.getKey(), T2Builder::new).add(e2, e.getValue().join())
-            )
-        );
+            List<T0Builder> builders() {
+                return AbstractRandomArray.map(partitions.get(pop).lePop, this::t0Builder);
+            }
 
-        Map<PopCount, R2Index> subsets = new HashMap<>();
+            {
+                ForkJoinTask.invokeAll(builders()).forEach(this::add2);
+            }
 
-        builders.forEach((clop, i2) -> subsets.put(clop, new R2Index(i2.join(), pop)));
+            void add2(T0Builder t0b) {
+                t0b.join().forEach(this::add1);
+            }
+
+            void add1(T1Builder t1b) {
+                computeIfAbsent(t1b.clop, this::t2Builder).add(t1b);
+            }
+
+            T2Builder t2Builder(PopCount clop) {
+                return new T2Builder(pop, clop);
+            }
+
+            T0Builder t0Builder(RingEntry e2) {
+                return new T0Builder(pop, e2);
+            }
+
+        }.values().stream().collect(Collectors.toList());
+
+        ForkJoinTask.invokeAll(builders);
+
+        return builders;
+    }
+
+    ClopIndex index(PopCount pop) {
+
+        Map<PopCount, PosIndex> subsets = new HashMap<>();
+
+        t2Builders(pop).forEach(t2b->subsets.put(t2b.clop, t2b.index()));
 
         return new ClopIndex(pop, subsets);
     }
 
     public static void main(String... args) {
+        PartitionBuilder builder = new PartitionBuilder();
+
+        final PopCount pop = PopCount.of(2, 2);
+        ClopIndex index = builder.index(pop);
+
+        System.out.format("%s %d\n", index.pop, index.range());
+
+        IndexList indexes = IndexList.create();
+
+        PosIndex index2 = indexes.get(pop);
+
+        System.out.format("%s %d\n", index2.pop(), index2.range());
+    }
+
+    public static void _main(String... args) {
 
         final EntryTables registry = new EntryTables();
 
