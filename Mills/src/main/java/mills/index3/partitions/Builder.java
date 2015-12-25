@@ -1,5 +1,7 @@
 package mills.index3.partitions;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import mills.bits.PGroup;
 import mills.bits.Pattern;
 import mills.bits.PopCount;
@@ -155,23 +157,6 @@ public class Builder {
         if(root.isEmpty())
             return RadialTable.EMPTY;
 
-        List<ClopTable> clops = new ArrayList<>(81);
-
-        Tasks.computeAll(RingEntry.RADIALS.stream(), rad-> clopTable(root, rad))
-                .forEach(clops::add);
-
-        Set<ClopTable> fragments = new HashSet<>(clops);
-        fragments.removeIf(ct -> ct.content().isEmpty());
-
-        return radialTable(root, clops, fragments);
-    }
-
-    RadialTable _radialTable(EntryTable source, int mlt) {
-        EntryTable root = registry.table(source.filter(filters.get(mlt)));
-
-        if(root.isEmpty())
-            return RadialTable.EMPTY;
-
         final List<ForkJoinTask<ClopTable>> taskset = new ArrayList<>();
         final List<ForkJoinTask<ClopTable>> tasks = new ArrayList<>(81);
 
@@ -190,6 +175,7 @@ public class Builder {
 
         assert !taskset.isEmpty();
 
+        Tasks.waitAll(taskset);
         List<ClopTable> fragset = Tasks.joinAll(taskset);
         List<ClopTable> tables = Tasks.joinAll(tasks);
 
@@ -231,16 +217,10 @@ public class Builder {
                 .toArray();
         */
 
-        Map<PopCount, EntryTable> tables = new TreeMap<>();
-        clops.forEach((clop, list) -> tables.put(clop, registry.table(list)));
+        Map<PopCount, EntryTable> content = Maps.transformValues(clops, registry::table);
+        content = ImmutableMap.copyOf(content);
 
-        return new ClopTable() {
-
-            @Override
-            Map<PopCount, EntryTable> content() {
-                return tables;
-            }
-        };
+        return ClopTable.of(content);
     }
 
     public static void main(String ... args) {

@@ -44,4 +44,14 @@ abstract public class ClopTable {
             return "empty";
         }
     };
+
+    public static ClopTable of(Map<PopCount, EntryTable> content) {
+        return new ClopTable() {
+
+            @Override
+            Map<PopCount, EntryTable> content() {
+                return content;
+            }
+        };
+    }
 }
