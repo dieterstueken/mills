@@ -1,7 +1,9 @@
 package mills.index3.partitions;
 
+import mills.util.AbstractRandomList;
+
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * version:     $Revision$
@@ -10,14 +12,14 @@ import java.util.List;
  * modified by: $Author$
  * modified on: $Date$
  */
-abstract public class PartitionTable<T> {
+abstract public class PartitionTable<T> extends AbstractRandomList<T> {
 
     abstract public T get(int index);
 
     abstract public int size();
 
     // list of different entries
-    public List<T> content() {
+    public Collection<T> content() {
         return Collections.emptyList();
     }
 

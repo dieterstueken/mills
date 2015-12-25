@@ -112,7 +112,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         for(int i=size-1; i>=0; --i)
             values[i] = mapper.apply(source.get(i));
 
-        return construct((T[])values);
+        return construct(values);
     }
 
     @SuppressWarnings("unchecked")
@@ -125,14 +125,13 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         if(size==1)
             return Collections.singletonList(mapper.apply(source.iterator().next()));
 
-        // back to forth
         Object values[] = new Object[size];
         int i=0;
         for (U v : source) {
             values[i++] = v;
         }
 
-        return construct((T[])values);
+        return construct(values);
     }
 
     // check sizes first
@@ -140,22 +139,26 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
 
     @Override
     public boolean equals(Object o) {
-        return o==this || (o instanceof List) && (o instanceof RandomAccess) && equals((List) o) || super.equals(o);
+        return o instanceof List && equals((List) o);
     }
 
     public boolean equals(List<?> other) {
+
+        if(this==other)
+            return true;
 
         int size = size();
 
         if(size!=other.size()) {
             return false;
         } else {
-            for(int i=0; i<size; ++i) {
-                T o1 = get(i);
-                Object o2 = other.get(i);
-                if (!(o1==null ? o2==null : o1.equals(o2)))
-                    return false;
-            }
+            if(other instanceof RandomAccess) {
+                for (int i = 0; i < size; ++i) {
+                    if (!Objects.equals(get(i), other.get(i)))
+                        return false;
+                }
+            } else
+                return super.equals(other);
         }
 
         return true;

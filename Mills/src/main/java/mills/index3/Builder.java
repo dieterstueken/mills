@@ -32,13 +32,13 @@ public class Builder {
 
         List<RecursiveTask<R20Entry>> tasks = new ArrayList<>();
 
-        for (RingEntry e2 : partitions.lePop(pop)) {
+        for (RingEntry e2 : partitions.get(pop).lePop) {
 
             // remaining pop
             PopCount pop2 = pop.sub(e2.pop);
             assert pop2!=null : "lePop underflow";
 
-            for (RingEntry e0 : partitions.lePop(pop2)) {
+            for (RingEntry e0 : partitions.get(pop2).lePop) {
                 if(e0.index>e2.index())
                     break;
 

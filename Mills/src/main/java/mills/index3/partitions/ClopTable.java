@@ -3,6 +3,11 @@ package mills.index3.partitions;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiConsumer;
+
 /**
  * version:     $Revision$
  * created by:  dst
@@ -10,27 +15,28 @@ import mills.ring.EntryTable;
  * modified by: $Author$
  * modified on: $Date$
  */
-abstract public class ClopTable extends PartitionTable<EntryTable> {
+abstract public class ClopTable {
 
-    public final EntryTable root;
-
-    ClopTable(EntryTable root) {
-        this.root = root;
+    public void forEach(BiConsumer<? super PopCount,? super EntryTable> action) {
+        content().forEach(action);
     }
 
-    public EntryTable get(PopCount clop) {
-        return get(clop.index);
+    abstract Map<PopCount, EntryTable> content();
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof ClopTable && Objects.equals(content(), ((ClopTable)obj).content());
     }
 
     @Override
-    public int size() {
-        return 25;
+    public int hashCode() {
+        return content().hashCode();
     }
 
-    public static final ClopTable EMPTY = new ClopTable(EntryTable.EMPTY) {
-        @Override
-        public EntryTable get(int index) {
-            return EntryTable.EMPTY;
+    public static final ClopTable EMPTY = new ClopTable() {
+
+        Map<PopCount, EntryTable> content() {
+            return Collections.emptyMap();
         }
 
         @Override

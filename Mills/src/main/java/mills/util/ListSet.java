@@ -242,12 +242,12 @@ abstract public class ListSet<T> extends AbstractRandomList<T> implements Sorted
         }
 
         @Override
-        protected ListSet<T> partition(int fromIndex, int toIndex) {
+        protected ListSet<T> partition(int fromIndex, int range) {
             // Prevent from extending the range beyond given bounds.
-            checkRange(fromIndex, toIndex);
+            checkRange(fromIndex, fromIndex+range);
 
             // no cascading sublists, delegate to parent
-            return parent.partition(fromIndex + offset, toIndex + offset);
+            return parent.partition(fromIndex + offset, range);
         }
 
         @Override
@@ -263,7 +263,7 @@ abstract public class ListSet<T> extends AbstractRandomList<T> implements Sorted
 
     // called internally if not empty nor singleton
     // override to return appropriated type
-    protected ListSet<T> partition(int fromIndex, int toIndex) {
-        return new SubSet<>(this, fromIndex, toIndex);
+    protected ListSet<T> partition(int fromIndex, int range) {
+        return new SubSet<>(this, fromIndex, range);
     }
 }

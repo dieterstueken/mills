@@ -17,7 +17,7 @@ public enum Player {
 
         @Override
         public int count(PopCount pop) {
-            return 24 - pop.nb() - pop.nw();
+            return 8 - pop.nb() - pop.nw();
         }
 
         @Override

@@ -101,7 +101,7 @@ public class ScoreMap implements Position.Factory, Closeable {
     }
 
     public MoveTable moves(Player player) {
-        boolean jumps = pop().jumps(player);
+        boolean jumps = player.count(pop())<=3;
         return MoveTable.moves(jumps);
     }
 

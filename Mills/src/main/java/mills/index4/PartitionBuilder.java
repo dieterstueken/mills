@@ -8,16 +8,11 @@ import mills.ring.EntryTable;
 import mills.ring.EntryTables;
 import mills.ring.IndexedMap;
 import mills.ring.RingEntry;
-import mills.util.AbstractRandomArray;
-import mills.util.AbstractRandomList;
-import mills.util.ListSet;
-import mills.util.Stat;
+import mills.util.*;
 
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
-import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -33,40 +28,23 @@ public class PartitionBuilder {
 
     final EntryTables registry;
 
-    final Partitions partitions;
+    final List<PartitionTable> partitions;
 
     public PartitionBuilder(EntryTables registry) {
         this.registry = registry;
-        partitions = partitions();
+        this.partitions = Tasks.computeAll(PopCount.TABLE, this::partitionTable);
     }
 
     public PartitionBuilder() {
         this(new EntryTables());
     }
 
-
-    static <T> ForkJoinTask<T> submit(Callable<T> compute) {
-        return ForkJoinTask.adapt(compute).fork();
-    }
-
-    static <T> List<T> joinAll(List<? extends ForkJoinTask<T>> tasks) {
-        return AbstractRandomList.map(tasks, ForkJoinTask::join);
-    }
-
-    static <T, R> List<R> computeAll(Collection<T> src, Function<? super T, R> compute) {
-
-        return joinAll(src.stream().
-                map(t -> submit(() -> compute.apply(t))).
-                collect(Collectors.toList()));
-    }
-
     EntryTable entryTable(List<RingEntry> entryList) {
         return registry.table(entryList);
     }
 
-    private Partitions partitions() {
-        List<PartitionTable> tables = computeAll(PopCount.TABLE, this::partitionTable);
-        return new Partitions(registry, tables);
+    PartitionTable table(PopCount pop) {
+        return partitions.get(pop.index);
     }
 
     PartitionTable partitionTable(PopCount pop) {
@@ -89,7 +67,7 @@ public class PartitionBuilder {
                 // repeat previous value
                 return tasks.get(lindex);
             } else {
-                ForkJoinTask<Partition> task = submit(() -> partition(root, index));
+                ForkJoinTask<Partition> task = Tasks.submit(() -> partition(root, index));
                 taskset.add(task);
                 return task;
             }
@@ -100,8 +78,8 @@ public class PartitionBuilder {
 
         taskset.removeIf(task -> task.join().root.isEmpty());
 
-        final List<Partition> pset = joinAll(taskset);
-        final List<Partition> partitions = joinAll(tasks);
+        final List<Partition> pset = Tasks.joinAll(taskset);
+        final List<Partition> partitions = Tasks.joinAll(tasks);
 
         return new PartitionTable(root, lePop, partitions, pset);
     }
@@ -283,11 +261,14 @@ public class PartitionBuilder {
 
         PopCount pop2 = pop.sub(e2.pop);
         assert pop2 != null : "lePop underflow";
-        EntryTable t0 = partitions.get(pop2).lePop;
+        EntryTable t0 = table(pop2).lePop;
         if (t0.isEmpty())
             return Collections.emptyList();
 
         Map<PopCount, T1Builder> clops = new HashMap<>();
+
+        if(e2.index==81)
+            e2.hashCode();
 
         for (RingEntry r0 : t0) {
             if (r0.index() > e2.index())
@@ -295,7 +276,7 @@ public class PartitionBuilder {
             PopCount pop1 = pop2.sub(r0.pop);
             assert pop1 != null : "lePop underflow";
             int msk = e2.mlt20s(r0);
-            Partition part = partitions.get(pop1).get(msk);
+            Partition part = table(pop1).get(msk);
             RingEntry rad = e2.radials().and(r0.radials());
 
             part.process(rad, index -> {
@@ -368,7 +349,7 @@ public class PartitionBuilder {
         List<T2Builder> builders = new HashMap<PopCount, T2Builder>() {
 
             List<T0Builder> builders() {
-                return AbstractRandomArray.map(partitions.get(pop).lePop, this::t0Builder);
+                return AbstractRandomArray.map(table(pop).lePop, this::t0Builder);
             }
 
             {
@@ -410,7 +391,7 @@ public class PartitionBuilder {
     public static void main(String... args) {
         PartitionBuilder builder = new PartitionBuilder();
 
-        final PopCount pop = PopCount.of(2, 2);
+        final PopCount pop = PopCount.of(2, 0);
         ClopIndex index = builder.index(pop);
 
         System.out.format("%s %d\n", index.pop, index.range());
@@ -428,8 +409,6 @@ public class PartitionBuilder {
 
         PartitionBuilder builder = new PartitionBuilder(registry);
 
-        Partitions partitions = builder.partitions();
-
         System.out.println("done");
 
         IdentityHashMap<EntryTable, EntryTable> tables = new IdentityHashMap<>();
@@ -440,7 +419,7 @@ public class PartitionBuilder {
         int count = 0;
         int masks = 0;
         for (PopCount pop : PopCount.TABLE) {
-            PartitionTable table = partitions.get(pop);
+            PartitionTable table = builder.table(pop);
             masks += table.pset.size();
             for (Partition partition : table.pset) {
 

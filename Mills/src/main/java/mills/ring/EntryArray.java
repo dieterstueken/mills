@@ -28,9 +28,9 @@ class EntryArray extends EntryTable {
     }
 
     @Override
-    protected EntryTable partition(int fromIndex, int toIndex) {
+    protected EntryTable partition(int fromIndex, int range) {
         // called internally if not empty nor a singleton
-        return of(Arrays.copyOfRange(indices, fromIndex, toIndex));
+        return of(Arrays.copyOfRange(indices, fromIndex, fromIndex+range));
     }
 
     @Override

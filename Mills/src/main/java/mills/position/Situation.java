@@ -108,8 +108,8 @@ public class Situation implements Position.Factory {
             // compare stone taken to stones set
             PopCount full = OPENINGS.get(stock - 1).pop();
 
-            int take = full.sub(put).count(player.other());
-            int set = full.count(player);
+            int take = player.count(full.sub(put));
+            int set = player.count(full);
 
             // impossible since too few mills to close
             if (set <= 2 * take)

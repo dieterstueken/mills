@@ -81,6 +81,10 @@ public class PartitionTables extends AbstractRandomList<PartitionTable> {
                 protected PartitionTable compute() {
                     name = Thread.currentThread().getName();
                     final EntryTable entries = RingEntry.MINIMIZED.filter(pop.eq);
+
+                    if(pop.equals(pop.of(2,0)))
+                        pop.hashCode();
+
                     return PartitionTable.build(entries);
                 }
             };

@@ -84,8 +84,7 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         return entry.singleton;
     }
 
-    protected EntryTable partition(int fromIndex, int toIndex) {
-        int range = checkRange(fromIndex, toIndex);
+    protected EntryTable partition(int fromIndex, int range) {
         return new SubTable(this, fromIndex, range);
     }
 

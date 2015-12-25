@@ -81,22 +81,8 @@ public class PopCount implements Comparable<PopCount> {
         return nb + nw;
     }
 
-    public int count(Player player) {
-
-        switch(player) {
-            case Black: return nb();
-            case White: return nw();
-        }
-
-        return 0;
-    }
-
     public boolean isEmpty() {
         return max()==0;
-    }
-
-    public boolean jumps(final Player who) {
-        return who.count(this) <= 3;
     }
 
     public PopCount remains() {
@@ -145,10 +131,6 @@ public class PopCount implements Comparable<PopCount> {
         final int nb = this.nb - other.nb;
         final int nw = this.nw - other.nw;
         return of(nb, nw);
-    }
-
-    public PopCount sub(final Player who) {
-        return sub(who.pop);
     }
 
     public PopCount add(final PopCount other) {
