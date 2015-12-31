@@ -11,7 +11,7 @@ package mills.bits;
  * Class BW holds a pair of patterns occupied by black and white stones on a single 8 bit ringTable.
  * All combinations are kept by RING_TABLE.table, so no further instances are needed.
  */
-public class BW {
+public class BW extends Patterns {
 
     /**
      * The central index function to map a pair of patterns [0,256[
@@ -27,12 +27,6 @@ public class BW {
 
         return (short) (b.pow3* Player.Black.wgt() + w.pow3* Player.White.wgt());
     }
-
-    // There is no essential need to make final primitives private.
-    // Instead accessing values directly may improve performance.
-
-    public final Pattern b;
-    public final Pattern w;
 
     public final PopCount pop;
 
@@ -55,25 +49,10 @@ public class BW {
     }
 
     protected BW(short index) {
+        super(index);
 
         this.index = index;
-
-        int b = 0;
-        int w = 0;
-
-        for(int m=1; index!=0; m*=2, index/=3) {
-            int k = index%3;
-            if(k== Player.Black.wgt())
-                b |= m;
-            else
-            if(k== Player.White.wgt())
-                w |= m;
-        }
-
-        this.b = Pattern.of(b);
-        this.w = Pattern.of(w);
-
-        pop = PopCount.of(this.b.count(), this.w.count());
+        this.pop = PopCount.of(this.b.count(), this.w.count());
     }
 
     public String pattern() {

@@ -1,4 +1,4 @@
-package mills.index4;
+package mills.index3;
 
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
@@ -33,6 +33,11 @@ public class R2Index implements PosIndex {
     @Override
     public int range() {
         return m2.range();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%d %d", m2.size(), range());
     }
 
     @Override

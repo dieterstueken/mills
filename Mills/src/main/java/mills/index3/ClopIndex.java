@@ -1,4 +1,4 @@
-package mills.index4;
+package mills.index3;
 
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
@@ -20,7 +20,7 @@ import java.util.Objects;
  */
 public class ClopIndex implements PosIndex {
 
-    final PopCount pop;
+    public final PopCount pop;
 
     final Map<PopCount, ? extends PosIndex> subsets;
 

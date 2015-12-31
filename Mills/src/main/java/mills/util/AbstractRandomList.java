@@ -35,12 +35,12 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
 
             @Override
             public int hashCode() {
+                if(modCount==0) {
+                    this.modCount = Arrays.hashCode(data);
+                    if(this.modCount==0)
+                        this.modCount=1;
+                }
                 return modCount;
-            }
-
-            {
-                // misused for pre calculated hash code
-                this.modCount = Arrays.hashCode(data);
             }
         };
     }

@@ -1,12 +1,10 @@
 package mills.index3.partitions;
 
-import mills.bits.PopCount;
 import mills.ring.EntryTable;
 
 import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.BiConsumer;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * version:     $Revision$
@@ -15,43 +13,34 @@ import java.util.function.BiConsumer;
  * modified by: $Author$
  * modified on: $Date$
  */
-abstract public class ClopTable {
+public class ClopTable {
 
-    public void forEach(BiConsumer<? super PopCount,? super EntryTable> action) {
-        content().forEach(action);
+    final List<EntryTable> t0;
+
+    ClopTable(List<EntryTable> t0) {
+        this.t0 = t0;
     }
 
-    abstract Map<PopCount, EntryTable> content();
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof ClopTable && Objects.equals(content(), ((ClopTable)obj).content());
+    public EntryTable get(int index) {
+        return t0.get(index);
     }
 
-    @Override
-    public int hashCode() {
-        return content().hashCode();
+    public boolean isEmpty() {
+        return t0.isEmpty();
     }
 
-    public static final ClopTable EMPTY = new ClopTable() {
+    public int size() {
+        return t0.size();
+    }
 
-        Map<PopCount, EntryTable> content() {
-            return Collections.emptyMap();
-        }
+    public void forEach(Consumer<? super EntryTable> action) {
+        t0.forEach(action);
+    }
 
+    public static final ClopTable EMPTY = new ClopTable(Collections.emptyList()) {
         @Override
         public String toString() {
             return "empty";
         }
     };
-
-    public static ClopTable of(Map<PopCount, EntryTable> content) {
-        return new ClopTable() {
-
-            @Override
-            Map<PopCount, EntryTable> content() {
-                return content;
-            }
-        };
-    }
 }

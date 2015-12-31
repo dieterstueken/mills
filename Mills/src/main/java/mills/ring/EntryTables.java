@@ -3,10 +3,7 @@ package mills.ring;
 import mills.util.AbstractRandomList;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -187,6 +184,32 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
             }
         };
     }
+
+    public List<EntryTable> build(Collection<? extends List<RingEntry>> s1) {
+        int size = s1.size();
+
+        if(size==0)
+            return Collections.emptyList();
+
+        if(size==1) {
+            EntryTable table = EntryTables.this.table(s1.iterator().next());
+            return Collections.singletonList(table);
+        }
+
+        short indexes[] = new short[size];
+        int i=0;
+        for (List<RingEntry> list : s1) {
+            short key = key(list);
+            indexes[i] = key;
+            ++i;
+        }
+
+        if(i!=indexes.length)
+            throw new IllegalStateException("size does not match");
+
+        return AbstractRandomList.virtual(indexes.length, index -> EntryTables.this.get(indexes[index]));
+    }
+
 
     public List<EntryTable> register(List<? extends List<RingEntry>> list) {
 

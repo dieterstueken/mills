@@ -1,6 +1,7 @@
 package mills.index3.partitions;
 
 import mills.bits.PopCount;
+import mills.ring.EntryTable;
 import mills.ring.EntryTables;
 
 import java.util.Collection;
@@ -17,15 +18,14 @@ public class Partitions extends PartitionTable<MaskTable> {
 
     final List<MaskTable> partitions;
 
+    final List<EntryTable> lePop;
+
     final Collection<MaskTable> content;
 
-    public Partitions(List<MaskTable> partitions, Collection<MaskTable> content) {
+    public Partitions(List<MaskTable> partitions, Collection<MaskTable> content, List<EntryTable> lePop) {
         this.partitions = partitions;
         this.content = content;
-    }
-
-    public static Partitions build() {
-        return new Builder(new EntryTables()).partitions();
+        this.lePop = lePop;
     }
 
     @Override
@@ -38,6 +38,10 @@ public class Partitions extends PartitionTable<MaskTable> {
         return 100;
     }
 
+    public EntryTable lePop(PopCount pop) {
+        return lePop.get(pop.index);
+    }
+
     @Override
     public Collection<MaskTable> content() {
         return content;
@@ -45,5 +49,9 @@ public class Partitions extends PartitionTable<MaskTable> {
 
     public MaskTable get(PopCount pop) {
         return get(pop.index);
+    }
+
+    public static Partitions build(EntryTables registry) {
+        return new Builder(registry).partitions();
     }
 }

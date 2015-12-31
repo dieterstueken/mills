@@ -138,7 +138,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         return of(index);
     }
 
-    public RingEntry and(RingEntry other) {
+    public RingEntry and(Patterns other) {
         return of(b.and(other.b), w.and(other.w));
     }
 

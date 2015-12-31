@@ -85,6 +85,10 @@ public class Pattern {
         return of(stones);
     }
 
+    public Pattern not() {
+        return of(~pattern);
+    }
+
     public boolean contains(Pattern other) {
         return (pattern | other.pattern) == pattern;
     }
