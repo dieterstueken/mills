@@ -82,7 +82,7 @@ public class PartitionTables extends AbstractRandomList<PartitionTable> {
                     name = Thread.currentThread().getName();
                     final EntryTable entries = RingEntry.MINIMIZED.filter(pop.eq);
 
-                    if(pop.equals(pop.of(2,0)))
+                    if(pop.equals(pop.of(8,0)))
                         pop.hashCode();
 
                     return PartitionTable.build(entries);
@@ -117,7 +117,8 @@ public class PartitionTables extends AbstractRandomList<PartitionTable> {
             for (int nw = 0; nw < 10; nw++) {
                 final PopCount pop = PopCount.of(nb, nw);
                 final PartitionTable t = get(pop.index());
-                System.out.format("%5d", t.size());
+                int n = t.tables.size();
+                System.out.format("%5d", n);
             }
 
             System.out.println();

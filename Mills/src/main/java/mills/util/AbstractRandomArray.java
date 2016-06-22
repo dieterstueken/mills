@@ -1,5 +1,7 @@
 package mills.util;
 
+import java.util.Arrays;
+
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -29,4 +31,29 @@ public abstract class AbstractRandomArray<T> extends AbstractRandomList<T> {
         };
     }
 
+    public static <T> AbstractRandomArray<T> of(T[] data) {
+        return construct(data);
+    }
+
+    static <T> AbstractRandomArray<T> construct(Object[] data) {
+
+        return new AbstractRandomArray<T>(data.length) {
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public T get(int index) {
+                return (T) data[index];
+            }
+
+            @Override
+            public int hashCode() {
+                if(modCount==0) {
+                    this.modCount = Arrays.hashCode(data);
+                    if(this.modCount==0)
+                        this.modCount=1;
+                }
+                return modCount;
+            }
+        };
+    }
 }

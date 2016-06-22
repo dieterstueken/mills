@@ -67,7 +67,7 @@ public class Builder {
         //System.out.format("radials: %d clops: %d\n", radials.get(), clops.get());
 
 
-        return new Partitions(partitions, content, lePops.join());
+        return new Partitions(registry, partitions, content, lePops.join());
     }
 
     private ForkJoinTask<List<EntryTable>> lePops() {

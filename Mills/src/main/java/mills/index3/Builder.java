@@ -227,7 +227,7 @@ public class Builder {
 
         t2Builders(pop).forEach(t2b->subsets.put(t2b.clop, t2b.index()));
 
-        return new ClopIndex(pop, subsets);
+        return new ClopIndex(pop, subsets::get);
     }
 
     public static void main(String... args) throws IOException {

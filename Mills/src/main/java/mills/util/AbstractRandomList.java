@@ -19,32 +19,6 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
     @Override
     abstract public T get(int index);
 
-    public static <T> AbstractRandomList<T> of(T[] data) {
-        return construct(data);
-    }
-
-    private static <T> AbstractRandomList<T> construct(Object[] data) {
-
-        return new AbstractRandomArray<T>(data.length) {
-
-            @Override
-            @SuppressWarnings("unchecked")
-            public T get(int index) {
-                return (T) data[index];
-            }
-
-            @Override
-            public int hashCode() {
-                if(modCount==0) {
-                    this.modCount = Arrays.hashCode(data);
-                    if(this.modCount==0)
-                        this.modCount=1;
-                }
-                return modCount;
-            }
-        };
-    }
-
     public static <T> List<T> virtual(int size, IntFunction<? extends T> generate) {
         return new AbstractRandomArray<T>(size) {
 
@@ -94,7 +68,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         for(int i=0; i<size; ++i)
             values[i] = generate.apply(i);
 
-        return construct(values);
+        return AbstractRandomArray.construct(values);
     }
 
     @SuppressWarnings("unchecked")
@@ -112,7 +86,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         for(int i=size-1; i>=0; --i)
             values[i] = mapper.apply(source.get(i));
 
-        return construct(values);
+        return AbstractRandomArray.construct(values);
     }
 
     @SuppressWarnings("unchecked")
@@ -131,7 +105,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
             values[i++] = v;
         }
 
-        return construct(values);
+        return AbstractRandomArray.construct(values);
     }
 
     // check sizes first

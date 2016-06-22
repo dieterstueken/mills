@@ -1,6 +1,6 @@
 package mills.bits;
 
-import mills.util.AbstractRandomList;
+import mills.util.AbstractRandomArray;
 
 import java.util.List;
 import java.util.Objects;
@@ -252,7 +252,7 @@ public class PopCount implements Comparable<PopCount> {
 
 
     // PopCounts <= (9,9)
-    public static final List<PopCount> TABLE = AbstractRandomList.of(table());
+    public static final List<PopCount> TABLE = AbstractRandomArray.of(table());
 
     public static final List<PopCount> CLOSED = TABLE.subList(0, 25);
 

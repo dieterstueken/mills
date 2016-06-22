@@ -8,8 +8,8 @@ import mills.util.IndexTable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * version:     $Revision$
@@ -22,7 +22,7 @@ public class ClopIndex implements PosIndex {
 
     public final PopCount pop;
 
-    final Map<PopCount, ? extends PosIndex> subsets;
+    final Function<PopCount, ? extends PosIndex> subsets;
 
     final List<PosIndex> clops;
 
@@ -33,12 +33,12 @@ public class ClopIndex implements PosIndex {
         return pop;
     }
 
-    public ClopIndex(PopCount pop, Map<PopCount, ? extends PosIndex> subsets) {
+    public ClopIndex(PopCount pop, Function<PopCount, ? extends PosIndex> subsets) {
         this.pop = pop;
         this.subsets = subsets;
 
         this.clops = new ArrayList<>();
-        PopCount.CLOSED.stream().map(subsets::get).filter(Objects::nonNull).forEach(clops::add);
+        PopCount.CLOSED.stream().map(subsets).filter(Objects::nonNull).forEach(clops::add);
         this.index = IndexTable.sum(clops, PosIndex::range);
     }
 
@@ -71,7 +71,7 @@ public class ClopIndex implements PosIndex {
     public long i201(int posIndex) {
         int i = index.lowerBound(posIndex);
         posIndex -= index.get(i);
-        return subsets.get(i).i201(posIndex);
+        return clops.get(i).i201(posIndex);
     }
 
     @Override

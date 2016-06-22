@@ -20,9 +20,12 @@ public class Partitions extends PartitionTable<MaskTable> {
 
     final List<EntryTable> lePop;
 
+    public final EntryTables registry;
+
     final Collection<MaskTable> content;
 
-    public Partitions(List<MaskTable> partitions, Collection<MaskTable> content, List<EntryTable> lePop) {
+    public Partitions(EntryTables registry, List<MaskTable> partitions, Collection<MaskTable> content, List<EntryTable> lePop) {
+        this.registry = registry;
         this.partitions = partitions;
         this.content = content;
         this.lePop = lePop;
@@ -39,7 +42,7 @@ public class Partitions extends PartitionTable<MaskTable> {
     }
 
     public EntryTable lePop(PopCount pop) {
-        return lePop.get(pop.index);
+        return pop==null ? EntryTable.EMPTY : lePop.get(pop.index);
     }
 
     @Override
