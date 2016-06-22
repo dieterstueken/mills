@@ -6,6 +6,7 @@ import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
+import mills.util.Stat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -113,16 +114,22 @@ public class PartitionTables extends AbstractRandomList<PartitionTable> {
 
         System.out.println("partition tables");
 
+        Stat stat = new Stat();
+
         for (int nb = 0; nb < 10; nb++) {
             for (int nw = 0; nw < 10; nw++) {
                 final PopCount pop = PopCount.of(nb, nw);
                 final PartitionTable t = get(pop.index());
                 int n = t.tables.size();
-                System.out.format("%5d", n);
-            }
+                int l = t.get(0).size();
+                System.out.format("%5d:%2d", l,n);
 
+                t.forEach(_p->stat.accept(_p.size()));
+            }
             System.out.println();
         }
+
+        stat.dump("total");
     }
 
     public static void main(String... args) throws InterruptedException, ExecutionException {
