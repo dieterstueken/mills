@@ -83,7 +83,7 @@ public class PartitionTables extends AbstractRandomList<PartitionTable> {
                     name = Thread.currentThread().getName();
                     final EntryTable entries = RingEntry.MINIMIZED.filter(pop.eq);
 
-                    if(pop.equals(pop.of(8,0)))
+                    if(pop.equals(PopCount.of(8,0)))
                         pop.hashCode();
 
                     return PartitionTable.build(entries);
@@ -96,13 +96,7 @@ public class PartitionTables extends AbstractRandomList<PartitionTable> {
 
             invokeAll(tasks);
 
-            List<PartitionTable> tables = Lists.transform(tasks,
-                    new Function<ForkJoinTask<PartitionTable>, PartitionTable>() {
-                        @Override
-                        public PartitionTable apply(ForkJoinTask<PartitionTable> task) {
-                            return task.join();
-                        }
-                    });
+            List<PartitionTable> tables = Lists.transform(tasks, ForkJoinTask::join);
 
             return new PartitionTables(tables);
         }
@@ -116,6 +110,8 @@ public class PartitionTables extends AbstractRandomList<PartitionTable> {
 
         Stat stat = new Stat();
 
+        int k = 0;
+
         for (int nb = 0; nb < 10; nb++) {
             for (int nw = 0; nw < 10; nw++) {
                 final PopCount pop = PopCount.of(nb, nw);
@@ -124,10 +120,14 @@ public class PartitionTables extends AbstractRandomList<PartitionTable> {
                 int l = t.get(0).size();
                 System.out.format("%5d:%2d", l,n);
 
-                t.forEach(_p->stat.accept(_p.size()));
+                k += t.tables.stream().filter(_t->_t.size()>1).count();
+
+                t.tables.forEach(_p->stat.accept(_p.size()));
             }
             System.out.println();
         }
+
+        System.out.format("relevant tables: %d\n", k);
 
         stat.dump("total");
     }
