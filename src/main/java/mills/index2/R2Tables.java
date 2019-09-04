@@ -1,9 +1,9 @@
 package mills.index2;
 
 import mills.bits.PopCount;
-import mills.index.IndexList;
-import mills.index.Partitions;
-import mills.index.R2Index;
+import mills.index1.IndexList;
+import mills.index1.Partitions;
+import mills.index1.R2Index;
 import mills.ring.EntryTables;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;

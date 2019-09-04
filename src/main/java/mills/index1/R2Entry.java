@@ -1,5 +1,6 @@
-package mills.index;
+package mills.index1;
 
+import mills.index.IndexProcessor;
 import mills.ring.RingEntry;
 import mills.util.Indexer;
 

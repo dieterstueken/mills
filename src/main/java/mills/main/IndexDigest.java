@@ -1,8 +1,8 @@
 package mills.main;
 
 import mills.bits.PopCount;
-import mills.index.IndexList;
-import mills.index.R2Index;
+import mills.index1.IndexList;
+import mills.index1.R2Index;
 import mills.ring.RingEntry;
 import mills.util.IntegerDigest;
 

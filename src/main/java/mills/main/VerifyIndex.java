@@ -2,9 +2,9 @@ package mills.main;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.index.IndexList;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
+import mills.index1.IndexList;
 import mills.position.Positions;
 import mills.stones.Stones;
 import mills.util.AbstractRandomList;

@@ -1,8 +1,8 @@
-package mills.index;
+package mills.index1;
 
 import mills.bits.PopCount;
-import mills.index.partitions.LePopTable;
-import mills.index.partitions.PartitionTables;
+import mills.index1.partitions.LePopTable;
+import mills.index1.partitions.PartitionTables;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 

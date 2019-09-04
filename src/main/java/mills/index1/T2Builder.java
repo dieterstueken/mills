@@ -1,4 +1,4 @@
-package mills.index;
+package mills.index1;
 
 import mills.bits.PopCount;
 import mills.position.Positions;

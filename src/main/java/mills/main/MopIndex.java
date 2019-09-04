@@ -2,7 +2,7 @@ package mills.main;
 
 import mills.bits.BW;
 import mills.bits.PopCount;
-import mills.index.Partitions;
+import mills.index1.Partitions;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 

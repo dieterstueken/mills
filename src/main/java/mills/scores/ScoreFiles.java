@@ -1,7 +1,7 @@
 package mills.scores;
 
-import mills.index.IndexList;
 import mills.index.PosIndex;
+import mills.index1.IndexList;
 import mills.position.Situation;
 import mills.util.QueueActor;
 

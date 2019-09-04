@@ -2,9 +2,9 @@ package mills.main;
 
 import mills.bits.BW;
 import mills.bits.PopCount;
-import mills.index.IndexList;
-import mills.index.R2Entry;
-import mills.index.R2Index;
+import mills.index1.IndexList;
+import mills.index1.R2Entry;
+import mills.index1.R2Index;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 

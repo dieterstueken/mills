@@ -1,4 +1,4 @@
-package mills.index;
+package mills.index1;
 
 /**
  * Created by IntelliJ IDEA.

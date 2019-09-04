@@ -7,7 +7,6 @@ package mills.position;
  * Time: 13:36
  */
 
-import com.google.common.collect.ComparisonChain;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.ring.RingEntry;
@@ -117,10 +116,15 @@ public class Position implements Comparable<Position> {
 
     @Override
     public int compareTo(Position o) {
-        return ComparisonChain.start()
-                .compare(this.r1, o.r1)
-                .compare(this.r0, o.r0)
-                .compare(this.r2, o.r2)
-                .result();
+        int result = r1.compareTo(o.r1);
+        if(result!=0)
+            return result;
+
+        result = r0.compareTo(o.r0);
+        if(result!=0)
+            return result;
+
+        result = r2.compareTo(o.r2);
+        return result;
     }
 }

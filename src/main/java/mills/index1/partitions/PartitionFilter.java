@@ -1,4 +1,4 @@
-package mills.index.partitions;
+package mills.index1.partitions;
 
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;

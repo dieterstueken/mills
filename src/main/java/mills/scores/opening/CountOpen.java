@@ -1,9 +1,9 @@
 package mills.scores.opening;
 
 import mills.bits.Player;
-import mills.index.IndexList;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
+import mills.index1.IndexList;
 import mills.position.Situation;
 import mills.scores.ScoreSlice;
 import mills.stones.Stones;

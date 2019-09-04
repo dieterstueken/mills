@@ -1,6 +1,8 @@
-package mills.index;
+package mills.index1;
 
 import mills.bits.PopCount;
+import mills.index.IndexProcessor;
+import mills.index.PosIndex;
 import mills.position.Positions;
 import mills.ring.EntryTable;
 import mills.ring.IndexedMap;

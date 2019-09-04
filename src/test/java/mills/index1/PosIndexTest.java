@@ -1,6 +1,8 @@
-package mills.index;
+package mills.index1;
 
 import mills.bits.PopCount;
+import mills.index.IndexProcessor;
+import mills.index.PosIndex;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

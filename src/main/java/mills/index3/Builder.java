@@ -1,8 +1,8 @@
 package mills.index3;
 
 import mills.bits.PopCount;
-import mills.index.IndexList;
 import mills.index.PosIndex;
+import mills.index1.IndexList;
 import mills.index3.partitions.ClopTable;
 import mills.index3.partitions.MaskTable;
 import mills.index3.partitions.Partitions;

@@ -2,9 +2,9 @@ package mills.partitions2;
 
 import mills.bits.BW;
 import mills.bits.PopCount;
-import mills.index.IndexList;
-import mills.index.R0Table;
-import mills.index.R2Table;
+import mills.index1.IndexList;
+import mills.index1.R0Table;
+import mills.index1.R2Table;
 import mills.main.C0Builder;
 import mills.ring.EntryTable;
 import mills.ring.IndexedMap;
