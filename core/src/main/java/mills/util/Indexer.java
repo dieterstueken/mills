@@ -1,7 +1,6 @@
 package mills.util;
 
-import com.google.common.collect.Ordering;
-
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.ToIntFunction;
 
@@ -20,7 +19,7 @@ import java.util.function.ToIntFunction;
  *
  * @param <T>
  */
-abstract public class Indexer<T> extends Ordering<T> implements ToIntFunction<T> {
+abstract public class Indexer<T> implements Comparator<T>, ToIntFunction<T> {
 
     // mapping to be implemented.
     abstract public int index(T element);

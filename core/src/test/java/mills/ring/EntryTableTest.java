@@ -108,4 +108,18 @@ public class EntryTableTest {
             assertTrue(message, is.contains((int) e.index));
         }
     }
+
+    @Test
+    public void testSubListFind() {
+
+        EntryTable sample = EntryTable.of(100, 110, 120, 130);
+        EntryTable subSample = sample.subList(1, 3);
+
+        for(int i=90; i<150; i+=5) {
+            int i1 = sample.findIndex(i);
+            int i2 = subSample.findIndex(i);
+
+            System.out.format("%3d: %3d %3d\n", i, i1, i2);
+        }
+    }
 }

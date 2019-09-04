@@ -33,6 +33,11 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
             public boolean equals(Object o) {
                 return o == this;
             }
+
+            @Override
+            public int hashCode() {
+                return System.identityHashCode(this);
+            }
         };
     }
 
@@ -53,6 +58,11 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
              @Override
              public boolean equals(Object o) {
                  return o == this;
+             }
+
+             @Override
+             public int hashCode() {
+                 return System.identityHashCode(this);
              }
 
              @Override

@@ -288,10 +288,18 @@ public class PopCount implements Comparable<PopCount> {
 
         System.out.println("PopCount index");
 
+        System.out.print("b\\w");
         for (int nw = 0; nw < 12; ++nw) {
-            for (int nb = 0; nb < 12; ++nb) {
+            System.out.format("  %X ", nw);
+        }
+        System.out.println();
+
+        for (int nb = 0; nb < 12; ++nb) {
+            System.out.format("%X ", nb);
+
+            for (int nw = 0; nw < 12; ++nw) {
                 final PopCount p = PopCount.of(nb, nw);
-                System.out.format(" %s %5d", p.toString(), p.index());
+                System.out.format("%4d", p.index());
             }
 
             System.out.println();
