@@ -3,8 +3,8 @@ package mills.main;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
+import mills.index.IndexProvider;
 import mills.index.PosIndex;
-import mills.index1.IndexList;
 import mills.position.Positions;
 import mills.stones.Stones;
 import mills.util.AbstractRandomList;
@@ -23,7 +23,7 @@ public class VerifyIndex {
 
     static final int SIZE = Short.MAX_VALUE;
 
-    protected final IndexList indexes = IndexList.create();
+    protected final IndexProvider indexes = IndexProvider.load();
 
     public static void main(String... args) {
 

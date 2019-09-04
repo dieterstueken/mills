@@ -2,8 +2,8 @@ package mills.main;
 
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
+import mills.index.IndexProvider;
 import mills.index.PosIndex;
-import mills.index1.IndexList;
 import mills.position.Positions;
 
 import java.util.AbstractList;
@@ -20,7 +20,7 @@ import java.util.concurrent.RecursiveAction;
 public class IndexRange extends RecursiveAction {
 
     protected final Random random = new Random(123456789);
-    protected final IndexList indexes = IndexList.create();
+    public final IndexProvider indexes = IndexProvider.load();
 
     public void compute() {
 

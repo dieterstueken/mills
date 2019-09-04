@@ -1,8 +1,8 @@
 package mills.main;
 
 import mills.bits.PopCount;
-import mills.index1.IndexList;
-import mills.index1.R2Index;
+import mills.index.IndexProvider;
+import mills.index.PosIndex;
 import mills.ring.RingEntry;
 import mills.util.IntegerDigest;
 
@@ -21,7 +21,7 @@ public class IndexDigest extends RecursiveAction {
 
     final IntegerDigest digest = new IntegerDigest("MD5");
 
-    protected final IndexList indexes = IndexList.create();
+    protected final IndexProvider indexes = IndexProvider.load();
 
 
     //final List<? extends PosIndex> table = IndexBuilder.table();
@@ -37,9 +37,9 @@ public class IndexDigest extends RecursiveAction {
         for(int nw=0; nw<10; ++nw)
         for(int nb=0; nb<10; ++nb) {
             PopCount pop = PopCount.of(nb, nw);
-            final R2Index posIndex = indexes.get(pop);
+            final PosIndex posIndex = indexes.get(pop);
             final int range = posIndex.range();
-            int n20 = posIndex.values().size();
+            int n20 = posIndex.n20();
 
             System.out.format("l%d%d%10d, %4d\n", pop.nb, pop.nw, range, n20);
             digest.update(range);

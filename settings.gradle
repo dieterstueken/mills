@@ -1,5 +1,7 @@
 rootProject.name = 'Mills'
 
 include "core"
-include "index"
-include "score"
+include "index1"
+include "index2"
+include "index3"
+include "scores"

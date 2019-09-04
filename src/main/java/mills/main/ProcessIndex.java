@@ -2,8 +2,8 @@ package mills.main;
 
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
+import mills.index.IndexProvider;
 import mills.index.PosIndex;
-import mills.index1.IndexList;
 import mills.position.Positions;
 
 import java.util.Map;
@@ -81,7 +81,7 @@ public class ProcessIndex implements IndexProcessor {
 
     public static void main(String ... args) throws InterruptedException {
 
-        IndexList indexes = IndexList.create();
+        IndexProvider indexes = IndexProvider.load();
 
         for(PosIndex index:indexes) {
             new ProcessIndex(index).run().show();

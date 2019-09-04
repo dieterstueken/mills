@@ -31,6 +31,8 @@ public interface PosIndex {
         return process(receiver, 0, Integer.MAX_VALUE);
     }
 
+    int n20();
+
     default boolean verify(long i201) {
         PopCount p = Positions.pop(i201);
         return p == pop();

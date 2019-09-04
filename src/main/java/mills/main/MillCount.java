@@ -3,8 +3,8 @@ package mills.main;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
+import mills.index.IndexProvider;
 import mills.index.PosIndex;
-import mills.index1.IndexList;
 import mills.stones.Stones;
 
 import java.util.concurrent.RecursiveAction;
@@ -17,7 +17,7 @@ import java.util.concurrent.RecursiveAction;
  */
 public class MillCount extends RecursiveAction implements IndexProcessor {
 
-    protected final IndexList indexes = IndexList.create();
+    protected final IndexProvider indexes = IndexProvider.load();
 
     int count = 0;
 
