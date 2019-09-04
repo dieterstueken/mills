@@ -1,6 +1,5 @@
 package mills.main;
 
-import com.google.common.base.Throwables;
 import mills.bits.PopCount;
 import mills.index.IndexList;
 import mills.index.IndexProcessor;
@@ -70,12 +69,9 @@ public class IndexRange extends RecursiveAction {
                 };
             }
         };
-        try {
-            for (Runnable r : tasks) {
-                r.run();
-            }
-        } catch (Exception e) {
-            throw Throwables.propagate(e);
+
+        for (Runnable r : tasks) {
+            r.run();
         }
     }
 

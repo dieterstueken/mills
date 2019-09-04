@@ -1,8 +1,8 @@
 package mills.scores;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import java.util.Objects;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
 import java.util.function.Function;
@@ -51,7 +51,7 @@ public class Pair<V> {
     }
 
     public boolean equal() {
-        return Objects.equal(self, other);
+        return Objects.equals(self, other);
     }
 
     public boolean all(Predicate<V> predicate) {

@@ -1,6 +1,5 @@
 package mills.partitions2;
 
-import com.google.common.collect.ImmutableList;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
@@ -32,7 +31,7 @@ public class Partitions {
 
     Partitions(LePopTables lePops, List<Partition> partitions) {
         this.lePops = lePops;
-        this.partitions = ImmutableList.copyOf(partitions);
+        this.partitions = List.copyOf(partitions);
         ranges = IndexTable.sum(partitions, p -> p.tables.size());
 
         List<EntryTable> tables = new ArrayList<>(ranges.range());
@@ -41,7 +40,7 @@ public class Partitions {
             tables.addAll(p.tables);
         }
 
-        this.tables = ImmutableList.copyOf(tables);
+        this.tables = List.copyOf(tables);
     }
 
     public EntryTable getPartition(PopCount pop, int msk) {

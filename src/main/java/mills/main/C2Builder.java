@@ -1,6 +1,5 @@
 package mills.main;
 
-import com.google.common.collect.ImmutableList;
 import mills.bits.BW;
 import mills.bits.PopCount;
 import mills.index.*;
@@ -66,7 +65,7 @@ public class C2Builder {
 
             if(!l0.isEmpty()) {
                 EntryTable r0 = table_builder.apply(l0);
-                R0Table t0 = R0Table.of(r0, ImmutableList.copyOf(t1));
+                R0Table t0 = R0Table.of(r0, List.copyOf(t1));
                 index += t0.range();
                 R2Entry entry = new R2Entry(index, r2.index, t0);
                 l2.add(entry);
@@ -81,7 +80,7 @@ public class C2Builder {
     public List<R2Entry> build() {
         open2(null);
         index=0;
-        return ImmutableList.copyOf(l2);
+        return List.copyOf(l2);
     }
 
     public static Map<PopCount, R2Index> build(R2Index index, Function<List<RingEntry>, EntryTable> table_builder) {

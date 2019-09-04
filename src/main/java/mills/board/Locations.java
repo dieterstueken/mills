@@ -1,10 +1,10 @@
 package mills.board;
 
-import com.google.common.collect.Lists;
 import mills.bits.Ring;
 import mills.bits.Sector;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,11 +17,11 @@ class Locations {
 
     static final int RADIUS = 100;
 
-    final List<Ring2D> board = Lists.newArrayListWithCapacity(3);
+    final List<Ring2D> board = new ArrayList<>(3);
 
     class Ring2D {
 
-        final List<Point> points = Lists.newArrayListWithCapacity(8);
+        final List<Point> points = new ArrayList<>(8);
 
         public Point position(final Sector s) {
             return points.get(s.ordinal());

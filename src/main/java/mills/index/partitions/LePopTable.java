@@ -1,7 +1,5 @@
 package mills.index.partitions;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
@@ -148,7 +146,7 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
 
             invokeAll(tasks);
 
-            return ImmutableList.copyOf(Lists.transform(tasks, task -> task.join()));
+            return List.copyOf(AbstractRandomList.transform(tasks, ForkJoinTask::join));
         }
     }
 

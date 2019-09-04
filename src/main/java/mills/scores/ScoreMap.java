@@ -1,7 +1,5 @@
 package mills.scores;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Ordering;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
@@ -10,7 +8,6 @@ import mills.position.Position;
 import mills.position.Situation;
 import mills.stones.MoveTable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -105,15 +102,11 @@ public class ScoreMap implements Position.Factory, Closeable {
         return MoveTable.moves(jumps);
     }
 
-    public static final Function<Position, Integer> POS_INDEX = new Function<Position, Integer>() {
-        @Nullable
-        @Override
-        public Integer apply(@Nullable Position position) {
-            return position==null ? null : position.posIndex;
-        }
-    };
+    public static Integer posIndex(Position pos) {
+        return pos==null ? null : pos.posIndex;
+    }
 
-    public static final Ordering<Position> INDEX_ORDER = Ordering.<Integer>natural().onResultOf(POS_INDEX);
+    //public static final Ordering<Position> INDEX_ORDER = Ordering.<Integer>natural().onResultOf(ScoreMap::posIndex);
 
     public Situation situation() {
         return situation;

@@ -1,6 +1,5 @@
 package mills.index;
 
-import com.google.common.collect.ImmutableList;
 import mills.bits.PopCount;
 import mills.position.Positions;
 
@@ -21,7 +20,7 @@ public class R2Index implements PosIndex {
 
     public R2Index(final PopCount pop, final List<R2Entry> entries) {
         this.pop = pop;
-        this.entries = ImmutableList.copyOf(entries);
+        this.entries = List.copyOf(entries);
     }
 
     public final PopCount pop() {

@@ -1,6 +1,5 @@
 package mills.index2;
 
-import com.google.common.collect.ImmutableList;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
@@ -30,7 +29,7 @@ public class R2Table implements RingMap<R0Table> {
         assert t0.size()==RingEntry.MAX_INDEX;
 
         this.t2 = EntryTable.of(t2);
-        this.t0 = ImmutableList.copyOf(t0);
+        this.t0 = List.copyOf(t0);
         //this.t2 = RingEntry.TABLE.filter(e -> !t0.get(e.index).isEmpty());
         index = IndexTable.sum(t2, e -> t0.get(e.index).range());
     }

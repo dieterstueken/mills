@@ -7,7 +7,6 @@ package mills.bits;
  * Time: 15:43:39
  */
 
-import com.google.common.collect.ImmutableList;
 import mills.util.AbstractRandomList;
 
 import java.util.List;
@@ -187,7 +186,7 @@ public class Pattern {
     }
 
     // a pre calculated list of all 256 Pattern
-    public static final List<Pattern> PATTERNS = ImmutableList.copyOf(patterns());
+    public static final List<Pattern> PATTERNS = List.copyOf(patterns());
 
     public static final Pattern NONE = of(0);
     public static final Pattern RADIALS = of(Sector.RADIALS);

@@ -1,12 +1,12 @@
 package mills.scores;
 
-import com.google.common.base.Throwables;
 import mills.bits.Player;
 import mills.index.IndexProcessor;
 import mills.stones.Stones;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.RecursiveTask;
@@ -116,7 +116,7 @@ public class ScoreSlices {
                 try {
                     map.close();
                 } catch (IOException e) {
-                    throw Throwables.propagate(e);
+                    throw new UncheckedIOException(e);
                 }
 
                 return stat;

@@ -1,7 +1,5 @@
 package mills.bits;
 
-import com.google.common.collect.ImmutableList;
-
 import java.util.List;
 
 /**
@@ -52,7 +50,7 @@ public enum Perm {
     ID(0), RR(1), RL(3), RX(2),
     MH(4), MR(5), ML(7), MV(6);
 
-    public static final List<Perm> VALUES = ImmutableList.copyOf(values());
+    public static final List<Perm> VALUES = List.of(values());
 
     public static final int MSK = 7;
 

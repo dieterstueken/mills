@@ -1,6 +1,5 @@
 package mills.partitions2;
 
-import com.google.common.collect.ImmutableList;
 import mills.bits.BW;
 import mills.bits.PopCount;
 import mills.index.IndexList;
@@ -97,7 +96,7 @@ public class Rindex {
 
             ForkJoinTask.invokeAll(tasks);
 
-            return new Rindex(pop, ImmutableList.copyOf(tables));
+            return new Rindex(pop, List.of(tables));
         }
 
         R2Table r2Table(PopCount pop, PopCount clop) {
@@ -153,7 +152,7 @@ public class Rindex {
                     t2 = EntryTable.of(s2, t0.size());
                 }
 
-                return R2Table.of(pop, t2, ImmutableList.copyOf(t0));
+                return R2Table.of(pop, t2, List.copyOf(t0));
             }
 
             ForkJoinTask<R0Table> task(RingEntry r2) {

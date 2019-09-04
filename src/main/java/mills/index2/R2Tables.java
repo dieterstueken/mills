@@ -1,6 +1,5 @@
 package mills.index2;
 
-import com.google.common.collect.ImmutableList;
 import mills.bits.PopCount;
 import mills.index.IndexList;
 import mills.index.Partitions;
@@ -30,7 +29,7 @@ public class R2Tables extends AbstractRandomList<R2Table> {
     public final PopCount pop;
 
     private R2Tables(PopCount pop, List<R2Table> tables) {
-        this.tables = ImmutableList.copyOf(tables);
+        this.tables = List.copyOf(tables);
         this.pop = pop;
         assert tables.size() == SIZE;
     }
@@ -98,7 +97,7 @@ public class R2Tables extends AbstractRandomList<R2Table> {
                 R0Table.Builders builder = builders();
                 builder.process(pop, e2);
 
-                List<R0Table> result = ImmutableList.copyOf(builder);
+                List<R0Table> result = List.copyOf(builder);
 
                 release(builder);
 

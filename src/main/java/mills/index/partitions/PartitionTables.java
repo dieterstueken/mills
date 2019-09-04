@@ -1,7 +1,5 @@
 package mills.index.partitions;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
@@ -96,7 +94,7 @@ public class PartitionTables extends AbstractRandomList<PartitionTable> {
 
             invokeAll(tasks);
 
-            List<PartitionTable> tables = Lists.transform(tasks, ForkJoinTask::join);
+            List<PartitionTable> tables = AbstractRandomList.transform(tasks, ForkJoinTask::join);
 
             return new PartitionTables(tables);
         }

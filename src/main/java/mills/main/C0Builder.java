@@ -1,6 +1,5 @@
 package mills.main;
 
-import com.google.common.collect.ImmutableList;
 import mills.bits.PopCount;
 import mills.index.Partitions;
 import mills.index.R0Table;
@@ -45,7 +44,7 @@ public class C0Builder {
              t0.add(r0);
          }
 
-         return R2Table.of(pop, EntryTable.of(t2), ImmutableList.copyOf(t0));
+         return R2Table.of(pop, EntryTable.of(t2), List.copyOf(t0));
     }
 
     R0Table buildR0(final PopCount pop, final RingEntry e2) {
@@ -78,6 +77,6 @@ public class C0Builder {
             t1.add(entries);
         }
 
-        return t0.isEmpty() ? R0Table.EMPTY : R0Table.of(EntryTable.of(t0), ImmutableList.copyOf(t1));
+        return t0.isEmpty() ? R0Table.EMPTY : R0Table.of(EntryTable.of(t0), List.copyOf(t1));
     }
 }

@@ -1,7 +1,5 @@
 package mills.board;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import mills.bits.Player;
 import mills.bits.Ring;
 import mills.bits.Sector;
@@ -12,6 +10,8 @@ import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -141,11 +141,11 @@ public class Board extends JPanel {
     }
 
     final Stones stones = new Stones(RingEntry.of(1234), RingEntry.of(4567), RingEntry.of(42));
-    final List<Position> positions = Lists.newArrayListWithCapacity(24);
+    final List<Position> positions = new ArrayList<>(24);
     final Drag drag = new Drag();
-    final List<Line2D> links = Lists.newArrayListWithCapacity(32);
+    final List<Line2D> links = new ArrayList<>(32);
 
-    final Set<Position> active = Sets.newHashSet();
+    final Set<Position> active = new HashSet<>();
 
     Position position(Ring ring, Sector sector) {
         final int i = 8*ring.ordinal() + sector.ordinal();

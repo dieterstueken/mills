@@ -1,6 +1,5 @@
 package mills.index;
 
-import com.google.common.collect.ImmutableList;
 import mills.bits.PopCount;
 import mills.position.Positions;
 import mills.ring.RingEntry;
@@ -76,7 +75,7 @@ class T2Builder {
 
         // return empty list
         if(count.get()==0)
-            return new R2Index(pop, ImmutableList.of());
+            return new R2Index(pop, List.of());
 
         int index = 0;
         final List<R2Entry> sparseTable = new ArrayList<>(count.get());

@@ -1,6 +1,5 @@
 package mills.index.partitions;
 
-import com.google.common.collect.ImmutableList;
 import mills.bits.PGroup;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
@@ -43,7 +42,7 @@ public class PartitionTable extends AbstractRandomList<EntryTable> {
     private PartitionTable(EntryTable table[], List<EntryTable> tables) {
         assert table.length == 128 : String.format("unexpected size: %d!=128", table.length);
         this.table = table;
-        this.tables = ImmutableList.copyOf(tables);
+        this.tables = List.copyOf(tables);
     }
 
     private PartitionTable() {

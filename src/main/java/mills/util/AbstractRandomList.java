@@ -3,6 +3,7 @@ package mills.util;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.stream.Stream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -35,7 +36,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         };
     }
 
-    public static <U, T> List<T> virtual(List<U> source, Function<? super U, ? extends T> mapper) {
+    public static <U, T> List<T> transform(List<U> source, Function<? super U, ? extends T> mapper) {
          return new AbstractRandomList<T>() {
 
              @Override
@@ -48,10 +49,24 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
                  return mapper.apply(source.get(index));
              }
 
-             // no content equal for virtual lists
+             // no content equals for virtual lists
              @Override
              public boolean equals(Object o) {
                  return o == this;
+             }
+
+             @Override
+             public T remove(int index) {
+                 U removed = source.remove(index);
+                 return removed == null ? null : mapper.apply(removed);
+             }
+
+             public void clear() {
+                 source.clear();
+             }
+
+             public Stream<T> stream() {
+                 return source.stream().map(mapper);
              }
          };
     }

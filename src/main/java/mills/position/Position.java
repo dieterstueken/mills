@@ -8,7 +8,6 @@ package mills.position;
  */
 
 import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Ordering;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.ring.RingEntry;
@@ -124,6 +123,4 @@ public class Position implements Comparable<Position> {
                 .compare(this.r2, o.r2)
                 .result();
     }
-
-    public static final Ordering<Position> INDEX_ORDER = Ordering.natural();
 }

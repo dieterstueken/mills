@@ -1,11 +1,10 @@
 package mills.partitions2;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
+import mills.util.AbstractRandomList;
 
 import java.util.*;
 import java.util.concurrent.ForkJoinTask;
@@ -88,7 +87,7 @@ public class LePopTables {
 
                 createLeClopTable(PopCount.EMPTY, RingEntry.EMPTY.singleton);
 
-                return new LePopTables(ImmutableList.copyOf(clops));
+                return new LePopTables(List.of(clops));
             }
 
             ForkJoinTask<?> task(int nb, int nw, Player p) {
@@ -199,7 +198,7 @@ public class LePopTables {
             this.pop = pop;
             this.root = root;
 
-            this.tables = ImmutableList.copyOf(Lists.transform(Arrays.asList(tables), LePopTables::lct));
+            this.tables = List.copyOf(AbstractRandomList.transform(Arrays.asList(tables), LePopTables::lct));
         }
     }
 
@@ -230,7 +229,7 @@ public class LePopTables {
             root = root.filter(e->e.pop.sum()>count);
         }
 
-        tables = ImmutableList.copyOf(tables);
+        tables = List.copyOf(tables);
 
         return new LeCountTable(tables);
     }

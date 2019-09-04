@@ -1,11 +1,11 @@
 package mills.scores.opening;
 
-import com.google.common.base.Throwables;
 import mills.position.Situation;
 import mills.scores.ScoreFiles;
 import mills.scores.ScoreMap;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinPool;
 
@@ -33,7 +33,7 @@ public class Opening implements Runnable {
 
             return files.openMap(situation, true);
         } catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -43,7 +43,7 @@ public class Opening implements Runnable {
             level.slices(Situation.start()).push(0);
             level.invoke();
         } catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw new UncheckedIOException(e);
         }
     }
 

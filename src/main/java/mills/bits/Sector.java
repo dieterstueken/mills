@@ -1,7 +1,5 @@
 package mills.bits;
 
-import com.google.common.collect.ImmutableList;
-
 import java.util.List;
 
 /**
@@ -75,9 +73,9 @@ public enum Sector {
         return pow3;
     }
 
-    public static final List<Sector> SECTORS = ImmutableList.copyOf(values());
-    public static final List<Sector> EDGES = ImmutableList.of(N,E,S,W);
-    public static final List<Sector> CORNERS = ImmutableList.of(NW,NE,SE,SW);
+    public static final List<Sector> SECTORS = List.of(values());
+    public static final List<Sector> EDGES = List.of(N,E,S,W);
+    public static final List<Sector> CORNERS = List.of(NW,NE,SE,SW);
 
     // members of radial mills
     public static final int RADIALS = group(N,E,S,W);

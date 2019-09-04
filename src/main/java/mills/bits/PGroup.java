@@ -7,7 +7,6 @@ package mills.bits;
  * Time: 22:32
  */
 
-import com.google.common.collect.ImmutableList;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 
@@ -77,7 +76,7 @@ public enum PGroup {
         return String.format("%s(%x)", name(), meq);
     }
 
-    public static final List<PGroup> VALUES = ImmutableList.copyOf(values());
+    public static final List<PGroup> VALUES = List.of(values());
 
     private static final PGroup GROUP[] = new PGroup[256/8];
 

@@ -1,6 +1,5 @@
 package mills.partitions2;
 
-import com.google.common.collect.ImmutableList;
 import mills.bits.PGroup;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
@@ -126,7 +125,7 @@ public class Partition extends AbstractRandomList<PartitionGroup> {
                     groups[msk] = group;
             }
 
-            return new Partition(ImmutableList.copyOf(tables), ImmutableList.copyOf(groups), ImmutableList.copyOf(gset));
+            return new Partition(List.copyOf(tables), List.of(groups), List.copyOf(gset));
         }
 
         private  Predicate<RingEntry> filter(int msk) {

@@ -1,7 +1,5 @@
 package mills.board;
 
-import com.google.common.collect.ImmutableList;
-
 import java.awt.*;
 import java.awt.geom.Point2D;
 
@@ -61,7 +59,7 @@ abstract class Item {
     }
 
     static class Stone extends Item {
-        public static final java.util.List<Integer> SIZES = ImmutableList.of(9,7,6,4,3);
+        public static final java.util.List<Integer> SIZES = java.util.List.of(9,7,6,4,3);
         final Color c1, c2;
 
         Stone(Color c1, Color c2) {

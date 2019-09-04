@@ -7,7 +7,6 @@ package mills.partitions;
  * Time: 10:15
  */
 
-import com.google.common.collect.ImmutableList;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomArray;
@@ -43,7 +42,7 @@ abstract public class PartitionTable<P> extends AbstractRandomArray<P> {
     }
 
     public static <P> PartitionTable<P> of(List<P> partitions, List<P> table, EntryTable lePop) {
-        partitions = ImmutableList.copyOf(partitions);
+        partitions = List.copyOf(partitions);
         return new PartitionTable<P>(partitions, lePop) {
 
             @Override
