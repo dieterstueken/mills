@@ -2,9 +2,9 @@ package mills.util;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
-import java.util.concurrent.ForkJoinTask;
+import java.util.List;
 import java.util.concurrent.RecursiveTask;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 /**
@@ -14,71 +14,76 @@ import java.util.function.Supplier;
  * modified by: $Author$
  * modified on: $Date$
  */
-public class FutureReference<V> implements Supplier<V> {
+public class FutureReference<V> {
 
-    private static Reference NONE = new WeakReference<Object>(null);
+    // factory to be called on creation
+    private final Supplier<? extends V> factory;
 
-    // initialized by an empty reference
-    private Reference<V> ref = (Reference<V>) NONE;
+    private Computer computer = new Computer();
 
-    // an other task currently running
-    final AtomicReference<ForkJoinTask<V>> running = new AtomicReference<>();
-
-    final Supplier<? extends V> factory;
-
-    public FutureReference(Supplier<? extends V> factory) {
+    private FutureReference(Supplier<? extends V> factory) {
         this.factory = factory;
     }
 
-    public V get() {
-
-        // try to get immediately.
-        V value = ref.get();
-        if (value != null)
-            return value;
-
-        // join some already running task or start a new one
-        ForkJoinTask<V> task = running.get();
-
-        if (task == null) {
-            task = new Computer();
-            task.fork();
-        }
-
-        value = task.join();
-
-        return value;
+    public static <V> FutureReference<V> of(Supplier<? extends V> factory) {
+        return new FutureReference<V>(factory);
     }
 
+    public static <V> List<FutureReference<V>> of(List<? extends V> source) {
+        return AbstractRandomList.generate(source.size(), i->of(()->source.get(i)));
+    }
+
+    public V get() {
+        return computer.getValue();
+    }
+
+    public void clear() {
+        computer.ref.clear();
+    }
+
+    private static final Reference EMPTY = new WeakReference<>(null);
+
+    /**
+     * Class Computer either has a cached value or it can compute a new one atomically.
+     * A Computer is inherently threadsafe and may be called concurrently any time.
+     * After a value was computed (due to an empty reference) this computer holds a hard reference to it.
+     * To enable GC of the computed value the computer replaces itself by a new computer holding a weak reference only.
+     */
     private class Computer extends RecursiveTask<V> {
 
-        // replace any currently running task.
-        // if two tasks are started simultaneously the second one hooks to the previously started.
-        final ForkJoinTask<V> other = running.getAndSet(this);
+        final Reference<V> ref;
+        final AtomicBoolean running = new AtomicBoolean(false);
 
-        @Override
-        protected V compute() {
-            try {
-                // some other task was already started, join into.
-                if (other != null)
-                    return other.join();
+        Computer(Reference<V> ref) {
+            this.ref = ref;
+        }
 
-                // try to get cached value directly
-                V value = ref.get();
+        @SuppressWarnings("unchecked")
+        Computer() {
+            this((Reference<V>) EMPTY);
+        }
 
-                if (value == null) {
-                    value = factory.get();
-
-                    // setup a new reference
-                    ref = new WeakReference<>(value);
-                }
-
+        V getValue() {
+            // try to get immediately
+            V value = ref.get();
+            if (value != null)
                 return value;
 
-            } finally {
-                // self reset
-                running.compareAndSet(this, null);
-            }
+            // start computation once.
+            if(!running.getAndSet(true))
+                fork();
+
+            // wait for computation result.
+            return join();
+        }
+
+        protected V compute() {
+            V value = factory.get();
+            Reference<V> ref = new WeakReference<>(value);
+            // setup new computer
+            // and unlink itself to enable CG of value.
+            computer = new Computer(ref);
+            return value;
         }
     }
 }

@@ -20,7 +20,11 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
     @Override
     abstract public T get(int index);
 
-    public static <T> List<T> virtual(int size, IntFunction<? extends T> generate) {
+    public List<T> copyOf() {
+        return List.copyOf(this);
+    }
+
+    public static <T> AbstractRandomArray<T> virtual(int size, IntFunction<? extends T> generate) {
         return new AbstractRandomArray<T>(size) {
 
             @Override
@@ -41,7 +45,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         };
     }
 
-    public static <U, T> List<T> transform(List<U> source, Function<? super U, ? extends T> mapper) {
+    public static <U, T> AbstractRandomList<T> transform(List<U> source, Function<? super U, ? extends T> mapper) {
          return new AbstractRandomList<T>() {
 
              @Override
@@ -89,7 +93,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         if(size==1)
             return Collections.singletonList(generate.apply(0));
 
-        Object values[] = new Object[size];
+        Object[] values = new Object[size];
         for(int i=0; i<size; ++i)
             values[i] = generate.apply(i);
 

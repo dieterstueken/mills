@@ -5,9 +5,9 @@ import mills.position.Positions;
 import mills.ring.RingEntry;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -21,57 +21,47 @@ class T2Builder {
 
     final PopCount pop;
 
-    final AtomicInteger todo = new AtomicInteger(RingEntry.MAX_INDEX);
-
-    final R0Table entries[] = new R0Table[RingEntry.MAX_INDEX];
+    final R0Table[] entries = new R0Table[RingEntry.MAX_INDEX];
 
     final AtomicInteger count = new AtomicInteger(0);
 
     final Supplier<T0Builder> builders;
 
+    final ConcurrentLinkedQueue<T0Builder> queue = new ConcurrentLinkedQueue<>();
+
     T2Builder(PopCount pop, Supplier<T0Builder> builders) {
         this.pop = pop;
         this.builders = builders;
+        Arrays.fill(entries, R0Table.EMPTY);
     }
 
-    private void fillRemaining() {
+    T0Builder getBuilder() {
+        T0Builder builder = queue.poll();
+        if(builder==null)
+            builder = builders.get();
+        return builder;
+    }
 
-        T0Builder builder = null;
-        ForkJoinTask<Void> helper = null;
+    void releaseBuilder(T0Builder builder) {
+        queue.offer(builder);
+    }
 
-        int done = 0;
-
-        int i;
-        while((i=todo.decrementAndGet())>=0) {
-
-            final RingEntry e2 = RingEntry.TABLE.get(i);
-            final PopCount p2 = pop.sub(e2.pop);
-
-            if (p2 == null)
-                entries[i] = R0Table.EMPTY;
-            else {
-                if (builder == null) // get a local builder
-                    builder = builders.get();
-                entries[i] = builder.build(p2, e2);
+    void compute(RingEntry e2) {
+        final PopCount p2 = pop.sub(e2.pop);
+        if (p2 != null) {
+            T0Builder builder = getBuilder();
+            R0Table result = builder.build(p2, e2);
+            if(!result.isEmpty()) {
+                entries[e2.index] = result;
+                releaseBuilder(builder);
                 count.incrementAndGet();
             }
-
-            if(++done == 9 && i>81)
-                helper = new RecursiveAction(){
-                    @Override
-                    protected void compute() {
-                        fillRemaining();
-                    }
-                }.fork();
         }
-
-        if(helper!=null)
-            helper.join();
     }
 
     public R2Index build() {
 
-        fillRemaining();
+        RingEntry.TABLE.stream().parallel().forEach(this::compute);
 
         // return empty list
         if(count.get()==0)

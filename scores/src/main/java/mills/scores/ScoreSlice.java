@@ -1,13 +1,11 @@
 package mills.scores;
 
-import com.google.common.collect.Ordering;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
 import mills.util.AbstractRandomArray;
 import mills.util.Action;
 import mills.util.QueueActor;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -149,14 +147,4 @@ public class ScoreSlice extends MapSlice {
 
         super.setScore(offset, score);
     }
-
-    public static final Ordering<ScoreSlice> MAX = new Ordering<ScoreSlice>() {
-        @Override
-        public int compare(@Nullable ScoreSlice left, @Nullable ScoreSlice right) {
-            return Integer.compare(
-                    left==null ? 0 : left.max(),
-                    right==null ? 0 : right.max()
-            );
-        }
-    };
 }

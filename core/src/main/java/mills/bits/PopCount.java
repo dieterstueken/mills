@@ -254,6 +254,7 @@ public class PopCount implements Comparable<PopCount> {
     // PopCounts <= (9,9)
     public static final List<PopCount> TABLE = AbstractRandomArray.of(table());
 
+    // # of closed mills (0-4)
     public static final List<PopCount> CLOSED = TABLE.subList(0, 25);
 
     public static final PopCount EMPTY = of(0,0);

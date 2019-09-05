@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Predicate;
 
 /**
  * Created by IntelliJ IDEA.
@@ -29,125 +27,52 @@ import java.util.function.Predicate;
  */
 public class LePopTable extends AbstractRandomList<EntryTable> {
 
-    public static final LePopTable INSTANCE = new LePopTable();
-
     public static LePopTable open() {
-        INSTANCE.size();
-        return INSTANCE;
+        final List<EntryTable> table = createTable();
+        return new LePopTable(table);
     }
 
-    public static final int SIZE = PopCount.TABLE.size();
+    private final List<EntryTable> table;
+
+    public LePopTable(List<EntryTable> table) {
+        this.table = table;
+    }
 
     @Override
     public int size() {
-        return SIZE;
+        return PopCount.TABLE.size();
     }
-
-    public EntryTable get(PopCount pop) {
-        return pop==null ? EntryTable.EMPTY : get(pop.index());
-    }
-
-    private List<EntryTable> table = new AbstractRandomList<EntryTable>() {
-
-        final AtomicBoolean started = new AtomicBoolean(false);
-
-        final Builder builder = new Builder() {
-
-            // reset self if ready
-            @Override
-            protected List<EntryTable> compute() {
-                List<EntryTable> result = super.compute();
-                table = result;
-                return result;
-            }
-        };
-
-        @Override
-        public int size() {
-            if(!started.getAndSet(true))
-                builder.fork();
-            return SIZE;
-        }
-
-        @Override
-        public EntryTable get(int index) {
-            if(!started.getAndSet(true))
-                builder.fork();
-
-            return builder.tasks.get(index).join();
-        }
-    };
 
     @Override
     public EntryTable get(int index) {
-        return table.get(index);
+        // 8:8 and above: full table
+        return index<table.size() ? table.get(index) : RingEntry.TABLE;
     }
 
-    ///////////////////////////////////////////////////////////////////////////
+    public EntryTable get(PopCount pop) {
+        return pop==null ? null : get(pop.index);
+    }
 
-    private static class Builder extends RecursiveTask<List<EntryTable>> {
+    private static List<EntryTable> createTable() {
+        List<PopCount> p88 = PopCount.TABLE.subList(0, PopCount.P88.index);
+        List<RecursiveTask<EntryTable>> tasks = new ArrayList<>(p88.size());
 
-        final List<ForkJoinTask<EntryTable>> tasks = new ArrayList<>(SIZE);
-
-        EntryTable upTable(final PopCount pop) {
-
-            // may be incremented
-            if(pop.min()<8) {
+        p88.forEach(pop -> tasks.add(new RecursiveTask<>(){
+            @Override
+            protected EntryTable compute() {
                 // increment the bigger one if < 9 else the other one
-                Player up =  pop.nw<pop.nb && pop.nw<9 ? Player.White : Player.Black;
-                return tasks.get(pop.add(up.pop).index).join();
+                Player p =  pop.nw<pop.nb && pop.nw<9 ? Player.White : Player.Black;
+                int index = pop.add(p.pop).index;
+                EntryTable upTable = index<tasks.size() ? tasks.get(index).join() : RingEntry.TABLE;
+                return upTable.filter(e -> e.pop.le(pop));
             }
+        }));
 
-            // 8:8 and above: full table
-            return RingEntry.TABLE;
-        }
+        int i=tasks.size();
+        while(i>0)
+            tasks.get(--i).fork();
 
-        ForkJoinTask<EntryTable> task(final PopCount pop) {
-
-            return new RecursiveTask<EntryTable>() {
-
-                String name = "todo";
-
-                public String toString() {
-                    return String.format("task[%d%d] %s", pop.nb, pop.nw, name);
-                }
-
-                @Override
-                protected EntryTable compute() {
-                    name = Thread.currentThread().getName();
-                    //names.add(toString());
-                    EntryTable upTable = upTable(pop);
-                    return upTable.filter(ple(pop));
-                }
-            };
-        }
-
-        /**
-         * Generate filter Predicate for elements with le pop count.
-         * A RingEntry holds maximum 8 stones.
-         *
-         * @return a filter predicate.
-         */
-        public static Predicate<RingEntry> ple(PopCount pop) {
-
-            if (pop.min() < 8)
-                return e -> e != null && e.pop.le(pop);
-            else
-                return EntryTable.ALL;
-        }
-
-        public Builder() {
-            for(PopCount pop:PopCount.TABLE)
-                tasks.add(task(pop));
-        }
-
-        @Override
-        protected List<EntryTable> compute() {
-
-            invokeAll(tasks);
-
-            return List.copyOf(AbstractRandomList.transform(tasks, ForkJoinTask::join));
-        }
+        return AbstractRandomList.transform(tasks, ForkJoinTask::join).copyOf();
     }
 
     ///////////////////////////////////////////////////////////////////////////

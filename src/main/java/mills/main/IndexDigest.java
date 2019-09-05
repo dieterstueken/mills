@@ -34,8 +34,8 @@ public class IndexDigest extends RecursiveAction {
         double start = System.currentTimeMillis();
 
         //for(PopCount pop:PopCount.TABLE) {
-        for(int nw=0; nw<10; ++nw)
-        for(int nb=0; nb<10; ++nb) {
+        for(int nb=0; nb<10; ++nb)
+        for(int nw=0; nw<10; ++nw) {
             PopCount pop = PopCount.of(nb, nw);
             final PosIndex posIndex = indexes.get(pop);
             final int range = posIndex.range();

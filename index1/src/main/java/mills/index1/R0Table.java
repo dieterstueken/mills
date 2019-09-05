@@ -9,7 +9,6 @@ import mills.util.IndexTable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.ToIntFunction;
 
 import static mills.position.Positions.i0;
 import static mills.position.Positions.i1;
@@ -119,9 +118,7 @@ public class R0Table extends IndexedMap<EntryTable> {
         return new R0Table(r0, t1, it);
     }
 
-    public static final ToIntFunction<Collection<?>> SIZE_OF = Collection::size;
-
     public static R0Table of(EntryTable r0, List<EntryTable> t1) {
-        return of(r0, t1, IndexTable.sum(t1, SIZE_OF));
+        return of(r0, t1, IndexTable.sum(t1, Collection::size));
     }
 }

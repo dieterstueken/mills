@@ -1,7 +1,5 @@
 package mills.scores;
 
-import com.google.common.base.Preconditions;
-
 import java.util.Objects;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
@@ -22,9 +20,8 @@ public class Pair<V> {
     public final V other;
 
     public Pair(V self, V other) {
-
-        this.self = Preconditions.checkNotNull(self);
-        this.other = Preconditions.checkNotNull(other);
+        this.self = self;
+        this.other = other;
     }
 
     public Pair(Pair<? extends V> pair) {

@@ -4,7 +4,6 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.position.Situation;
 
-import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -31,7 +30,6 @@ public class Generate implements Runnable {
         files = new ScoreFiles(args);
     }
 
-    @Nullable
     public ScoreMap descend(Situation situation) throws IOException {
 
         Situation descend = situation.hit(situation.player);

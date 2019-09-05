@@ -5,7 +5,6 @@ import mills.index.PosIndex;
 import mills.position.Situation;
 import mills.util.QueueActor;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -122,7 +121,6 @@ public class ScoreFiles {
         return scores;
     }
 
-    @Nullable
     public ScoreMap openMap(final Situation situation) throws IOException {
         return openMap(situation, false);
     }

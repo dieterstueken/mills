@@ -7,7 +7,6 @@ import mills.util.AbstractRandomList;
 import mills.util.FutureReference;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * version:     $Revision$
@@ -18,9 +17,9 @@ import java.util.function.Supplier;
  */
 public class IndexList extends AbstractRandomList<PosIndex> implements IndexProvider {
 
-    final List<? extends Supplier<R2Index>> tables;
+    final List<FutureReference<R2Index>> tables;
 
-    private IndexList(List<? extends Supplier<R2Index>> tables) {
+    private IndexList(List<FutureReference<R2Index>> tables) {
         this.tables = tables;
     }
 
@@ -28,10 +27,9 @@ public class IndexList extends AbstractRandomList<PosIndex> implements IndexProv
         this(createTables());
     }
 
-    private static List<? extends Supplier<R2Index>> createTables() {
+    private static List<FutureReference<R2Index>> createTables() {
         Partitions partitions = Partitions.open();
-        final List<? extends FutureReference<R2Index>> list = AbstractRandomList.transform(partitions, FutureReference::new);
-        return List.copyOf(list);
+        return FutureReference.of(partitions);
     }
 
     public static IndexList create() {

@@ -4,7 +4,6 @@ import mills.bits.Player;
 import mills.index.IndexProcessor;
 import mills.stones.Stones;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
@@ -54,7 +53,6 @@ public class ScoreSlices {
         return slices.get(posIndex / ScoreSlice.SIZE);
     }
 
-    @Nullable
     public IndexProcessor stuck() {
         // no stuck if jumping
         if (map.pop().max() < 4)
@@ -96,7 +94,14 @@ public class ScoreSlices {
      * @return current max score of all slices.
      */
     public int max() {
-        return ScoreSlice.MAX.max(slices).max();
+        int max = 0;
+        for (ScoreSlice slice : slices) {
+            int m = slice.max();
+            if(m>max)
+                max = m;
+        }
+
+        return max;
     }
 
     RecursiveTask<ScoreStat> close() {
