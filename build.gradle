@@ -3,6 +3,10 @@ apply plugin: 'idea'
 
 version = '1.0'
 
+idea.project {
+    vcs = 'Git'
+}
+
 allprojects {
     apply plugin: 'idea'
 
@@ -17,6 +21,11 @@ allprojects {
     }
 
     plugins.withType(JavaPlugin) {
+
+        java {
+            sourceCompatibility = JavaVersion.VERSION_11
+        }
+
         idea {
             module {
                 outputDir file('build/idea/main')
@@ -30,20 +39,10 @@ allprojects {
     }
 }
 
-subprojects {
-
-}
-
 dependencies {
     implementation project(':core')
+    implementation project(':index1')
     implementation group: 'com.google.guava', name: 'guava', version: '+'
     compileOnly group: 'com.google.code.findbugs', name: 'jsr305', version: '2.+'
 }
 
-idea {
-    project {
-        jdkName = '11'
-        languageLevel = JavaVersion.VERSION_11
-        vcs = 'Git'
-    }
-}

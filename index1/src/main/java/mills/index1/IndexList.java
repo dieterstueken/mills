@@ -24,12 +24,18 @@ public class IndexList extends AbstractRandomList<PosIndex> implements IndexProv
         this.tables = tables;
     }
 
-    public static IndexList create() {
+    public IndexList() {
+        this(createTables());
+    }
+
+    private static List<? extends Supplier<R2Index>> createTables() {
         Partitions partitions = Partitions.open();
         final List<? extends FutureReference<R2Index>> list = AbstractRandomList.transform(partitions, FutureReference::new);
-        List<FutureReference<R2Index>> tables = List.copyOf(list);
+        return List.copyOf(list);
+    }
 
-        return new IndexList(tables);
+    public static IndexList create() {
+        return new IndexList();
     }
 
     @Override

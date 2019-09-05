@@ -1,4 +1,4 @@
-package mills.partitions2;
+package mills.index1.partitions2;
 
 import mills.bits.PopCount;
 import mills.ring.RingEntry;

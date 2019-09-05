@@ -1,4 +1,4 @@
-package mills.partitions2;
+package mills.index1.partitions2;
 
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
