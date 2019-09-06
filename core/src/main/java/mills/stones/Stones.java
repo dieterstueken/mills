@@ -37,7 +37,7 @@ import mills.position.Positions;
 */
 public class Stones {
 
-    public static int STONES = 0xffffff;
+    public static final int STONES = 0xffffff;
 
     public Stones(int stones) {
         this.stones = stones;
@@ -52,6 +52,10 @@ public class Stones {
 
     // build stones, assume all values are in range [0,256[
     public static int stones(int i2, int i0, int i1) {
+        assert (i1&0xff)==i1;
+        assert (i2&0xff)==i2;
+        assert (i0&0xff)==i0;
+
         return (i1<<16) | (i0<<8) | i2;
     }
 

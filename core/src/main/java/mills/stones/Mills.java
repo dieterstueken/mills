@@ -1,7 +1,9 @@
 package mills.stones;
 
-import mills.bits.Pattern;
 import mills.bits.Player;
+import mills.bits.Sector;
+
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -9,16 +11,20 @@ import mills.bits.Player;
  * Date: 30.12.11
  * Time: 13:41
  */
+
+/**
+ * Each entry represents a stone mask of closed mills.
+ */
 public enum Mills {
 
-    NR, ER, SR, WR,
-    N2, E2, S2, W2,
-    N0, E0, S0, W0,
-    N1, E1, S1, W1;
+    NR, ER, SR, WR, // radial mills
+    N2, E2, S2, W2, // edges on r2
+    N0, E0, S0, W0, // edges on r0
+    N1, E1, S1, W1; // edges on r1
 
     final int closed;
 
-    private static final Mills mills[] = values();
+    public static final List<Mills> MILLS = List.of(values());
 
     Mills() {
         this.closed = closed(ordinal());
@@ -29,30 +35,38 @@ public enum Mills {
     }
 
     static Mills mills(int index) {
-        return mills[index];
+        return MILLS.get(index);
     }
 
     static int closed(int i) {
 
         if(i<4) // radial mills
-            return 0x010101<<i;
-
-        // ring
-        int r = (i-4)/4;
+            return 0x010101 * Sector.EDGES.get(i).mask();
 
         // sector
-        int s = i%4;
+        int k = i%4;
 
-        int m = Pattern.of(0x31).perm(s).stones();
-        m <<= 8*r;
+        // edge and neighboring corners
+        int m = Sector.CORNERS.get(k).mask();
+        m |= Sector.EDGES.get(k).mask();
+        m |= Sector.CORNERS.get((k+1)%4).mask();
+
+        // ring
+        int l = (i-4)/4;
+        m <<= 8*l;
 
         return m;
     }
 
+    /**
+     * Return a bit mask (like enum set) of closed mills [0,16[
+     * @param stones to analyze
+     * @return mill mask
+     */
     public static int mask(int stones) {
         int mask = 0;
 
-        for(Mills m:mills) {
+        for(Mills m:MILLS) {
             if(m.matches(stones))
                 mask |= 1<<m.ordinal();
         }

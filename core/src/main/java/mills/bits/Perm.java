@@ -19,16 +19,16 @@ import java.util.List;
     Each sequence may be reduced to:
     M^i * R^k with i:[01] and k:[0123]
 
-    Introducing an iversion with X = R*R a sequence may be represented as:
+    Introducing an inversion with X = R*R a sequence may be represented as:
 
     M^i * X^j * R^k with i,j,k of [0,1]
 
     Thus there are 8 possible combinations:
 
     ___   ID identity
-    __R   RR rotate  90
-    _X_   RL rotate 180
-    _XR   RX rotate 270
+    __R   RR rotate  90°
+    _X_   RL rotate 180°
+    _XR   RX rotate 270°
 
     M__   MH           | mirror
     M_R   MR = M * RR  /

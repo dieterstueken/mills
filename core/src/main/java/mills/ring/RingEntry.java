@@ -3,10 +3,8 @@ package mills.ring;
 import mills.bits.*;
 import mills.util.AbstractRandomList;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -305,20 +303,6 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     //////////////////// static utilities functions on RinEntry index ////////////////////
 
     public static final Predicate<RingEntry> IS_MIN = RingEntry::isMin;
-
-    /**
-     * A virtual list of of RinEntries to be materialized be a copy.
-     * @return a virtual list of of RinEntries.
-     */
-    static RingEntry[] entries() {
-        RingEntry[] entries = new RingEntry[MAX_INDEX];
-        Arrays.setAll(entries, RingEntry::create);
-        return entries;
-    }
-
-    static RingEntry[] _entries() {
-        return IntStream.range(0, MAX_INDEX).mapToObj(RingEntry::create).toArray(RingEntry[]::new);
-    }
 
     /**
      * An immutable list of all tables.
