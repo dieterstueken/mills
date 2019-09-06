@@ -1,9 +1,13 @@
-mills
+Algorithms to solve Three Man Morris.
 =====
 
-Algorithms to solve Three Man Morris.
+The implementation is inspired by the paper:
 
-The Board itself consists of three rings of 8 positions.
+http://library.msri.org/books/Book29/files/gasser.pdf
+
+This is a try to realized the sketched algorithms using Java. 
+
+The board itself consists of three rings of 8 positions.
 Each position may be void or occupied by a black or white stone.
 Thus we get 3^24 = 282,429,536,481 positions at all which is about 2^38.34.
 To 'solve' it we need some kind of score for each possible position.
@@ -40,7 +44,7 @@ For (3:3) all rings may be interchanged without any consequences on the result.
 This optimization is currently not realized since the complication of the algorithm is unreasonable.
 
 One of the first tasks is to find an index function for a score table of given population count.
-This index function gives an index for each possible occupation while all positions 
+This index function defines an index for each possible occupation while all positions 
 which may be converted into each other by a symmetry operation result in the same index.
  
 
