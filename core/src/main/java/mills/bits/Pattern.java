@@ -194,9 +194,9 @@ public class Pattern {
 
     private static List<Pattern> patterns() {
 
-        return new AbstractRandomList<Pattern>() {
+        return new AbstractRandomList<>() {
 
-            final int mills[] = Sector.mills();
+            final int[] mills = Sector.mills();
 
             @Override
             public Pattern get(final int i) {

@@ -4,7 +4,6 @@ import mills.bits.*;
 import mills.util.AbstractRandomList;
 
 import java.util.Comparator;
-import java.util.function.Predicate;
 
 /**
  * Created by IntelliJ IDEA.
@@ -44,7 +43,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     public final byte mix;
 
     // permutation group kept as a short index.
-    private final short perm[] = new short[8];
+    private final short[] perm = new short[8];
 
     // permutation group fingerprint
     public final PGroup grp;
@@ -302,14 +301,12 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
 
     //////////////////// static utilities functions on RinEntry index ////////////////////
 
-    public static final Predicate<RingEntry> IS_MIN = RingEntry::isMin;
-
     /**
      * An immutable list of all tables.
      */
     public static final EntryTable TABLE = new RingTable();
 
-    public static final EntryTable MINIMIZED = TABLE.filter(IS_MIN);
+    public static final EntryTable MINIMIZED = TABLE.filter(RingEntry::isMin);
 
     public static final EntryTable RADIALS = EntryTable.of(AbstractRandomList.virtual(81, RingEntry::radix));
 
