@@ -13,7 +13,7 @@ package mills.bits;
  */
 public enum Player {
 
-    None(PopCount.of(0,0)) {
+    None(0,0) {
 
         @Override
         public int count(PopCount pop) {
@@ -31,7 +31,7 @@ public enum Player {
             return (bw.w.stones()|bw.b.stones()) ^ 0xff;
         }
 
-    }, Black(PopCount.of(1,0)) {
+    }, Black(1,0) {
         @Override
         public int count(PopCount pop) {
             return pop.nb();
@@ -47,7 +47,7 @@ public enum Player {
             return bw.b.stones();
         }
 
-    }, White(PopCount.of(0,1)){
+    }, White(0,1){
         @Override
         public int count(PopCount pop) {
             return pop.nw();
@@ -82,8 +82,8 @@ public enum Player {
 
     abstract public int stones(BW bw);
 
-    private Player(PopCount pop) {
-        this.pop = pop;
+    Player(int nb, int nw) {
+        this.pop = PopCount.of(nb,nw);
     }
 
     public final PopCount pop;

@@ -25,10 +25,12 @@ public class Radials implements Function<RingEntry, PopCount> {
         radials = RingEntry.of(81*index);
     }
 
+    @Override
     public int hashCode() {
         return radials.index();
     }
 
+    @Override
     public String toString() {
         return radials.toString().substring(12, 16);
     }
@@ -40,9 +42,8 @@ public class Radials implements Function<RingEntry, PopCount> {
 
     @Override
     public PopCount apply(RingEntry e) {
-        PopCount clop = PopCount.EMPTY;
 
-        clop = clop.add(clop(e, Sector.N));
+        PopCount clop = clop(e, Sector.N);
         clop = clop.add(clop(e, Sector.E));
         clop = clop.add(clop(e, Sector.S));
         clop = clop.add(clop(e, Sector.W));

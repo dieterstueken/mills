@@ -58,8 +58,8 @@ public class BW extends Patterns {
     public String pattern() {
         return pattern(new StringBuilder()).toString();
     }
-
-    private static final char[] SIG = {'_', 'X', 'O'};
+    
+    private static final char[] SIG = {'⏤', '⚫', '⚪'};
 
     public StringBuilder pattern(StringBuilder pattern) {
 

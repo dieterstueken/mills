@@ -74,7 +74,7 @@ public class PartitionGroup extends AbstractRandomList<RadialGroup> {
 
         RadialGroup groups[] = new RadialGroup[25];
 
-        PopCount.TABLE.subList(0, 25).stream().filter(clop -> clop.le(pop)).forEach(clop -> {
+        PopCount.CLOSED.stream().filter(clop -> clop.le(pop)).forEach(clop -> {
             groups[clop.index] = RadialGroup.build(root, GroupFilter.filters(clop.index), index);
         });
 
