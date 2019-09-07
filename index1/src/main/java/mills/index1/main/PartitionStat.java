@@ -25,7 +25,7 @@ import java.util.function.Predicate;
  */
 public class PartitionStat {
 
-    final Partitions partitions = Partitions.open();
+    final Partitions partitions = Partitions.build();
 
     final List<Predicate<RingEntry>> filters;
 

@@ -1,17 +1,8 @@
 package mills.index1.partitions;
 
 import mills.bits.PopCount;
-import mills.ring.EntryTable;
-import mills.ring.RingEntry;
-import mills.util.AbstractRandomList;
+import mills.util.AbstractRandomArray;
 import mills.util.Stat;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.RecursiveTask;
 
 /**
  * version:     $Revision$
@@ -24,22 +15,15 @@ import java.util.concurrent.RecursiveTask;
 /**
  * Class PartitionTables provides a list of 100 PartitionTables for each PopCount.
  */
-public class PartitionTables extends AbstractRandomList<PartitionTable> {
-
-    public static final int SIZE = PopCount.TABLE.size();
+public class PartitionTables extends AbstractRandomArray<PartitionTable> {
 
     // pre calculated tables of entries for given PopCounts[00-99]
-    protected final PartitionTable partitions[] = new PartitionTable[SIZE];
+    protected final PartitionTable[] partitions;
 
-    protected PartitionTables() {
-    }
-
-    protected PartitionTables(final List<? extends PartitionTable> tables) {
-        tables.toArray(partitions);
-    }
-
-    public int size() {
-        return SIZE;
+    private PartitionTables(PartitionTable[] partitions) {
+        super(PopCount.TABLE.size());
+        this.partitions = partitions;
+        assert partitions.length == size();
     }
 
     /**
@@ -58,46 +42,11 @@ public class PartitionTables extends AbstractRandomList<PartitionTable> {
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    public static class Builder extends RecursiveTask<PartitionTables> {
+    public static PartitionTables build() {
+        PartitionTable[] partitions = new PartitionTable[PopCount.TABLE.size()];
 
-        public Builder() {
-            for(PopCount pop:PopCount.TABLE)
-                tasks.add(task(pop));
-        }
-
-        final List<ForkJoinTask<PartitionTable>> tasks = new ArrayList<>(SIZE);
-
-        ForkJoinTask<PartitionTable> task(final PopCount pop) {
-            return new RecursiveTask<PartitionTable>() {
-
-                String name = "todo";
-
-                public String toString() {
-                    return String.format("task[%d%d] %s", pop.nb, pop.nw, name);
-                }
-
-                @Override
-                protected PartitionTable compute() {
-                    name = Thread.currentThread().getName();
-                    final EntryTable entries = RingEntry.MINIMIZED.filter(pop.eq);
-
-                    if(pop.equals(PopCount.of(8,0)))
-                        pop.hashCode();
-
-                    return PartitionTable.build(entries);
-                }
-            };
-        }
-
-        @Override
-        protected PartitionTables compute() {
-
-            invokeAll(tasks);
-
-            List<PartitionTable> tables = AbstractRandomList.transform(tasks, ForkJoinTask::join);
-
-            return new PartitionTables(tables);
-        }
+        PopCount.TABLE.parallelStream().forEach(pop -> partitions[pop.index] = PartitionTable.build(pop));
+        return new PartitionTables(partitions);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -130,7 +79,7 @@ public class PartitionTables extends AbstractRandomList<PartitionTable> {
         stat.dump("total");
     }
 
-    public static void main(String... args) throws InterruptedException, ExecutionException {
-        ForkJoinPool.commonPool().invoke(new Builder()).dump();
+    public static void main(String... args) {
+        build().dump();
     }
 }

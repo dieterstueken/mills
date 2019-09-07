@@ -28,7 +28,7 @@ public class MopIndex {
 
     final List<PopCount> closed = new ArrayList<>(25);
 
-    final Partitions partitions = Partitions.open();
+    final Partitions partitions = Partitions.build();
 
     final ConcurrentLinkedQueue<MopStat> queue = new ConcurrentLinkedQueue<>();
 

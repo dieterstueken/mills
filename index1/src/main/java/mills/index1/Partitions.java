@@ -29,10 +29,10 @@ public class Partitions extends AbstractRandomList<R2Index> {
         this.partitions = partitions;
     }
 
-    public static Partitions open() {
+    public static Partitions build() {
         // build parallel
-        ForkJoinTask<PartitionTables> pt = new PartitionTables.Builder().fork();
-        LePopTable lePopTable = LePopTable.open();
+        ForkJoinTask<PartitionTables> pt = ForkJoinTask.adapt(PartitionTables::build).fork();
+        LePopTable lePopTable = LePopTable.build();
         PartitionTables partitions = pt.join();
         return new Partitions(partitions, lePopTable);
     }

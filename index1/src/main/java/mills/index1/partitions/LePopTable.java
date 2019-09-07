@@ -27,7 +27,7 @@ import java.util.concurrent.RecursiveTask;
  */
 public class LePopTable extends AbstractRandomList<EntryTable> {
 
-    public static LePopTable open() {
+    public static LePopTable build() {
         final List<EntryTable> table = createTable();
         return new LePopTable(table);
     }
@@ -93,7 +93,7 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
     }
 
     public static void main(String... args) throws InterruptedException, ExecutionException {
-        open().dump();
+        build().dump();
     }
 
 }

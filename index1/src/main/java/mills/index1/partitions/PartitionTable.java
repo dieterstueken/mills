@@ -1,11 +1,15 @@
 package mills.index1.partitions;
 
 import mills.bits.PGroup;
+import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -25,9 +29,9 @@ public class PartitionTable extends AbstractRandomList<EntryTable> {
 
     public static final PartitionTable EMPTY = new PartitionTable();
 
-    private final EntryTable table[];
+    private final EntryTable[] table;
 
-    public List<EntryTable> tables;
+    public final List<EntryTable> tables;
 
     @Override
     public EntryTable get(int index) {
@@ -46,9 +50,13 @@ public class PartitionTable extends AbstractRandomList<EntryTable> {
     }
 
     private PartitionTable() {
-        table = new EntryTable[128];
+        this(new EntryTable[128], List.of());
         Arrays.fill(table, EntryTable.EMPTY);
-        this.tables = Collections.emptyList();
+    }
+
+    public static PartitionTable build(PopCount pop) {
+        EntryTable entries = RingEntry.MINIMIZED.filter(pop.eq);
+        return PartitionTable.build(entries);
     }
 
     /**
@@ -56,7 +64,7 @@ public class PartitionTable extends AbstractRandomList<EntryTable> {
      * @param root set of entries to partition.
      * @return a new PartitionTable.
      */
-    public static PartitionTable build(final EntryTable root) {
+    public static PartitionTable build(EntryTable root) {
 
         if(root.isEmpty())
             return EMPTY;
@@ -79,7 +87,7 @@ public class PartitionTable extends AbstractRandomList<EntryTable> {
             et = table[part];
             if(et==null) {
                 // generate a new partition
-                final Predicate<RingEntry> f = PartitionFilter.of(msk);
+                final Predicate<RingEntry> f = partitionFilter(msk);
                 et = root.filter(f);
                 table[part] = et;
                 tables.add(et);
@@ -90,5 +98,9 @@ public class PartitionTable extends AbstractRandomList<EntryTable> {
         }
 
         return new PartitionTable(table, tables);
+    }
+
+    private static Predicate<RingEntry> partitionFilter(int index) {
+        return entry -> (entry.pmin() & 2*index) == 0;
     }
 }

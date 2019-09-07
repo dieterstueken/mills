@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class C0Builder {
 
-    final Partitions partitions = Partitions.open();
+    final Partitions partitions = Partitions.build();
 
     public R2Table buildR2(PopCount pop) {
 

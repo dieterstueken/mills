@@ -61,7 +61,7 @@ class T2Builder {
 
     public R2Index build() {
 
-        RingEntry.TABLE.stream().parallel().forEach(this::compute);
+        RingEntry.TABLE.parallelStream().forEach(this::compute);
 
         // return empty list
         if(count.get()==0)

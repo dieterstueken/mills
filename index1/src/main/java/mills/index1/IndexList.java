@@ -28,7 +28,7 @@ public class IndexList extends AbstractRandomList<PosIndex> implements IndexProv
     }
 
     private static List<FutureReference<R2Index>> createTables() {
-        Partitions partitions = Partitions.open();
+        Partitions partitions = Partitions.build();
         return FutureReference.of(partitions);
     }
 
