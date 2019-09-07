@@ -25,44 +25,74 @@ import java.util.List;
 
     Thus there are 8 possible combinations:
 
-    ___   ID identity
-    __R   RR rotate  90°
-    _X_   RL rotate 180°
-    _XR   RX rotate 270°
+    A B
+    D C
 
-    M__   MH           | mirror
-    M_R   MR = M * RR  /
-    MX_   ML = M * RL  -
-    MXR   MV = M * RX  \
+    rotations:
+    ___   ID identity      ABCD
+    __R   RR rotate  90°   DABC
+    _X_   RX rotate 180°   CDAB
+    _XR   RL rotate 270°   BCDA
 
-    The permutation will be applied to a pattern of stones.
-    8 positions (a single ringTable) are enumerated by two groups of four:
+    mirrors:
+    M__   MH           |   BADC
+    M_R   MR = M * RR  /   ADCB
+    MX_   MV = M * RX  -   DCBA
+    MXR   ML = M * RL  \   CBAD
 
-    0 - 1     + 4 +     0 4 1
-    |   |  *  7   5  =  7   5
-    3 - 2     + 6 +     3 6 2
-
-    Three groups of 8 stones form a complete pattern of three rings.
+    The permutation can be applied to a pattern of stones.
 */
 
-public enum Perm {
+public enum Perm implements Operation {
+
+    /**
+     * Enum ordinates and mask to select operations differ.
+     */
 
     ID(0), RR(1), RL(3), RX(2),
     MH(4), MR(5), ML(7), MV(6);
 
     public static final List<Perm> VALUES = List.of(values());
 
+    // different ...
+    public static final List<Perm> PERMS = List.of(
+            ID, RR, RX, RL,
+            MH, MR, MV, ML);
+
     public static final int MSK = 7;
 
     // get by index [0,8[
     public static Perm get(int i) { return VALUES.get(i & MSK);}
 
-    private final Operation op;
+    // bits to apply operations.
+    private final int ijk;
 
-    private Perm compose[] = new Perm[8];
+    // # of rotations
+    public int nr() {
+        return ijk%4;
+    }
 
-    Perm(int pm) {
-        op = Operation.combine(pm);
+    // if this operation mirrors
+    public boolean mirrors() {
+        return (ijk&4)!=0;
+    }
+
+    /**
+     * @return Return bit mask to use for meq.
+     */
+    public int msk() {
+        return 1<<ordinal();
+    }
+
+    private final SectorOperation op;
+
+    Perm(int ijk) {
+        this.ijk = ijk;
+        SectorOperation tmp = SectorOperations.ROTATE.get(nr());
+        if(mirrors())
+            tmp = tmp.join(SectorOperations.MOP);
+
+        this.op = tmp;
     }
 
     /**
@@ -71,18 +101,19 @@ public enum Perm {
      * @param pattern of stones.
      * @return permuted pattern.
      */
-    int apply(int pattern) {
+    @Override
+    public int apply(int pattern) {
         return op.apply(pattern);
     }
 
     // return inverse operation
-    public Perm inverse() {
-
-        if(this==RL)
-            return RR;
-
-        if(this==RR)
-            return RL;
+    @Override
+    public Perm invert() {
+        switch(this) {
+            case RL: return RR;
+            case RR: return RL;
+            default:
+        }
 
         // all others are self inverting.
         return this;
@@ -90,27 +121,22 @@ public enum Perm {
 
     // return composed operation
     public Perm compose(final Perm p) {
-        Perm c = compose[p.ordinal()];
+        int nr = nr();
 
-        if(c==null) {
-            // try to find inverse using most asymmetric position: 0x11
-            int result = p.apply(this.apply(0x11));
-            for (Perm px : VALUES) {
-                if(px.apply(0x11) == result) {
-                    if(c!=null) {
-                        throw new RuntimeException(String.format("duplicate composition of %s X %s", name(), p.name()));
-                    }
-                    c = px;
-                }
-            }
+        // if his mirrors any rotation goes to the other direction.
+        if(mirrors())
+            nr += 4 - p.nr();
+        else
+            nr += p.nr();
 
-            if(c==null)
-                throw new RuntimeException(String.format("missing composition of %s X %s", name(), p.name()));
+        // normalize
+        nr &= 3;
 
-            compose[p.ordinal()] = c;
-        }
-
-        return c;
+        // mirror is an xor of both
+        if(mirrors() != p.mirrors())
+            return PERMS.get(nr+4);
+        else
+            return PERMS.get(nr);
     }
 
     /////////////////////// static utilities ///////////////////////

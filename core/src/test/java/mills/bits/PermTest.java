@@ -19,7 +19,7 @@ public class PermTest {
 
             for (Perm p : Perm.VALUES) {
                 RingEntry ep = e.permute(p);
-                RingEntry ex = ep.permute(p.inverse());
+                RingEntry ex = ep.permute(p.invert());
                 assertEquals("Perm.inverse", e, ex);
             }
         }

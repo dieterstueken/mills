@@ -52,6 +52,11 @@ public enum Sector {
         return 1<<ordinal();
     }
 
+    // masks to apply on an int(24) to extract Sector bits
+    public int masks() {
+        return 0x010101<<ordinal();
+    }
+
     /**
      * Return 0 or 1 from bit mask.
      * @param mask to extract from.

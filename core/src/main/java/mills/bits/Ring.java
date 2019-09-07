@@ -1,5 +1,7 @@
 package mills.bits;
 
+import java.util.List;
+
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -16,13 +18,21 @@ public enum Ring {
         this.radius = radius;
     }
 
+    public int getMask(int stones) {
+        return stones >> 8 * radius;
+    }
+
+    public int getStones(int mask) {
+        return mask << 8 * radius;
+    }
+
     public long seek(final short ring) {
         return ring << 16*ordinal();
     }
 
-    private static final Ring rings[] = values();
+    public static final List<Ring> RINGS = List.of(values());
 
     public static Ring of(int i) {
-        return rings[i];
+        return RINGS.get(i);
     }
 }
