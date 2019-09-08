@@ -64,7 +64,8 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
                 Player p =  pop.nw<pop.nb && pop.nw<9 ? Player.White : Player.Black;
                 int index = pop.add(p.pop).index;
                 EntryTable upTable = index<tasks.size() ? tasks.get(index).join() : RingEntry.TABLE;
-                return upTable.filter(e -> e.pop.le(pop));
+                EntryTable result = upTable.filter(e -> e.pop.le(pop));
+                return result;
             }
         }));
 

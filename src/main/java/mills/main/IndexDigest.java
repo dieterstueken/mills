@@ -8,7 +8,7 @@ import mills.util.IntegerDigest;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.ForkJoinTask;
 
 /**
  * version:     $Revision$
@@ -17,7 +17,7 @@ import java.util.concurrent.RecursiveAction;
  * modified by: $Author$
  * modified on: $Date$
  */
-public class IndexDigest extends RecursiveAction {
+public class IndexDigest {
 
     final IntegerDigest digest = new IntegerDigest("MD5");
 
@@ -29,21 +29,37 @@ public class IndexDigest extends RecursiveAction {
 
     IndexDigest() throws NoSuchAlgorithmException {}
 
-    public void compute() {
+    ForkJoinTask<PosIndex> start(int nb, int nw) {
+        PopCount pop = PopCount.of(nb, nw);
+        return ForkJoinTask.adapt(() -> indexes.get(pop)).fork();
+    }
+
+    void analyze(ForkJoinTask<PosIndex> task) {
+        if(task!=null) {
+            PosIndex posIndex = task.join();
+            PopCount pop = posIndex.pop();
+            int range = posIndex.range();
+            int n20 = posIndex.n20();
+            System.out.format("l%d%d%10d, %4d\n", pop.nb, pop.nw, range, n20);
+            digest.update(range);
+        }
+    }
+
+    public void run() {
         System.out.format("start %d\n", RingEntry.TABLE.size());
         double start = System.currentTimeMillis();
+
+        ForkJoinTask<PosIndex> task = null;
 
         //for(PopCount pop:PopCount.TABLE) {
         for(int nb=0; nb<10; ++nb)
         for(int nw=0; nw<10; ++nw) {
-            PopCount pop = PopCount.of(nb, nw);
-            final PosIndex posIndex = indexes.get(pop);
-            final int range = posIndex.range();
-            int n20 = posIndex.n20();
-
-            System.out.format("l%d%d%10d, %4d\n", pop.nb, pop.nw, range, n20);
-            digest.update(range);
+            ForkJoinTask<PosIndex> next = start(nb, nw);
+            analyze(task);
+            task = next;
         }
+
+        analyze(task);
 
         double stop = System.currentTimeMillis();
         System.out.format("%.3f s\n", (stop - start) / 1000);
@@ -55,7 +71,7 @@ public class IndexDigest extends RecursiveAction {
 
     public static void main(String ... args) throws NoSuchAlgorithmException, IOException {
 
-        new IndexDigest().invoke();
+        new IndexDigest().run();
 
         //System.in.read();
     }

@@ -7,7 +7,7 @@ package mills.ring;
  * Time: 13:37:50
  */
 
-import java.util.Arrays;
+import java.util.stream.IntStream;
 
 import static mills.ring.RingEntry.MAX_INDEX;
 
@@ -16,11 +16,13 @@ import static mills.ring.RingEntry.MAX_INDEX;
  */
 class RingTable extends EntryTable {
 
-    private final RingEntry entries[];
+    private final RingEntry[] entries = new RingEntry[MAX_INDEX];
 
     RingTable() {
-        this.entries = new RingEntry[MAX_INDEX];
-        Arrays.setAll(entries, RingEntry::create);
+        IntStream.range(0, MAX_INDEX).parallel()
+                .mapToObj(RingEntry::create)
+                .forEach(e -> entries[e.index]=e);
+        //Arrays.setAll(entries, RingEntry::create);
     }
 
     @Override
