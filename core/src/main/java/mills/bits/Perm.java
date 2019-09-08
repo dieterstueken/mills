@@ -49,32 +49,24 @@ public enum Perm implements Operation {
      * Enum ordinates and mask to select operations differ.
      */
 
-    ID(0), RR(1), RL(3), RX(2),
-    MH(4), MR(5), ML(7), MV(6);
+    ID, RR, RX, RL,
+    MH, MR, MV, ML;
 
     public static final List<Perm> VALUES = List.of(values());
-
-    // different ...
-    public static final List<Perm> PERMS = List.of(
-            ID, RR, RX, RL,
-            MH, MR, MV, ML);
 
     public static final int MSK = 7;
 
     // get by index [0,8[
     public static Perm get(int i) { return VALUES.get(i & MSK);}
 
-    // bits to apply operations.
-    private final int ijk;
-
     // # of rotations
     public int nr() {
-        return ijk%4;
+        return ordinal()%4;
     }
 
     // if this operation mirrors
     public boolean mirrors() {
-        return (ijk&4)!=0;
+        return (ordinal()&4)!=0;
     }
 
     /**
@@ -86,8 +78,7 @@ public enum Perm implements Operation {
 
     private final SectorOperation op;
 
-    Perm(int ijk) {
-        this.ijk = ijk;
+    Perm() {
         SectorOperation tmp = SectorOperations.ROTATE.get(nr());
         if(mirrors())
             tmp = tmp.join(SectorOperations.MOP);
@@ -134,9 +125,9 @@ public enum Perm implements Operation {
 
         // mirror is an xor of both
         if(mirrors() != p.mirrors())
-            return PERMS.get(nr+4);
+            return VALUES.get(nr+4);
         else
-            return PERMS.get(nr);
+            return VALUES.get(nr);
     }
 
     /////////////////////// static utilities ///////////////////////

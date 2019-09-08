@@ -72,20 +72,31 @@ public enum PGroup {
         this.meq = m;
     }
 
+    public static final List<PGroup> VALUES = List.of(values());
+
     public String toString() {
         return String.format("%s(%x)", name(), meq);
     }
 
-    public static final List<PGroup> VALUES = List.of(values());
+    /**
+     * Generate a unique hash code smaller than 256 to implement a reverse lookup.
+     * The actual form depends on the enumeration of Perm which cause the actual codes of meq.
+     * This formula has been found by try and error and spreads about [0-11].
+     * @param meq one of the nine different patterns.
+     * @return a compact and unique hash code.
+     */
+    private static int hashCode(int meq) {
+        return (meq/3)%13;
+    }
 
-    private static final PGroup GROUP[] = new PGroup[256/8];
+    private static final PGroup[] GROUP = new PGroup[12];
 
     static {
         // prepare a reverse lookup table
         // GROUP is a sparse table with unexpected masks == null
         // bit #0-2 are not relevant for distinction.
         for(PGroup p:VALUES) {
-            int k = p.meq/8;
+            int k = hashCode(p.meq);
             assert GROUP[k]==null : "duplicate mapping";
             GROUP[k] = p;
         }
@@ -100,11 +111,10 @@ public enum PGroup {
         meq &= 0xff;
 
         // lower bits #0-2 are irrelevant for distinction.
-        PGroup pg = GROUP[meq/8];
+        PGroup pg = GROUP[hashCode(meq)];
 
         // verify
-        if(pg==null || pg.meq!=meq)
-            throw new IllegalArgumentException("no matching PGroup");
+        assert pg!=null && pg.meq==meq : "PGroup does not match";
 
         return pg;
     }
@@ -182,15 +192,4 @@ public enum PGroup {
                 }
         );
     }
-
-    /**
-     * A Predicate to filter RingEntries for a given restriction mask.
-     * The restriction mask indicates all bits for which a given RingEntry must NOT be minimized.
-     *
-     * The Predicate returns if a given RingEntry is compatible to the given mask.
-     * The mask will tag permutations for which the i20 candidate will decrease (mlt).
-     * The given RingEntry is compatible, if i20 won't decrease for any stable permutation.
-     */
-
-    //public static final List<Predicate<RingEntry>> FILTERS = AbstractRandomArray.generate(128, msk-> e -> e.stable(2*msk));
 }
