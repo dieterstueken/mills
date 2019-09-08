@@ -22,14 +22,13 @@ public enum Sector {
 
     /**
      *    Sector     bit      hex
-     *    NW N NE   1 5 2   01 10 02
-     *    W     E   8   6   80    20
-     *    SW S SE   4 7 3   08 40 04
+     *    NW N NE   4 0 5   10 01 20
+     *    W     E   3   1   08    02
+     *    SW S SE   7 2 6   80 04 40
      *
      */
-
-    NW(0,0), NE(2,0), SE(2,2), SW(0,2),
-    N(1,0),  E(2,1),  S(1,2),  W(0,1);
+    N(1,0),  E(2,1),  S(1,2),  W(0,1),
+    NW(0,0), NE(2,0), SE(2,2), SW(0,2);
 
     final short x, y, pow3;
 

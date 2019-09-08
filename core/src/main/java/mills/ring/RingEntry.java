@@ -1,7 +1,6 @@
 package mills.ring;
 
 import mills.bits.*;
-import mills.util.AbstractRandomList;
 
 import java.util.Comparator;
 
@@ -308,12 +307,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
 
     public static final EntryTable MINIMIZED = TABLE.filter(RingEntry::isMin);
 
-    public static final EntryTable RADIALS = EntryTable.of(AbstractRandomList.virtual(81, RingEntry::radix));
-
-    // get radial stones
-    public static RingEntry radix(int index) {
-        return TABLE.get(81*index);
-    }
+    public static final EntryTable RADIALS = TABLE.subList(0, 81);
 
     public static RingEntry of(int index) {
         return TABLE.get(index);

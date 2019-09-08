@@ -88,7 +88,7 @@ public class PartitionStat {
 
         return new Function<RingEntry, PopCount>() {
 
-            final RingEntry radials = RingEntry.of(81*i);
+            final RingEntry radials = RingEntry.RADIALS.get(i);
 
             PopCount clop(RingEntry ringEntry, Sector sector) {
                 Player p1 = ringEntry.player(sector);
