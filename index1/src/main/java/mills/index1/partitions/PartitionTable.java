@@ -56,7 +56,8 @@ public class PartitionTable extends AbstractRandomList<EntryTable> {
 
     public static PartitionTable build(PopCount pop) {
         EntryTable entries = RingEntry.MINIMIZED.filter(pop.eq);
-        return PartitionTable.build(entries);
+        PartitionTable table = PartitionTable.build(entries);
+        return table;
     }
 
     /**
