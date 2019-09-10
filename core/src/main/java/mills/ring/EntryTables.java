@@ -64,7 +64,7 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
 */
     }
 
-    static final int OFFSET = Entry.MAX_INDEX+1;
+    static final int OFFSET = RingEntry.MAX_INDEX+1;
 
     final List<TableEntry> tables = new ArrayList<>();
 
@@ -80,7 +80,7 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
             return list.get(0).index;
 
         if(Entry.TABLE.equals(list))
-            return Entry.MAX_INDEX;
+            return RingEntry.MAX_INDEX;
 
         // try to up cast to TableEntry
         if(list instanceof TableEntry) {
@@ -146,10 +146,10 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
         if(index==-1)
             return EntryTable.EMPTY;
 
-        if(index< Entry.MAX_INDEX)
+        if(index< RingEntry.MAX_INDEX)
             return Entry.of(index).singleton;
 
-        if(index== Entry.MAX_INDEX)
+        if(index== RingEntry.MAX_INDEX)
             return Entry.TABLE;
 
         return tables.get(index-OFFSET);

@@ -9,7 +9,7 @@ package mills.ring;
 
 import java.util.stream.IntStream;
 
-import static mills.ring.Entry.MAX_INDEX;
+import static mills.ring.RingEntry.MAX_INDEX;
 
 /**
  * Class RingTable is the complete EntryTable of 6561 RingEntries.

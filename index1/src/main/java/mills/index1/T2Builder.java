@@ -22,7 +22,7 @@ class T2Builder {
 
     final PopCount pop;
 
-    final R0Table[] entries = new R0Table[Entry.MAX_INDEX];
+    final R0Table[] entries = new R0Table[RingEntry.MAX_INDEX];
 
     final AtomicInteger count = new AtomicInteger(0);
 
@@ -72,9 +72,9 @@ class T2Builder {
         final List<R2Entry> sparseTable = new ArrayList<>(count.get());
 
         // create a full table if 30% of all entries are occupied
-        final List<R2Entry> fullTable = 3*count.get()> Entry.MAX_INDEX ? new ArrayList<>(Entry.MAX_INDEX) : null;
+        final List<R2Entry> fullTable = 3*count.get()> RingEntry.MAX_INDEX ? new ArrayList<>(RingEntry.MAX_INDEX) : null;
 
-        for (short i2 = 0; i2 < Entry.MAX_INDEX; i2++) {
+        for (short i2 = 0; i2 < RingEntry.MAX_INDEX; i2++) {
 
             R0Table r0t = entries[i2];
             int count = r0t.range();

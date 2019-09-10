@@ -12,9 +12,6 @@ import mills.bits.Pattern;
  */
 public interface Entry {
 
-    // number of possible entries
-    int MAX_INDEX = 81*81;
-
     /**
      * Immutable tables.
      */

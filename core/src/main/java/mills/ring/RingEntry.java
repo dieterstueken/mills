@@ -20,6 +20,8 @@ import java.util.Comparator;
  */
 public class RingEntry extends BW implements Comparable<RingEntry> {
 
+    // number of possible entries
+    public static final int MAX_INDEX = 81*81;
 
     // The byte values/masks may save some space, but become negative if expanding to int.
     // Using access functions will clip the sign bit.

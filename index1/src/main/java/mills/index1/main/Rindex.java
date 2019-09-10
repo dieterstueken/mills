@@ -8,7 +8,6 @@ import mills.index1.R2Table;
 import mills.index1.partitions2.LePopTables;
 import mills.index1.partitions2.Partitions;
 import mills.index1.partitions2.Radials;
-import mills.ring.Entry;
 import mills.ring.EntryTable;
 import mills.ring.IndexedMap;
 import mills.ring.RingEntry;
@@ -187,8 +186,8 @@ public class Rindex {
 
             final Partitions partitions;
 
-            final short l0[] = new short[Entry.MAX_INDEX];
-            final short l1[] = new short[Entry.MAX_INDEX];
+            final short l0[] = new short[RingEntry.MAX_INDEX];
+            final short l1[] = new short[RingEntry.MAX_INDEX];
 
             R0Builder(Partitions partitions) {
                 this.partitions = partitions;
