@@ -50,10 +50,10 @@ public class Position implements Comparable<Position> {
             return this;
 
         long p201 = Positions.permute(i201, perm);
-        return position(p201);
+        return of(p201);
     }
 
-    public Position position(long i201) {
+    public static Position of(long i201) {
         return new Position(i201);
     }
 

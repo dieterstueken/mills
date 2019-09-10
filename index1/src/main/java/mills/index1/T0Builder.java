@@ -8,7 +8,7 @@ import mills.ring.RingEntry;
 
 import java.util.List;
 
-import static mills.ring.RingEntry.MAX_INDEX;
+import static mills.ring.Entry.MAX_INDEX;
 
 /**
  * version:     $Revision$

@@ -1,6 +1,8 @@
 package mills.index1.partitions;
 
 import mills.bits.PopCount;
+import mills.ring.Entry;
+import mills.ring.EntryTable;
 import mills.util.AbstractRandomArray;
 import mills.util.Stat;
 
@@ -43,9 +45,13 @@ public class PartitionTables extends AbstractRandomArray<PartitionTable> {
     /////////////////////////////////////////////////////////////////////////////////////
 
     public static PartitionTables build() {
+        return build(Entry.MINIMIZED);
+    }
+
+    public static PartitionTables build(EntryTable root) {
         PartitionTable[] partitions = new PartitionTable[PopCount.TABLE.size()];
 
-        PopCount.TABLE.parallelStream().forEach(pop -> partitions[pop.index] = PartitionTable.build(pop));
+        PopCount.TABLE.parallelStream().forEach(pop -> partitions[pop.index] = PartitionTable.build(root.filter(pop.eq)));
         return new PartitionTables(partitions);
     }
 

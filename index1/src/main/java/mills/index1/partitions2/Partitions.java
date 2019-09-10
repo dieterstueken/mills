@@ -1,8 +1,8 @@
 package mills.index1.partitions2;
 
 import mills.bits.PopCount;
+import mills.ring.Entry;
 import mills.ring.EntryTable;
-import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 import mills.util.IndexTable;
 
@@ -68,7 +68,7 @@ public class Partitions {
 
     public EntryTable getTable(int key) {
         if(key<0)
-            return RingEntry.of(-1-key).singleton;
+            return Entry.of(-1-key).singleton;
 
         return key==0 ? EntryTable.EMPTY : tables.get(key-1);
     }

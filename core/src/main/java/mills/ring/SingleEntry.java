@@ -23,7 +23,7 @@ class SingleEntry extends EntryTable {
     }
 
     public static SingleEntry of(int index) {
-        return RingEntry.of(index).singleton;
+        return Entry.of(index).singleton;
     }
 
     @Override

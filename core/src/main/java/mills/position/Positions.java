@@ -3,6 +3,7 @@ package mills.position;
 import mills.bits.Perm;
 import mills.bits.Player;
 import mills.bits.PopCount;
+import mills.ring.Entry;
 import mills.ring.RingEntry;
 import mills.stones.Mills;
 import mills.stones.Stones;
@@ -88,9 +89,9 @@ public interface Positions {
     static short i1(long i201) {return (short) (MASK&(i201>>S1));}
     static byte perm(long i201) {return (byte) (Perm.PERM&(i201>>SP));}
 
-    static RingEntry r2(long i201) {return RingEntry.of(i2(i201));}
-    static RingEntry r0(long i201) {return RingEntry.of(i0(i201));}
-    static RingEntry r1(long i201) {return RingEntry.of(i1(i201));}
+    static RingEntry r2(long i201) {return Entry.of(i2(i201));}
+    static RingEntry r0(long i201) {return Entry.of(i0(i201));}
+    static RingEntry r1(long i201) {return Entry.of(i1(i201));}
 
     static long stones(int black, int white) {
         short i2 = Stones.i2(black, white);
@@ -171,7 +172,7 @@ public interface Positions {
     }
 
     static long n201(int i2, int i0, int i1) {
-        long n201 = n201(i2, i0, i1);
+        long n201 = i201(i2, i0, i1);
         assert n201 == normalize(n201);
         return n201;
     }
@@ -275,9 +276,9 @@ public interface Positions {
         // minimize middle ring (1)
         int perm = r1.mix;
         if(perm!=0) {
-            r2 = RingEntry.of(r2.perm(perm));
-            r0 = RingEntry.of(r0.perm(perm));
-            r1 = RingEntry.of(r1.perm(perm));
+            r2 = Entry.of(r2.perm(perm));
+            r0 = Entry.of(r0.perm(perm));
+            r1 = Entry.of(r1.perm(perm));
             //pm = Perm.compose(pm, perm);
         }
 

@@ -8,6 +8,7 @@ package mills.bits;
  * modified on: $Date$
  */
 
+import mills.ring.Entry;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 
@@ -31,7 +32,7 @@ public class RClop {
 
     private RClop(int index) {
         this.clop = PopCount.CLOSED.get(index/81);
-        this.rad = RingEntry.RADIALS.get(index%81);
+        this.rad = Entry.RADIALS.get(index%81);
     }
 
     public int index() {

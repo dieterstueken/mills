@@ -1,6 +1,7 @@
 package mills.index1;
 
 import mills.index.IndexProcessor;
+import mills.ring.Entry;
 import mills.ring.RingEntry;
 import mills.util.Indexer;
 
@@ -39,7 +40,7 @@ public class R2Entry {
     }
 
     public RingEntry r2() {
-        return RingEntry.of(i2);
+        return Entry.of(i2);
     }
 
     public R0Table values() {

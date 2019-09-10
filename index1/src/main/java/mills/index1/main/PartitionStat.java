@@ -6,6 +6,7 @@ import mills.bits.PopCount;
 import mills.bits.Sector;
 import mills.index1.Partitions;
 import mills.index1.partitions.PartitionTable;
+import mills.ring.Entry;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
@@ -88,7 +89,7 @@ public class PartitionStat {
 
         return new Function<RingEntry, PopCount>() {
 
-            final RingEntry radials = RingEntry.RADIALS.get(i);
+            final RingEntry radials = Entry.RADIALS.get(i);
 
             PopCount clop(RingEntry ringEntry, Sector sector) {
                 Player p1 = ringEntry.player(sector);

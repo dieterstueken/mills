@@ -3,6 +3,7 @@ package mills.index1.partitions2;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.bits.Sector;
+import mills.ring.Entry;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
@@ -22,7 +23,7 @@ public class Radials implements Function<RingEntry, PopCount> {
     final RingEntry radials;
 
     private Radials(int index) {
-        radials = RingEntry.of(81*index);
+        radials = Entry.of(81*index);
     }
 
     @Override
@@ -79,7 +80,7 @@ public class Radials implements Function<RingEntry, PopCount> {
         for(int i=0; i<5; ++i) {
             for(int j=0; j<5; ++j) {
                 PopCount clop = PopCount.of(i,j);
-                EntryTable table = RingEntry.TABLE.filter(e -> e.clop().add(e.radials().pop).equals(clop));
+                EntryTable table = Entry.TABLE.filter(e -> e.clop().add(e.radials().pop).equals(clop));
 
                 System.out.format("%5d", table.size());
             }

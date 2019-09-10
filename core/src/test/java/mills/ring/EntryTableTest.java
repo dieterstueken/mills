@@ -19,7 +19,7 @@ public class EntryTableTest {
     public void testFindIndex() throws Exception {
 
         for(int i=0; i<11; ++i) {
-            RingEntry e = RingEntry.of(i);
+            RingEntry e = Entry.of(i);
             int index = entryTable.indexOf(e);
             int lower = entryTable.lowerBound(e.index());
             int upper = entryTable.upperBound(e.index());
@@ -51,14 +51,14 @@ public class EntryTableTest {
         StringBuilder sb = new StringBuilder();
 
         for(int i=0; i<11; ++i) {
-            RingEntry e1 = RingEntry.of(i);
+            RingEntry e1 = Entry.of(i);
 
             for(int k=i; k<11; ++k) {
 
                 sb.setLength(0);
                 sb.append("subset: ").append(i).append(" - ").append(k);
 
-                RingEntry e2 = RingEntry.of(k);
+                RingEntry e2 = Entry.of(k);
                 EntryTable st = entryTable.subSet(e1, e2);
 
                 String sep = " {";
@@ -86,9 +86,9 @@ public class EntryTableTest {
     @Test
     public void testIndexOf() {
 
-        testIndexOf(RingEntry.TABLE);
-        testIndexOf(RingEntry.MINIMIZED);
-        testIndexOf(RingEntry.of(77).singleton);
+        testIndexOf(Entry.TABLE);
+        testIndexOf(Entry.MINIMIZED);
+        testIndexOf(Entry.of(77).singleton);
         testIndexOf(EntryTable.EMPTY);
 
     }

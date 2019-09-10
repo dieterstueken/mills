@@ -2,9 +2,9 @@ package mills.partitions;
 
 import mills.bits.PGroup;
 import mills.bits.PopCount;
+import mills.ring.Entry;
 import mills.ring.EntryTable;
 import mills.ring.EntryTables;
-import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 
 import java.util.*;
@@ -30,7 +30,7 @@ class Generator {
     }
 
     Partition partition(Set<PGroup> gset) {
-        EntryTable root = RingEntry.MINIMIZED.filter(e -> gset.contains(e.grp()));
+        EntryTable root = Entry.MINIMIZED.filter(e -> gset.contains(e.grp()));
         root = registry.table(root);
 
         List<EntryTable> partitions = new ArrayList<>();

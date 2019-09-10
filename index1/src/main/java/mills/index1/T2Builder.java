@@ -2,6 +2,7 @@ package mills.index1;
 
 import mills.bits.PopCount;
 import mills.position.Positions;
+import mills.ring.Entry;
 import mills.ring.RingEntry;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ class T2Builder {
 
     final PopCount pop;
 
-    final R0Table[] entries = new R0Table[RingEntry.MAX_INDEX];
+    final R0Table[] entries = new R0Table[Entry.MAX_INDEX];
 
     final AtomicInteger count = new AtomicInteger(0);
 
@@ -61,7 +62,7 @@ class T2Builder {
 
     public R2Index build() {
 
-        RingEntry.TABLE.parallelStream().forEach(this::compute);
+        Entry.TABLE.parallelStream().forEach(this::compute);
 
         // return empty list
         if(count.get()==0)
@@ -71,9 +72,9 @@ class T2Builder {
         final List<R2Entry> sparseTable = new ArrayList<>(count.get());
 
         // create a full table if 30% of all entries are occupied
-        final List<R2Entry> fullTable = 3*count.get()>RingEntry.MAX_INDEX ? new ArrayList<>(RingEntry.MAX_INDEX) : null;
+        final List<R2Entry> fullTable = 3*count.get()> Entry.MAX_INDEX ? new ArrayList<>(Entry.MAX_INDEX) : null;
 
-        for (short i2 = 0; i2 < RingEntry.MAX_INDEX; i2++) {
+        for (short i2 = 0; i2 < Entry.MAX_INDEX; i2++) {
 
             R0Table r0t = entries[i2];
             int count = r0t.range();
@@ -81,8 +82,14 @@ class T2Builder {
 
             if(count!=0 || fullTable!=null) {
                 final R2Entry entry = new R2Entry(index, i2, r0t);
-                if(count>0)
+                if(count>0) {
+                    if(!entry.r2().isMin()) {
+                        RingEntry r2 = entry.r2();
+                        RingEntry r1 = entry.t0.firstKey();
+                        r1.isMin();
+                    }
                     sparseTable.add(entry);
+                }
                 if(fullTable!=null)
                     fullTable.add(entry);
             }

@@ -1,7 +1,11 @@
 package mills.index;
 
 import mills.bits.PopCount;
+import mills.position.Position;
 import mills.position.Positions;
+import mills.util.AbstractRandomArray;
+
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -20,6 +24,10 @@ public interface PosIndex {
 
     long i201(int posIndex);
 
+    default Position position(int posIndex) {
+        return Position.of(i201(posIndex));
+    }
+
     default boolean isEmpty() {
         return range()==0;
     }
@@ -36,5 +44,13 @@ public interface PosIndex {
     default boolean verify(long i201) {
         PopCount p = Positions.pop(i201);
         return p == pop();
+    }
+
+    /**
+     * Debug:
+     * @return virtual table of positions
+     */
+    default List<Position> positions() {
+        return AbstractRandomArray.virtual(range(), this::position);
     }
 }

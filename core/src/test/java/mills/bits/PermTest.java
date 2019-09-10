@@ -1,5 +1,6 @@
 package mills.bits;
 
+import mills.ring.Entry;
 import mills.ring.RingEntry;
 import org.junit.Test;
 
@@ -15,7 +16,7 @@ public class PermTest {
 
     @Test
     public void testInv() {
-        for (RingEntry e : RingEntry.TABLE) {
+        for (RingEntry e : Entry.TABLE) {
 
             for (Perm p : Perm.VALUES) {
                 RingEntry ep = e.permute(p);
@@ -31,7 +32,7 @@ public class PermTest {
         for (Perm p1 : Perm.VALUES) {
             for (Perm p2 : Perm.VALUES) {
                 Perm pc = p1.compose(p2);
-                for (RingEntry e : RingEntry.TABLE) {
+                for (RingEntry e : Entry.TABLE) {
                     RingEntry ex = e.permute(p1).permute(p2);
                     RingEntry ey = e.permute(pc);
                     assertEquals("Perm.compose", ex, ey);

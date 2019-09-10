@@ -29,9 +29,13 @@ public class Partitions extends AbstractRandomList<R2Index> {
         this.partitions = partitions;
     }
 
+    public static PartitionTables buildPartitions() {
+        return PartitionTables.build();
+    }
+
     public static Partitions build() {
         // build parallel
-        ForkJoinTask<PartitionTables> pt = ForkJoinTask.adapt(PartitionTables::build).fork();
+        ForkJoinTask<PartitionTables> pt = ForkJoinTask.adapt(Partitions::buildPartitions).fork();
         LePopTable lePopTable = LePopTable.build();
         PartitionTables partitions = pt.join();
         return new Partitions(partitions, lePopTable);
@@ -43,8 +47,10 @@ public class Partitions extends AbstractRandomList<R2Index> {
     }
 
     @Override
-    public R2Index get(int index) {
-        return new T2Builder(PopCount.TABLE.get(index), () -> new T0Builder(partitions, lePopTable)).build();
+    public R2Index get(int pc) {
+        final PopCount pop = PopCount.TABLE.get(pc);
+        R2Index index =  new T2Builder(pop, () -> new T0Builder(partitions, lePopTable)).build();
+        return index;
     }
 
     public EntryTable lePop(PopCount pop) {

@@ -16,7 +16,7 @@ public class RingTableTest {
 
     @Test
     public void testTable() {
-        for (RingEntry e : RingEntry.TABLE) {
+        for (RingEntry e : Entry.TABLE) {
 
             Pattern b = e.b;
             Pattern w = e.w;
@@ -24,7 +24,7 @@ public class RingTableTest {
 
             int index = BW.index(b, w);
 
-            RingEntry f = RingEntry.of(index);
+            RingEntry f = Entry.of(index);
 
             if (e != f)
                 fail(String.format("%d %d %d\n", index, e.index, f.index));

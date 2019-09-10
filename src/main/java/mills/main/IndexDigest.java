@@ -3,11 +3,13 @@ package mills.main;
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
-import mills.ring.RingEntry;
+import mills.position.Position;
+import mills.ring.Entry;
 import mills.util.IntegerDigest;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 
 /**
@@ -37,6 +39,7 @@ public class IndexDigest {
     void analyze(ForkJoinTask<PosIndex> task) {
         if(task!=null) {
             PosIndex posIndex = task.join();
+            List<Position> posList = posIndex.positions();
             PopCount pop = posIndex.pop();
             int range = posIndex.range();
             int n20 = posIndex.n20();
@@ -46,7 +49,7 @@ public class IndexDigest {
     }
 
     public void run() {
-        System.out.format("start %d\n", RingEntry.TABLE.size());
+        System.out.format("start %d\n", Entry.TABLE.size());
         double start = System.currentTimeMillis();
 
         ForkJoinTask<PosIndex> task = null;

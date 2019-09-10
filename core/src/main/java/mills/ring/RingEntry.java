@@ -20,9 +20,6 @@ import java.util.Comparator;
  */
 public class RingEntry extends BW implements Comparable<RingEntry> {
 
-    // number of possible tables
-    public static final int MAX_INDEX = 81*81;
-
 
     // The byte values/masks may save some space, but become negative if expanding to int.
     // Using access functions will clip the sign bit.
@@ -68,13 +65,13 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     }
 
     public final RingEntry swapped() {
-        return TABLE.get(swapped);
+        return Entry.TABLE.get(swapped);
     }
 
     // return entry with only radials set.
     public final RingEntry radials() {
         int radix = index%81;
-        return index==radix ? this : RADIALS.get(radix());
+        return index==radix ? this : Entry.RADIALS.get(radix());
     }
 
     // get radial index
@@ -88,7 +85,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     }
 
     public final RingEntry permute(Perm p) {
-        return of(perm(p.ordinal()));
+        return Entry.of(perm(p.ordinal()));
     }
 
     // return stable permutation mask
@@ -133,11 +130,11 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         index -= pow3 * current.ordinal();
         index += pow3 * player.ordinal();
 
-        return of(index);
+        return Entry.of(index);
     }
 
     public RingEntry and(Patterns other) {
-        return of(b.and(other.b), w.and(other.w));
+        return Entry.of(b.and(other.b), w.and(other.w));
     }
 
     public boolean contains(RingEntry other) {
@@ -300,26 +297,6 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         return Short.compare(index, o.index);
     }
 
-    //////////////////// static utilities functions on RinEntry index ////////////////////
-
-    /**
-     * An immutable list of all tables.
-     */
-    public static final EntryTable TABLE = new RingTable();
-
-    public static final EntryTable MINIMIZED = TABLE.filter(RingEntry::isMin);
-
-    public static final EntryTable RADIALS = TABLE.subList(0, 81);
-
-    public static RingEntry of(int index) {
-        return TABLE.get(index);
-    }
-
-    public static RingEntry of(Pattern b, Pattern w) {
-        return TABLE.get(BW.index(b,w));
-    }
-
-    public static final RingEntry EMPTY = of(0);
 
     ////////////////////////////////////////////////////////////////////////
 
@@ -328,7 +305,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         int stat1[] = new int[9];
         int stat2[] = new int[9];
 
-        for(RingEntry e:TABLE) {
+        for(RingEntry e: Entry.TABLE) {
             System.out.println(e.toString());
             ++stat1[e.grp.ordinal()];
 
@@ -345,4 +322,5 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
             System.out.format("%02x %d %4d %4d\n", meq, Integer.bitCount(meq), count1, count2);
         }
     }
+
 }

@@ -1,7 +1,6 @@
 package mills.index1.partitions;
 
 import mills.bits.PGroup;
-import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
@@ -52,12 +51,6 @@ public class PartitionTable extends AbstractRandomList<EntryTable> {
     private PartitionTable() {
         this(new EntryTable[128], List.of());
         Arrays.fill(table, EntryTable.EMPTY);
-    }
-
-    public static PartitionTable build(PopCount pop) {
-        EntryTable entries = RingEntry.MINIMIZED.filter(pop.eq);
-        PartitionTable table = PartitionTable.build(entries);
-        return table;
     }
 
     /**

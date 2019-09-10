@@ -7,6 +7,7 @@ package mills.bits;
  * Time: 22:32
  */
 
+import mills.ring.Entry;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 
@@ -187,7 +188,7 @@ public enum PGroup {
 
         VALUES.forEach(
                 pg->{
-                    EntryTable t = RingEntry.TABLE.filter(e->e.grp==pg);
+                    EntryTable t = Entry.TABLE.filter(e->e.grp==pg);
                     System.out.format("%s: %2d\n", pg.toString(), t.size());
                 }
         );
