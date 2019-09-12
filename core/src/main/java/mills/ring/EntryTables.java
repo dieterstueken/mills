@@ -4,7 +4,7 @@ import mills.util.AbstractRandomList;
 
 import java.io.PrintStream;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * Created by IntelliJ IDEA.
@@ -68,7 +68,7 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
 
     final List<TableEntry> tables = new ArrayList<>();
 
-    final Map<List<RingEntry>, Short> entries = new ConcurrentHashMap<>();
+    final Map<List<RingEntry>, Short> entries = new ConcurrentSkipListMap<>(EntryTables::compare);
 
     public Short key(List<RingEntry> list) {
 
@@ -244,6 +244,27 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
                 return EntryTables.this.get(indexes[index]);
             }
         };
+    }
+
+    public static int compare(List<RingEntry> t1, List<RingEntry> t2) {
+        if(t1==t2)
+            return 0;
+
+        if(t1==null)
+            return -1;
+
+        if(t2==null)
+            return 1;
+
+        int result = Integer.compare(t1.size(), t2.size());
+        if(result==0) {
+            int l = t1.size();
+            for(int i=0; i<l && result==0; ++i) {
+                result = t1.get(i).compareTo(t2.get(i));
+            }
+        }
+
+        return result;
     }
 
     public void stat(PrintStream out) {

@@ -1,9 +1,14 @@
 package mills.util;
 
+import mills.ring.EntryTable;
+
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntConsumer;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * version:     $Revision$
@@ -26,6 +31,15 @@ public class Stat implements IntConsumer {
         for (Map.Entry<Integer, AtomicInteger> e : stat.entrySet()) {
             System.out.format("%4d %4d\n", e.getKey(), e.getValue().get());
         }
+    }
+
+    public Stat process(IntStream is) {
+        is.forEach(this);
+        return this;
+    }
+
+    public Stat process(Stream<EntryTable> ts) {
+        return process(ts.mapToInt(List::size));
     }
 
     public String toString() {

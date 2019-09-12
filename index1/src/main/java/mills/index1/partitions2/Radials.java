@@ -9,7 +9,6 @@ import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * version:     $Revision$
@@ -18,12 +17,12 @@ import java.util.function.Function;
  * modified by: $Author$
  * modified on: $Date$
  */
-public class Radials implements Function<RingEntry, PopCount> {
+public class Radials {
 
     final RingEntry radials;
 
     private Radials(int index) {
-        radials = Entry.of(81*index);
+        radials = Entry.RADIALS.get(index);
     }
 
     @Override
@@ -31,18 +30,25 @@ public class Radials implements Function<RingEntry, PopCount> {
         return radials.index();
     }
 
+    public int index() {
+            return radials.index();
+        }
+
     @Override
     public String toString() {
-        return radials.toString().substring(12, 16);
+        return radials.toString().substring(7, 11);
     }
 
-    PopCount clop(RingEntry ringEntry, Sector sector) {
+    boolean matches(RingEntry entry) {
+        return entry.radials() == this.radials;
+    }
+
+    public PopCount clop(RingEntry ringEntry, Sector sector) {
         Player player = ringEntry.player(sector);
         return player!=Player.None && player==radials.player(sector) ? player.pop : PopCount.EMPTY;
     }
 
-    @Override
-    public PopCount apply(RingEntry e) {
+    public PopCount clop(RingEntry e) {
 
         PopCount clop = clop(e, Sector.N);
         clop = clop.add(clop(e, Sector.E));
@@ -77,14 +83,9 @@ public class Radials implements Function<RingEntry, PopCount> {
 
     public static void main(String ... args) {
 
-        for(int i=0; i<5; ++i) {
-            for(int j=0; j<5; ++j) {
-                PopCount clop = PopCount.of(i,j);
-                EntryTable table = Entry.TABLE.filter(e -> e.clop().add(e.radials().pop).equals(clop));
-
-                System.out.format("%5d", table.size());
-            }
-            System.out.println();
+        for (Radials radial : RADIALS) {
+            EntryTable rt = Entry.MINIMIZED.filter(radial::matches);
+            System.out.format("%2d %s %d\n", radial.index(), radial.toString(), rt.size());
         }
     }
 }

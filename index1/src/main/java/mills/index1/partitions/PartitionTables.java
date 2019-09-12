@@ -74,8 +74,7 @@ public class PartitionTables extends AbstractRandomArray<PartitionTable> {
                 System.out.format("%5d:%2d", l,n);
 
                 k += t.tables.stream().filter(_t->_t.size()>1).count();
-
-                t.tables.forEach(_p->stat.accept(_p.size()));
+                stat.process(t.tables.stream());
             }
             System.out.println();
         }
@@ -84,8 +83,13 @@ public class PartitionTables extends AbstractRandomArray<PartitionTable> {
 
         stat.dump("total");
     }
-
+    
     public static void main(String... args) {
-        build().dump();
+        PopCount.CLOSED.stream()
+                .peek(pt -> System.out.format("\nCLOP: %s", pt))
+                .map(clop -> Entry.MINIMIZED.filter(e->e.clop().equals(clop)))
+                .peek(root->System.out.format(" [%s]\n", root.size()))
+                .map(PartitionTables::build)
+                .forEach(PartitionTables::dump);
     }
 }
