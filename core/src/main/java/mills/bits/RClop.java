@@ -15,8 +15,8 @@ import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Class RClop is a combination of radial positions (possible mills)
@@ -90,52 +90,67 @@ public class RClop implements Comparable<RClop> {
 
     // singletons: no equals necessary.
 
+    static boolean matches(RingEntry e, RingEntry rad, PopCount clop) {
+        rad = rad.and(e);
+
+        // verify sum # of stones to build radial mills
+        PopCount xpop = PopCount.of(9,9);
+        xpop = xpop.sub(rad.pop).sub(rad.pop).sub(rad.pop);
+
+        if(xpop==null)
+            return false;
+
+        // plus actual stones.
+        xpop = xpop.sub(e.pop);
+        if(xpop==null)
+            return false;
+
+        return rad.pop().add(e.clop()).equals(clop);
+    }
+
     public static void main(String ... args) {
         EntryTables pool = new EntryTables();
-
-        int l = 0;
 
         for (PopCount pop : PopCount.TABLE) {
             EntryTable pt = Entry.MINIMIZED.filter(pop.eq);
             if(pt.isEmpty())
                 continue;
 
-            int n=0;
-
             for (PopCount clop : PopCount.CLOSED) {
+                Set<EntryTable> tset = new TreeSet<>(EntryTables::compare);
 
-                int m=0;
-                Map<RingEntry, EntryTable> tables = new TreeMap<>();
-
-                int nr = 0;
                 for (RingEntry rad : Entry.RADIALS) {
-                    RClop rcl = RClop.of(rad, clop);
-                    EntryTable rt = pt.filter(rcl::matches);
-
+                    EntryTable rt = pt.filter(e->matches(e, rad, clop));
                     if(rt.isEmpty())
                         continue;
 
-                    tables.put(rad, rt);
+                    tset.add(rt);
                     pool.key(rt);
-
-                    if(rt.size()>m) {
-                        m = rt.size();
-                    }
-                    ++nr;
                 }
 
-                if(!tables.isEmpty()) {
-                    System.out.format("%s/%s %d %d %d\n", pop, clop, nr, tables.size(), m);
-                    ++n;
-                    ++l;
-                }
+                if(tset.isEmpty())
+                    continue;
+
+                System.out.format("%s %s %d\n", pop, clop, tset.size());
             }
-
-            if(n>0)
-                System.out.println();
+            System.out.println();
         }
 
-        System.out.format("total : %d %d\n", l, pool.count());
+        System.out.format("total : %d\n\n", pool.count());
 
+        pool.stat(System.out);
+
+        System.out.println("radixed:");
+
+        int[] rcount = new int[81];
+
+        for (RingEntry min : Entry.MINIMIZED) {
+            int ir = min.radix();
+            ++rcount[ir];
+        }
+
+        for(int i=0; i<81; ++i) {
+            System.out.format("%s  %d\n", Entry.RADIALS.get(i).toString().substring(7, 11), rcount[i]);
+        }
     }
 }

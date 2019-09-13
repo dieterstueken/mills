@@ -18,11 +18,11 @@ import java.util.List;
  */
 class R1Table extends AbstractRandomList<EntryTable> {
 
-    final PartitionTables partitions;
+    final PartitionTables<EntryTable> partitions;
 
     protected final short popmsk[];
 
-    protected R1Table(PartitionTables partitions, short[] popmsk) {
+    protected R1Table(PartitionTables<EntryTable> partitions, short[] popmsk) {
         this.partitions = partitions;
         this.popmsk = popmsk;
     }

@@ -41,24 +41,6 @@ public class PopCount implements Comparable<PopCount> {
      * @param nw white population count.
      * @return a compact index for positive populations.
      */
-    public static int _index(int nb, int nw) {
-
-        // return some negative index, even if it's useless ...
-        if (Math.min(nb, nw)<0)
-            return -1;
-
-        if(Math.max(nb, nw)<10)
-            return 10 * nb + nw;
-
-        // even though this should not happen anyway ...
-        // create some pseudo index > 99
-
-        int index = 10 * (nb%10) + (nw%10);
-        index += 100 * _index(nb/10, nw/10);
-
-        return index;
-    }
-
     public static int index(int nb, int nw) {
 
         if (Math.min(nb, nw)<0)
@@ -79,6 +61,11 @@ public class PopCount implements Comparable<PopCount> {
 
     public int sum() {
         return nb + nw;
+    }
+
+    // fits into a single ring
+    public boolean singleRing() {
+        return sum()<=8;
     }
 
     public boolean isEmpty() {

@@ -21,21 +21,21 @@ import java.util.concurrent.ForkJoinTask;
  */
 public class Partitions extends AbstractRandomList<R2Index> {
 
-    public final PartitionTables partitions;
+    public final PartitionTables<EntryTable> partitions;
     public final LePopTable lePopTable;
 
-    public Partitions(PartitionTables partitions, LePopTable lePopTable) {
+    public Partitions(PartitionTables<EntryTable> partitions, LePopTable lePopTable) {
         this.lePopTable = lePopTable;
         this.partitions = partitions;
     }
 
-    public static PartitionTables buildPartitions() {
+    public static PartitionTables<EntryTable> buildPartitions() {
         return PartitionTables.build();
     }
 
     public static Partitions build() {
         // build parallel
-        ForkJoinTask<PartitionTables> pt = ForkJoinTask.adapt(Partitions::buildPartitions).fork();
+        ForkJoinTask<PartitionTables<EntryTable>> pt = ForkJoinTask.adapt(Partitions::buildPartitions).fork();
         LePopTable lePopTable = LePopTable.build();
         PartitionTables partitions = pt.join();
         return new Partitions(partitions, lePopTable);

@@ -6,6 +6,8 @@ import mills.ring.EntryTable;
 import mills.util.AbstractRandomArray;
 import mills.util.Stat;
 
+import java.util.Arrays;
+
 /**
  * version:     $Revision$
  * created by:  dst
@@ -17,12 +19,12 @@ import mills.util.Stat;
 /**
  * Class PartitionTables provides a list of 100 PartitionTables for each PopCount.
  */
-public class PartitionTables extends AbstractRandomArray<PartitionTable> {
+public class PartitionTables<T> extends AbstractRandomArray<PartitionTable<T>> {
 
     // pre calculated tables of entries for given PopCounts[00-99]
-    protected final PartitionTable[] partitions;
+    protected final PartitionTable<T>[] partitions;
 
-    private PartitionTables(PartitionTable[] partitions) {
+    private PartitionTables(PartitionTable<T>[] partitions) {
         super(PopCount.TABLE.size());
         this.partitions = partitions;
         assert partitions.length == size();
@@ -34,30 +36,34 @@ public class PartitionTables extends AbstractRandomArray<PartitionTable> {
      * @param pop count of the requested MskTable.
      * @return a MskTable for a given pop count.
      */
-    public PartitionTable get(int pop) {
+    public PartitionTable<T> get(int pop) {
         return partitions[pop];
     }
 
-    public PartitionTable get(PopCount pop) {
+    public PartitionTable<T> get(PopCount pop) {
         return partitions[pop.index()];
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    public static PartitionTables build() {
+    public static PartitionTables<EntryTable> build() {
         return build(Entry.MINIMIZED);
     }
 
-    public static PartitionTables build(EntryTable root) {
-        PartitionTable[] partitions = new PartitionTable[PopCount.TABLE.size()];
+    public static PartitionTables<EntryTable> build(EntryTable root) {
+        PartitionTable<EntryTable>[] partitions = new PartitionTable[PopCount.TABLE.size()];
+        PartitionTable<EntryTable> empty = PartitionTable.empty(EntryTable.EMPTY);
+        Arrays.fill(partitions, empty);
 
-        PopCount.TABLE.parallelStream().forEach(pop -> partitions[pop.index] = PartitionTable.build(root.filter(pop.eq)));
-        return new PartitionTables(partitions);
+        PopCount.TABLE.parallelStream()
+                .filter(PopCount::singleRing)
+                .forEach(pop -> partitions[pop.index] = PartitionTable.build(root.filter(pop.eq)));
+        return new PartitionTables<>(partitions);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    private void dump() {
+    private static void dump(PartitionTables<EntryTable> pt) {
 
         System.out.println("partition tables");
 
@@ -68,7 +74,7 @@ public class PartitionTables extends AbstractRandomArray<PartitionTable> {
         for (int nb = 0; nb < 10; nb++) {
             for (int nw = 0; nw < 10; nw++) {
                 final PopCount pop = PopCount.of(nb, nw);
-                final PartitionTable t = get(pop.index());
+                final PartitionTable<EntryTable> t = pt.get(pop.index());
                 int n = t.tables.size();
                 int l = t.get(0).size();
                 System.out.format("%5d:%2d", l,n);
@@ -85,11 +91,6 @@ public class PartitionTables extends AbstractRandomArray<PartitionTable> {
     }
     
     public static void main(String... args) {
-        PopCount.CLOSED.stream()
-                .peek(pt -> System.out.format("\nCLOP: %s", pt))
-                .map(clop -> Entry.MINIMIZED.filter(e->e.clop().equals(clop)))
-                .peek(root->System.out.format(" [%s]\n", root.size()))
-                .map(PartitionTables::build)
-                .forEach(PartitionTables::dump);
+        dump(PartitionTables.build());
     }
 }

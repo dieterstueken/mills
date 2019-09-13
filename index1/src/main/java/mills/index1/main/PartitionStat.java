@@ -51,7 +51,7 @@ public class PartitionStat {
 
         for (PopCount pop : PopCount.TABLE) {
 
-            PartitionTable pt = partitions.partitions.get(pop);
+            PartitionTable<EntryTable> pt = partitions.partitions.get(pop);
             EntryTable root = pt.get(0);
             if(root.isEmpty())
                 continue;
