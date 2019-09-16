@@ -120,7 +120,13 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         return mix==0;
     }
 
-    public RingEntry player(final Sector sector, final Player player) {
+    /**
+     * setup a new player for a given sector.
+     * @param sector to setup
+     * @param player to set.
+     * @return a RingEntry with giben player at given sector.
+     */
+    public RingEntry setPlayer(final Sector sector, final Player player) {
         final Player current = player(sector);
 
         // noop
