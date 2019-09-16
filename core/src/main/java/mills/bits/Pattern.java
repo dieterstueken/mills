@@ -17,13 +17,12 @@ import java.util.List;
  * Thus no new objects have to be created.
  * Each Pattern object also keeps all possible permutations of itself in a pre calculated lookup array.
  */
-public class Pattern {
+public class Pattern extends Sectors {
 
     // the pattern is composed of 8 bytes of permuted pattern
     public final long patterns;
     public final short pow3;
 
-    public final byte pattern;
     public final byte meq;
     public final byte count;
     public final byte closed;
@@ -39,6 +38,11 @@ public class Pattern {
     public int count() {
         //return Integer.bitCount(stones());
         return count;
+    }
+
+    @Override
+    public int size() {
+        return count();
     }
 
     public int closed() {
@@ -86,6 +90,18 @@ public class Pattern {
 
     public Pattern not() {
         return of(~pattern);
+    }
+
+    public Pattern of(Sector s) {
+        return of(s.mask());
+    }
+
+    public Pattern set(Sector sector) {
+        return of(pattern | sector.mask());
+    }
+
+    public Pattern clr(Sector sector) {
+        return of(pattern & ~sector.mask());
     }
 
     public boolean contains(Pattern other) {
@@ -167,13 +183,12 @@ public class Pattern {
 
     ///////////////////////////////////////////////////////////
     // there is no need ever to create any further Bit objects
-    private Pattern(long pattern, byte meq, byte closed, byte closes, byte mcount) {
-        this.patterns = pattern;
-        this.pattern = (byte) pattern;
+    private Pattern(long patterns, byte meq, byte closed, byte closes, byte mcount) {
+        super((int)(patterns&0xff));
+        this.patterns = patterns;
 
-        int stones = (int) (0xff & pattern);
-        this.pow3 = pow3(stones);
-        this.count = (byte) Integer.bitCount(stones);
+        this.pow3 = pow3(pattern);
+        this.count = (byte) super.size();
 
         this.meq = meq;
         this.closed = closed;
