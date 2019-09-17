@@ -2,7 +2,7 @@ package mills.index1.partitions2;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.ring.Entry;
+import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
@@ -54,7 +54,7 @@ public class LePopTables {
             @Override
             protected LePopTables compute() {
 
-                createLeClopTable(PopCount.of(8, 8), Entry.TABLE);
+                createLeClopTable(PopCount.of(8, 8), Entries.TABLE);
 
                 // 8:0 ... 8:7 and 0:8 ... 7:8
                 for (int i = 7; i >= 0; --i) {
@@ -86,7 +86,7 @@ public class LePopTables {
                     tasks.clear();
                 }
 
-                createLeClopTable(PopCount.EMPTY, Entry.EMPTY.singleton);
+                createLeClopTable(PopCount.EMPTY, Entries.EMPTY.singleton);
 
                 return new LePopTables(List.of(clops));
             }
@@ -238,7 +238,7 @@ public class LePopTables {
     public static void main(String... args) {
         LePopTables lpt = LePopTables.task().invoke();
 
-        Set<EntryTable> tables = new TreeSet<>(EntryTable.BY_ORDER);
+        Set<EntryTable> tables = new TreeSet<>(Entries.BY_ORDER);
 
         for (LeClopTable lc : lpt.tables) {
             for (LeCountTable ln : lc.tables) {

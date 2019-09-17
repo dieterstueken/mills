@@ -166,4 +166,19 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
 
         return true;
     }
+
+    public boolean isOrdered(Comparator<? super T> order) {
+        if(size()<2)
+            return true;
+
+        T t0 = get(0);
+        for (int i = 1; i < size(); ++i) {
+            T t1 = get(i);
+            if(order.compare(t0, t1)>=0)
+                return false;
+            t0 = t1;
+        }
+
+        return  true;
+    }
 }

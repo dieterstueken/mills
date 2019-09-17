@@ -2,7 +2,7 @@ package mills.index1;
 
 import mills.bits.PopCount;
 import mills.position.Positions;
-import mills.ring.Entry;
+import mills.ring.Entries;
 import mills.ring.RingEntry;
 
 import java.util.ArrayList;
@@ -62,7 +62,7 @@ class T2Builder {
 
     public R2Index build() {
 
-        Entry.TABLE.parallelStream().forEach(this::compute);
+        Entries.TABLE.parallelStream().forEach(this::compute);
 
         // return empty list
         if(count.get()==0)

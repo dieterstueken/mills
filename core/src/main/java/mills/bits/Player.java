@@ -7,6 +7,8 @@ package mills.bits;
 * Time: 18:17:23
 */
 
+import java.util.List;
+
 /**
  * Class Player serves as a base of a ternary system
  * to map a sequence of Player objects to an integer value.
@@ -88,9 +90,10 @@ public enum Player {
 
     public final PopCount pop;
 
-    private static final Player players[] = values();
-    
+    public static final List<Player> PLAYERS = List.of(values());
+    public static final List<Player> BW = List.of(Black, White);
+
     public static Player of(int i) {
-        return players[i];
+        return PLAYERS.get(i);
     }
 }

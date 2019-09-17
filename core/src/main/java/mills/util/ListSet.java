@@ -1,6 +1,8 @@
 package mills.util;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Created by IntelliJ IDEA.
@@ -9,6 +11,94 @@ import java.util.*;
  * Time: 10:32 AM
  */
 abstract public class ListSet<T> extends AbstractRandomList<T> implements SortedSet<T> {
+
+    public static <E extends Enum<E>> ListSet<E> of(Class<E> type) {
+
+        E[] values = type.getEnumConstants();
+
+        return new ListSet<E>() {
+
+            @Override
+            public int indexOf(Object o) {
+                return type.isInstance(o) ? type.cast(o).ordinal() : -1;
+            }
+
+            @Override
+            public E get(int index) {
+                return values[index];
+            }
+
+            @Override
+            public int size() {
+                return values.length;
+            }
+        };
+    }
+
+    public static <T extends Indexed> ListSet<T> indexed(T[] values) {
+
+        return new IndexedSet<T>() {
+
+            @Override
+            public T get(int index) {
+                return values[index];
+            }
+
+            @Override
+            public int size() {
+                return values.length;
+            }
+        }.verify();
+    }
+
+    public static <T extends Indexed> ListSet<T> indexed(List<T> values) {
+
+        return new IndexedSet<T>() {
+
+            @Override
+            public T get(int index) {
+                return values.get(index);
+            }
+
+            @Override
+            public int size() {
+                return values.size();
+            }
+        }.verify();
+    }
+
+    abstract static class IndexedSet<T extends Indexed> extends ListSet<T> {
+
+        @Override
+        public int indexOf(Object o) {
+            if(o instanceof Indexed) {
+                int key = ((Indexed)o).getIndex();
+                return Indexed.INDEXER.binarySearchKey(this, key);
+            } else
+                return super.indexOf(o);
+        };
+
+        @Override
+        public Indexer<? super T> comparator() {
+            return Indexed.INDEXER;
+        }
+    }
+
+    public <X> ListSet<X> transform(Function<? super T, ? extends X> mapper) {
+        return new ListSet<>() {
+
+            @Override
+            public X get(int index) {
+                T t = ListSet.this.get(index);
+                return mapper.apply(t);
+            }
+
+            @Override
+            public int size() {
+                return ListSet.this.size();
+            }
+        };
+    }
 
     @Override
     abstract public T get(int index);
@@ -24,6 +114,11 @@ abstract public class ListSet<T> extends AbstractRandomList<T> implements Sorted
     @Override
     public Comparator<? super T> comparator() {
         return null;
+    }
+
+    ListSet<T> verify() {
+        assert isOrdered(comparator()) : "index mismatch";
+        return this;
     }
 
     /**
@@ -181,6 +276,11 @@ abstract public class ListSet<T> extends AbstractRandomList<T> implements Sorted
         public Iterator<T> iterator() {
             //return Iterators.singletonIterator(entry());
             return super.iterator();
+        }
+
+        @Override
+        public void forEach(Consumer<? super T> action) {
+            action.accept(value);
         }
 
         @Override

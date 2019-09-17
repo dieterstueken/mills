@@ -2,7 +2,7 @@ package mills.index1.partitions2;
 
 import mills.bits.PGroup;
 import mills.bits.PopCount;
-import mills.ring.Entry;
+import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
@@ -82,13 +82,13 @@ public class Partition extends AbstractRandomList<PartitionGroup> {
 
         final List<EntryTable> tables = new ArrayList<>();
 
-        final Map<EntryTable, Integer> tmap = new TreeMap<>(EntryTable.BY_SIZE);
+        final Map<EntryTable, Integer> tmap = new TreeMap<>(Entries.BY_SIZE);
 
         Partition partition(PopCount pop) {
             tables.clear();
             tmap.clear();
 
-            EntryTable root = Entry.MINIMIZED.filter(pop.eq);
+            EntryTable root = Entries.MINIMIZED.filter(pop.eq);
             if(root.isEmpty())
                 return Partition.EMPTY;
 

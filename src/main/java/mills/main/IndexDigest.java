@@ -4,7 +4,7 @@ import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
 import mills.position.Position;
-import mills.ring.Entry;
+import mills.ring.Entries;
 import mills.util.IntegerDigest;
 
 import java.io.IOException;
@@ -49,7 +49,7 @@ public class IndexDigest {
     }
 
     public void run() {
-        System.out.format("start %d\n", Entry.TABLE.size());
+        System.out.format("start %d\n", Entries.TABLE.size());
         double start = System.currentTimeMillis();
 
         ForkJoinTask<PosIndex> task = null;

@@ -45,7 +45,7 @@ class EntryArray extends EntryTable {
     @Override
     public RingEntry get(int i) {
         final short index = this.indices[i];
-        return Entry.of(index);
+        return Entries.of(index);
     }
 
     @Override

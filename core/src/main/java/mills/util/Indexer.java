@@ -19,35 +19,42 @@ import java.util.function.ToIntFunction;
  *
  * @param <T>
  */
-abstract public class Indexer<T> implements Comparator<T>, ToIntFunction<T> {
+public interface Indexer<T> extends Comparator<T>, ToIntFunction<T> {
 
     // mapping to be implemented.
-    abstract public int index(T element);
+    int index(T element);
 
     @Override
-    public int applyAsInt(T value) {
+    default int applyAsInt(T value) {
         return index(value);
     }
 
-    public int compare(T e1, T e2) {
-        return index(e1) - index(e2);
+    @Override
+    default int compare(T e1, T e2) {
+        if(e1==e2)
+            return 0;
+
+        if(e1==null)
+            return -1;
+
+        return Integer.compare(index(e1), index(e2));
     }
 
-    public int lowerBound(List<? extends T> sortedList, int key) {
+    default int lowerBound(List<? extends T> sortedList, int key) {
         int index = binarySearchKey(sortedList, key);
         return index<0 ? -1-index : index;
     }
 
-    public int upperBound(List<? extends T> sortedList, int key) {
+    default int upperBound(List<? extends T> sortedList, int key) {
         int index = binarySearchKey(sortedList, key);
         return index<0 ? -1-index : index+1;
     }
 
-    public int binarySearchKey(List<? extends T> sortedList, int key) {
+    default int binarySearchKey(List<? extends T> sortedList, int key) {
         return binarySearchKey(sortedList, 0, sortedList.size(), key);
     }
 
-    public int binarySearchKey(List<? extends T> sortedList, int fromIndex, int toIndex, int key) {
+    default int binarySearchKey(List<? extends T> sortedList, int fromIndex, int toIndex, int key) {
         int low = fromIndex;
         int high = toIndex - 1;
 

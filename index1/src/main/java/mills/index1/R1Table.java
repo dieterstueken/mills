@@ -45,7 +45,7 @@ class R1Table extends AbstractRandomList<EntryTable> {
 
     public static short indexOf(PopCount pop, short msk) {
         assert msk<128 && msk>=0 : "invalid popmsk";
-        msk += 128 * pop.index();
+        msk += 128 * pop.getIndex();
         return msk;
     }
 

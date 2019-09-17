@@ -4,7 +4,7 @@ import mills.bits.PGroup;
 import mills.bits.Patterns;
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.ring.Entry;
+import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.EntryTables;
 import mills.ring.RingEntry;
@@ -82,7 +82,7 @@ public class Builder {
 
                 Deque<ForkJoinTask<?>> tasks = new ArrayDeque<>();
 
-                EntryTable table = Entry.TABLE;
+                EntryTable table = Entries.TABLE;
                 List<RingEntry> entries = new ArrayList<>(table);
                 set(PopCount.P88, table);
 
@@ -96,7 +96,7 @@ public class Builder {
                     table = set(pop, entries);
                 }
 
-                tables.set(PopCount.EMPTY.index, Entry.of(0).singleton);
+                tables.set(PopCount.EMPTY.index, Entries.of(0).singleton);
 
                 tasks.stream().forEach(ForkJoinTask::join);
 
@@ -146,7 +146,7 @@ public class Builder {
         if(pop.sum()>8)
             return EntryTable.EMPTY;
 
-        EntryTable table = Entry.MINIMIZED;
+        EntryTable table = Entries.MINIMIZED;
         table = table.filter(pop.eq);
         return registry.table(table);
     }
@@ -277,7 +277,7 @@ public class Builder {
             taskset.clear();
             tasks.clear();
 
-            Entry.RADIALS.stream()
+            Entries.RADIALS.stream()
                     .map(this::task)
                     .forEach(tasks::add);
 
@@ -344,7 +344,7 @@ public class Builder {
 
         for (int i = 0; i < table.size(); i++) {
             ClopTable clops = table.get(i);
-            RingEntry rad = Entry.RADIALS.get(i);
+            RingEntry rad = Entries.RADIALS.get(i);
             Set<PopCount> cset = new HashSet<>();
             for (EntryTable t0 : clops.t0) {
                 RingEntry e0 = t0.get(0);

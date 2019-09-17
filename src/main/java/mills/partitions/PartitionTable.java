@@ -7,7 +7,7 @@ package mills.partitions;
  * Time: 10:15
  */
 
-import mills.ring.Entry;
+import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.util.AbstractRandomArray;
 
@@ -32,7 +32,7 @@ abstract public class PartitionTable<P> extends AbstractRandomArray<P> {
     }
 
     public static <P> PartitionTable<P> empty(P empty) {
-        return new PartitionTable<P>(Collections.emptyList(), Entry.TABLE) {
+        return new PartitionTable<P>(Collections.emptyList(), Entries.TABLE) {
 
             @Override
             public P get(int index) {

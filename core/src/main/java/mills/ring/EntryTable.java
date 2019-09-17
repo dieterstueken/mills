@@ -1,6 +1,7 @@
 package mills.ring;
 
 import mills.bits.PopCount;
+import mills.util.Indexed;
 import mills.util.ListSet;
 
 import java.util.Arrays;
@@ -89,9 +90,8 @@ public abstract class EntryTable extends ListSet<RingEntry> {
     }
 
     @Override
-    public final Comparator<? super RingEntry> comparator() {
-        // always natural ordering
-        return null;
+    public final Comparator<Indexed> comparator() {
+        return Indexed.INDEXER;
     }
 
     @Override
@@ -111,10 +111,10 @@ public abstract class EntryTable extends ListSet<RingEntry> {
 
     public EntryTable filter(Predicate<? super RingEntry> predicate) {
 
-        if(predicate == ALL)
+        if(predicate == Entries.ALL)
             return this;
 
-        if(predicate == NONE)
+        if(predicate == Entries.NONE)
             return EMPTY;
 
         int i0; // first match
@@ -188,51 +188,6 @@ public abstract class EntryTable extends ListSet<RingEntry> {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////
-
-    public static final Comparator<List<RingEntry>> BY_SIZE = new Comparator<List<RingEntry>>() {
-        @Override
-        public int compare(List<RingEntry> t1, List<RingEntry> t2) {
-
-            if(t1==t2)
-                return 0;
-
-            if(t1==null)
-                return -1;
-
-            int result = Integer.compare(t1.size(), t2.size());
-
-            for(int i=0; result==0 && i<t1.size(); ++i)
-                result = RingEntry.COMPARATOR.compare(t1.get(i), t2.get(i));
-
-            return result;
-        }
-    };
-
-    public static final Comparator<List<RingEntry>> BY_ORDER = new Comparator<List<RingEntry>>() {
-        @Override
-        public int compare(List<RingEntry> t1, List<RingEntry> t2) {
-
-            if(t1==t2)
-                return 0;
-
-            if(t1==null)
-                return -1;
-
-            int size = Math.min(t1.size(), t2.size());
-
-            int result = 0;
-            for(int i=0; result==0 && i<size; ++i)
-                result = RingEntry.COMPARATOR.compare(t1.get(i), t2.get(i));
-
-            if(result==0)
-                result = Integer.compare(t1.size(), t2.size());
-
-            return result;
-        }
-    };
-
-    public static final Predicate<RingEntry> ALL  = e -> true;
-    public static final Predicate<RingEntry> NONE = e -> false;
 
     // an empty table template
     public static final EmptyTable EMPTY = new EmptyTable();

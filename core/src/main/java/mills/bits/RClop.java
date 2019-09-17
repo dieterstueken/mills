@@ -8,7 +8,7 @@ package mills.bits;
  * modified on: $Date$
  */
 
-import mills.ring.Entry;
+import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.EntryTables;
 import mills.ring.RingEntry;
@@ -37,12 +37,12 @@ public class RClop implements Comparable<RClop> {
 
     @Override
     public String toString() {
-        return String.format("%02d:%s", rad.index, clop.toString());
+        return String.format("%02d/%s", rad.index, clop.toString());
     }
 
     private RClop(int index) {
         this.clop = PopCount.CLOSED.get(index/81);
-        this.rad = Entry.RADIALS.get(index%81);
+        this.rad = Entries.RADIALS.get(index%81);
     }
 
     public int index() {
@@ -59,7 +59,7 @@ public class RClop implements Comparable<RClop> {
         return clop.add(rad.pop);
     }
 
-    public static final int SIZE = Entry.RADIALS.size()*PopCount.CLOSED.size();
+    public static final int SIZE = Entries.RADIALS.size()*PopCount.CLOSED.size();
     public static final List<RClop> TABLE = AbstractRandomList.generate(SIZE, RClop::new);
 
     public static RClop of(RingEntry entry) {
@@ -112,14 +112,14 @@ public class RClop implements Comparable<RClop> {
         EntryTables pool = new EntryTables();
 
         for (PopCount pop : PopCount.TABLE) {
-            EntryTable pt = Entry.MINIMIZED.filter(pop.eq);
+            EntryTable pt = Entries.MINIMIZED.filter(pop.eq);
             if(pt.isEmpty())
                 continue;
 
             for (PopCount clop : PopCount.CLOSED) {
-                Set<EntryTable> tset = new TreeSet<>(EntryTables::compare);
+                Set<EntryTable> tset = new TreeSet<>(Entries.BY_SIZE);
 
-                for (RingEntry rad : Entry.RADIALS) {
+                for (RingEntry rad : Entries.RADIALS) {
                     EntryTable rt = pt.filter(e->matches(e, rad, clop));
                     if(rt.isEmpty())
                         continue;
@@ -144,13 +144,13 @@ public class RClop implements Comparable<RClop> {
 
         int[] rcount = new int[81];
 
-        for (RingEntry min : Entry.MINIMIZED) {
+        for (RingEntry min : Entries.MINIMIZED) {
             int ir = min.radix();
             ++rcount[ir];
         }
 
         for(int i=0; i<81; ++i) {
-            System.out.format("%s  %d\n", Entry.RADIALS.get(i).toString().substring(7, 11), rcount[i]);
+            System.out.format("%s  %d\n", Entries.RADIALS.get(i).toString().substring(7, 11), rcount[i]);
         }
     }
 }

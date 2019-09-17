@@ -6,7 +6,7 @@ import mills.bits.PopCount;
 import mills.bits.Sector;
 import mills.index1.Partitions;
 import mills.index1.partitions.PartitionTable;
-import mills.ring.Entry;
+import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
@@ -58,7 +58,7 @@ public class PartitionStat {
 
             Set<PGroup> pset = PGroup.groups(root);
 
-            Set<EntryTable> tset = new TreeSet<>(EntryTable.BY_SIZE);
+            Set<EntryTable> tset = new TreeSet<>(Entries.BY_SIZE);
             List<EntryTable> tables = pt.tables;
 
             for (EntryTable t : tables) {
@@ -89,7 +89,7 @@ public class PartitionStat {
 
         return new Function<RingEntry, PopCount>() {
 
-            final RingEntry radials = Entry.RADIALS.get(i);
+            final RingEntry radials = Entries.RADIALS.get(i);
 
             PopCount clop(RingEntry ringEntry, Sector sector) {
                 Player p1 = ringEntry.player(sector);

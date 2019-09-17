@@ -1,7 +1,7 @@
 package mills.index1;
 
 import mills.index.IndexProcessor;
-import mills.ring.Entry;
+import mills.ring.Entries;
 import mills.ring.RingEntry;
 import mills.util.Indexer;
 
@@ -40,7 +40,7 @@ public class R2Entry {
     }
 
     public RingEntry r2() {
-        return Entry.of(i2);
+        return Entries.of(i2);
     }
 
     public R0Table values() {
@@ -75,19 +75,7 @@ public class R2Entry {
       return t0.process(base, i2, processor, start, end);
     }
 
-    static final Indexer<R2Entry> INDEX = new Indexer<R2Entry>() {
+    static final Indexer<R2Entry> INDEX = element -> element.index;
 
-        @Override
-        public int index(R2Entry element) {
-            return element.index;
-        }
-    };
-
-    static final Indexer<R2Entry> R2 = new Indexer<R2Entry>() {
-
-        @Override
-        public int index(R2Entry element) {
-            return element.i2;
-        }
-    };
+    static final Indexer<R2Entry> R2 = element -> element.i2;
 }

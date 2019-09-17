@@ -1,13 +1,10 @@
 package mills.util;
 
-import mills.ring.EntryTable;
-
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntConsumer;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -33,13 +30,9 @@ public class Stat implements IntConsumer {
         }
     }
 
-    public Stat process(IntStream is) {
-        is.forEach(this);
+    public Stat process(Stream<? extends Collection<?>> ts) {
+        ts.mapToInt(Collection::size).forEach(this);
         return this;
-    }
-
-    public Stat process(Stream<EntryTable> ts) {
-        return process(ts.mapToInt(List::size));
     }
 
     public String toString() {

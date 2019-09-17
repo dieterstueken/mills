@@ -5,6 +5,7 @@ import mills.bits.PopCount;
 import mills.index1.IndexList;
 import mills.index1.R2Entry;
 import mills.index1.R2Index;
+import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
  */
 public class ClopFilter extends RecursiveAction {
 
-    final Set<EntryTable> fragments = new TreeSet<>(EntryTable.BY_SIZE);
+    final Set<EntryTable> fragments = new TreeSet<>(Entries.BY_SIZE);
     int count;
 
     final R2Index posIndex;
@@ -79,7 +80,7 @@ public class ClopFilter extends RecursiveAction {
         Set<PopCount> clops = new TreeSet<>();
         Set<PopCount> vclops = new TreeSet<>();
 
-        Set<EntryTable> fragments = new TreeSet<>(EntryTable.BY_SIZE);
+        Set<EntryTable> fragments = new TreeSet<>(Entries.BY_SIZE);
 
         PopCount.TABLE.stream().filter(p -> p.nb <= p.nw).forEach(p -> {
             R2Index posIndex = indexes.get(p);

@@ -2,7 +2,9 @@ package mills.ring;
 
 import mills.bits.*;
 
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA.
@@ -18,7 +20,7 @@ import java.util.Comparator;
  * All possible tables are kept in a static lookup table.
  * The index
  */
-public class RingEntry extends BW implements Comparable<RingEntry> {
+public class RingEntry extends BW {
 
     // number of possible entries
     public static final int MAX_INDEX = 81*81;
@@ -61,19 +63,14 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         return singleton;
     }
 
-    // index of this entry
-    public final Short index() {
-        return index;
-    }
-
     public final RingEntry swapped() {
-        return Entry.TABLE.get(swapped);
+        return Entries.TABLE.get(swapped);
     }
 
     // return entry with only radials set.
     public final RingEntry radials() {
         int radix = index%81;
-        return index==radix ? this : Entry.RADIALS.get(radix());
+        return index==radix ? this : Entries.RADIALS.get(radix());
     }
 
     // get radial index
@@ -87,7 +84,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     }
 
     public final RingEntry permute(Perm p) {
-        return Entry.of(perm(p.ordinal()));
+        return Entries.of(perm(p.ordinal()));
     }
 
     // return stable permutation mask
@@ -121,12 +118,30 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
     }
 
     /**
+     * @return Occupied sectors.
+     */
+    public Set<Sector> sectors() {
+        return b.or(w);
+    }
+
+    public Set<Sector> sectors(Player player) {
+
+        switch(player) {
+            case Black: return b;
+            case White: return w;
+            case None: return b.or(w).not();
+        }
+
+        return Collections.emptySet();
+    }
+
+    /**
      * setup a new player for a given sector.
      * @param sector to setup
      * @param player to set.
      * @return a RingEntry with giben player at given sector.
      */
-    public RingEntry setPlayer(final Sector sector, final Player player) {
+    public RingEntry setPlayer(Sector sector, Player player) {
         final Player current = player(sector);
 
         // noop
@@ -138,11 +153,11 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         index -= pow3 * current.ordinal();
         index += pow3 * player.ordinal();
 
-        return Entry.of(index);
+        return Entries.of(index);
     }
 
     public RingEntry and(Patterns other) {
-        return Entry.of(b.and(other.b), w.and(other.w));
+        return Entries.of(b.and(other.b), w.and(other.w));
     }
 
     public boolean contains(RingEntry other) {
@@ -300,12 +315,6 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         return Short.compare(o1.index, o2.index);
     };
 
-    @Override
-    public int compareTo(RingEntry o) {
-        return Short.compare(index, o.index);
-    }
-
-
     ////////////////////////////////////////////////////////////////////////
 
     public static void main(String ... args) {
@@ -313,7 +322,7 @@ public class RingEntry extends BW implements Comparable<RingEntry> {
         int stat1[] = new int[9];
         int stat2[] = new int[9];
 
-        for(RingEntry e: Entry.TABLE) {
+        for(RingEntry e: Entries.TABLE) {
             System.out.println(e.toString());
             ++stat1[e.grp.ordinal()];
 

@@ -2,7 +2,7 @@ package mills.partitions;
 
 import mills.bits.PGroup;
 import mills.bits.PopCount;
-import mills.ring.Entry;
+import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomArray;
@@ -41,12 +41,12 @@ public class PartitionBuilder<P> extends RecursiveTask<Partitions<P>> {
         if(pop.sum()>8)
             return empty;
 
-        EntryTable root = Entry.MINIMIZED.filter(pop.eq);
+        EntryTable root = Entries.MINIMIZED.filter(pop.eq);
 
         if(root.isEmpty())
             return empty;
 
-        ForkJoinTask<EntryTable> lePopTask = ForkJoinTask.adapt(()-> Entry.TABLE.filter(pop.le)).fork();
+        ForkJoinTask<EntryTable> lePopTask = ForkJoinTask.adapt(()-> Entries.TABLE.filter(pop.le)).fork();
 
         final Set<PGroup> groups = PGroup.groups(root);
 

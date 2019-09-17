@@ -68,7 +68,7 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
 
     final List<TableEntry> tables = new ArrayList<>();
 
-    final Map<List<RingEntry>, Short> entries = new ConcurrentSkipListMap<>(EntryTables::compare);
+    final Map<List<RingEntry>, Short> entries = new ConcurrentSkipListMap<>(Entries.BY_SIZE);
 
     public Short key(List<RingEntry> list) {
 
@@ -79,7 +79,7 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
         if(list.size()==1)
             return list.get(0).index;
 
-        if(Entry.TABLE.equals(list))
+        if(Entries.TABLE.equals(list))
             return RingEntry.MAX_INDEX;
 
         // try to up cast to TableEntry
@@ -147,10 +147,10 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
             return EntryTable.EMPTY;
 
         if(index< RingEntry.MAX_INDEX)
-            return Entry.of(index).singleton;
+            return Entries.of(index).singleton;
 
         if(index== RingEntry.MAX_INDEX)
-            return Entry.TABLE;
+            return Entries.TABLE;
 
         return tables.get(index-OFFSET);
     }
@@ -246,31 +246,10 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
         };
     }
 
-    public static int compare(List<RingEntry> t1, List<RingEntry> t2) {
-        if(t1==t2)
-            return 0;
-
-        if(t1==null)
-            return -1;
-
-        if(t2==null)
-            return 1;
-
-        int result = Integer.compare(t1.size(), t2.size());
-        if(result==0) {
-            int l = t1.size();
-            for(int i=0; i<l && result==0; ++i) {
-                result = t1.get(i).compareTo(t2.get(i));
-            }
-        }
-
-        return result;
-    }
-
     public void stat(PrintStream out) {
 
         List<List<RingEntry>> tables = new ArrayList<>(entries.keySet());
-        Collections.sort(tables, EntryTable.BY_SIZE);
+        Collections.sort(tables, Entries.BY_SIZE);
 
         int size=0;
         int count=0;

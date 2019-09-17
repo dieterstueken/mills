@@ -138,13 +138,7 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
         return  true;
     }
 
-    public static final Indexer<List> SIZE = new Indexer<List>() {
-
-        @Override
-        public int index(List element) {
-            return element.size();
-        }
-    };
+    public static final Indexer<List> SIZE = List::size;
 
     public static <E> IndexTable sum(final List<? extends E> table, final ToIntFunction<? super E> indexer) {
 

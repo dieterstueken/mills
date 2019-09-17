@@ -7,11 +7,13 @@ package mills.bits;
  * Time: 15:24:21
  */
 
+import mills.util.Indexed;
+
 /**
  * Class BW holds a pair of patterns occupied by black and white stones on a single 8 bit ringTable.
  * All combinations are kept by RING_TABLE.table, so no further instances are needed.
  */
-public class BW extends Patterns {
+public class BW extends Patterns implements Indexed {
 
     /**
      * The central index function to map a pair of patterns [0,256[
@@ -31,6 +33,16 @@ public class BW extends Patterns {
     public final PopCount pop;
 
     public final Short index;
+
+    // index of this entry
+    public final Short index() {
+        return index;
+    }
+
+    @Override
+    public int getIndex() {
+        return index;
+    }
 
     public PopCount pop() {
         return pop;

@@ -1,0 +1,75 @@
+package mills.ring;
+
+import mills.bits.BW;
+import mills.bits.Pattern;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.Predicate;
+
+/**
+ * version:     $
+ * created by:  d.stueken
+ * created on:  10.09.2019 12:02
+ * modified by: $
+ * modified on: $
+ */
+public interface Entries {
+
+    /**
+     * Immutable tables.
+     */
+    EntryTable TABLE = new RingTable();
+    EntryTable RADIALS = TABLE.subList(0, 81);
+    EntryTable MINIMIZED = TABLE.filter(RingEntry::isMin);
+    RingEntry EMPTY = of(0);
+
+    static RingEntry of(int index) {
+        return TABLE.get(index);
+    }
+
+    static RingEntry of(Pattern b, Pattern w) {
+        return TABLE.get(BW.index(b,w));
+    }
+
+    Predicate<RingEntry> ALL  = e -> true;
+    Predicate<RingEntry> NONE = e -> false;
+
+    Comparator<List<RingEntry>> BY_SIZE = (t1, t2) -> {
+
+        if(t1==t2)
+            return 0;
+
+        if(t1==null)
+            return -1;
+
+        int result = Integer.compare(t1.size(), t2.size());
+
+        for(int i=0; result==0 && i<t1.size(); ++i)
+            result = RingEntry.COMPARATOR.compare(t1.get(i), t2.get(i));
+
+        return result;
+    };
+
+    Comparator<List<RingEntry>> BY_ORDER = (t1, t2) -> {
+
+        if(t1==t2)
+            return 0;
+
+        if(t1==null)
+            return -1;
+
+        int size = Math.min(t1.size(), t2.size());
+
+        int result = 0;
+        for(int i=0; result==0 && i<size; ++i)
+            result = RingEntry.COMPARATOR.compare(t1.get(i), t2.get(i));
+
+        if(result==0)
+            result = Integer.compare(t1.size(), t2.size());
+
+        return result;
+    };
+
+
+}

@@ -2,7 +2,7 @@ package mills.index1.partitions;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.ring.Entry;
+import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.util.AbstractRandomList;
 
@@ -46,7 +46,7 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
     @Override
     public EntryTable get(int index) {
         // 8:8 and above: full table
-        return index<table.size() ? table.get(index) : Entry.TABLE;
+        return index<table.size() ? table.get(index) : Entries.TABLE;
     }
 
     public EntryTable get(PopCount pop) {
@@ -63,7 +63,7 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
                 // increment the bigger one if < 9 else the other one
                 Player p =  pop.nw<pop.nb && pop.nw<9 ? Player.White : Player.Black;
                 int index = pop.add(p.pop).index;
-                EntryTable upTable = index<tasks.size() ? tasks.get(index).join() : Entry.TABLE;
+                EntryTable upTable = index<tasks.size() ? tasks.get(index).join() : Entries.TABLE;
                 EntryTable result = upTable.filter(e -> e.pop.le(pop));
                 return result;
             }
@@ -85,7 +85,7 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
         for (int nb = 0; nb < 10; nb++) {
             for (int nw = 0; nw < 10; nw++) {
                 final PopCount pop = PopCount.of(nb, nw);
-                final EntryTable t = get(pop.index());
+                final EntryTable t = get(pop.getIndex());
                 System.out.format("%5d", t.size());
             }
 

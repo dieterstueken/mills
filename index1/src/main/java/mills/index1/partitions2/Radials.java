@@ -3,7 +3,7 @@ package mills.index1.partitions2;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.bits.Sector;
-import mills.ring.Entry;
+import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
@@ -22,7 +22,7 @@ public class Radials {
     final RingEntry radials;
 
     private Radials(int index) {
-        radials = Entry.RADIALS.get(index);
+        radials = Entries.RADIALS.get(index);
     }
 
     @Override
@@ -84,7 +84,7 @@ public class Radials {
     public static void main(String ... args) {
 
         for (Radials radial : RADIALS) {
-            EntryTable rt = Entry.MINIMIZED.filter(radial::matches);
+            EntryTable rt = Entries.MINIMIZED.filter(radial::matches);
             System.out.format("%2d %s %d\n", radial.index(), radial.toString(), rt.size());
         }
     }

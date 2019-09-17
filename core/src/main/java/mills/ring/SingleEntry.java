@@ -1,6 +1,7 @@
 package mills.ring;
 
 import java.util.Iterator;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -23,7 +24,7 @@ class SingleEntry extends EntryTable {
     }
 
     public static SingleEntry of(int index) {
-        return Entry.of(index).singleton;
+        return Entries.of(index).singleton;
     }
 
     @Override
@@ -66,6 +67,11 @@ class SingleEntry extends EntryTable {
     @Override
     public Stream<RingEntry> stream() {
         return Stream.of(entry);
+    }
+
+    @Override
+    public void forEach(Consumer<? super RingEntry> action) {
+        action.accept(entry);
     }
 
     @Override

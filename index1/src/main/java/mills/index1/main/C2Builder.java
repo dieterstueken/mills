@@ -8,6 +8,7 @@ import mills.index1.R0Table;
 import mills.index1.R2Entry;
 import mills.index1.R2Index;
 import mills.position.Positions;
+import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 
@@ -122,7 +123,7 @@ public class C2Builder {
     }
 
     public static Set<EntryTable> stat(R2Index index) {
-        Set<EntryTable> tset = new TreeSet<>(EntryTable.BY_SIZE);
+        Set<EntryTable> tset = new TreeSet<>(Entries.BY_SIZE);
         index.values().forEach(r2e -> r2e.values().values().stream().filter(t -> t.size() > 1).forEach(tset::add));
         return tset;
     }
@@ -130,7 +131,7 @@ public class C2Builder {
     public static void main(String ... args) {
 
         IndexList indexes = IndexList.create();
-        Set<EntryTable> tall = new TreeSet<>(EntryTable.BY_SIZE);
+        Set<EntryTable> tall = new TreeSet<>(Entries.BY_SIZE);
 
         for(PopCount pop:PopCount.TABLE) {
             R2Index posIndex = indexes.get(pop);
@@ -141,7 +142,7 @@ public class C2Builder {
 
             Map<PopCount, R2Index> indexMap = build(posIndex, EntryTable::of);
 
-            Set<EntryTable> tindex = new TreeSet<>(EntryTable.BY_SIZE);
+            Set<EntryTable> tindex = new TreeSet<>(Entries.BY_SIZE);
 
             for (Map.Entry<PopCount, R2Index> entry : indexMap.entrySet()) {
                 R2Index index = entry.getValue();

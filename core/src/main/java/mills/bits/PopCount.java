@@ -1,8 +1,8 @@
 package mills.bits;
 
-import mills.util.AbstractRandomArray;
+import mills.util.Indexed;
+import mills.util.ListSet;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -20,7 +20,7 @@ import java.util.function.Predicate;
  * PopCounts<100 are provided by a pre calculated lookup table.
  */
 
-public class PopCount implements Comparable<PopCount> {
+public class PopCount implements Indexed {
 
     public final byte nb;
     public final byte nw;
@@ -41,7 +41,7 @@ public class PopCount implements Comparable<PopCount> {
      * @param nw white population count.
      * @return a compact index for positive populations.
      */
-    public static int index(int nb, int nw) {
+    public static int getIndex(int nb, int nw) {
 
         if (Math.min(nb, nw)<0)
             return -1;
@@ -55,7 +55,7 @@ public class PopCount implements Comparable<PopCount> {
         return m-1;
     }
 
-    public int index() {
+    public int getIndex() {
         return 0xff&index;
     }
 
@@ -186,11 +186,6 @@ public class PopCount implements Comparable<PopCount> {
         return index;
     }
 
-    @Override
-    public int compareTo(PopCount other) {
-        return Integer.compare(index, other.index);
-    }
-
     /**
      * Create a new PopCount.
      * Use factory of() to benefit from pre calculated instances
@@ -201,7 +196,7 @@ public class PopCount implements Comparable<PopCount> {
     private PopCount(int nb, int nw) {
         this.nb = (byte) nb;
         this.nw = (byte) nw;
-        this.index = (byte) index(nb, nw);
+        this.index = (byte) getIndex(nb, nw);
 
         this.string = String.format("%X:%X", nb, nw);
     }
@@ -222,7 +217,7 @@ public class PopCount implements Comparable<PopCount> {
      */
     public static PopCount of(int nb, int nw) {
 
-        int index = index(nb, nw);
+        int index = getIndex(nb, nw);
         if (index < 0)
             return null;
 
@@ -239,10 +234,10 @@ public class PopCount implements Comparable<PopCount> {
 
 
     // PopCounts <= (9,9)
-    public static final List<PopCount> TABLE = AbstractRandomArray.of(table());
+    public static final ListSet<PopCount> TABLE = ListSet.indexed(table());
 
     // # of closed mills (0-4)
-    public static final List<PopCount> CLOSED = TABLE.subList(0, 25);
+    public static final ListSet<PopCount> CLOSED = TABLE.subList(0, 25);
 
     public static final PopCount EMPTY = of(0,0);
     public static final PopCount P44 = of(4,4);
@@ -258,7 +253,7 @@ public class PopCount implements Comparable<PopCount> {
         for (int nw = 0; nw < 10; ++nw) {
             for (int nb = 0; nb < 10; ++nb) {
                 PopCount p = new PopCount(nb, nw);
-                int index = p.index();
+                int index = p.getIndex();
                 assert table[index]==null;
                 table[index] = p;
             }
@@ -287,7 +282,7 @@ public class PopCount implements Comparable<PopCount> {
 
             for (int nw = 0; nw < 12; ++nw) {
                 final PopCount p = PopCount.of(nb, nw);
-                System.out.format("%4d", p.index());
+                System.out.format("%4d", p.getIndex());
             }
 
             System.out.println();
