@@ -265,27 +265,4 @@ public abstract class EntryTable extends ListSet<RingEntry> {
 
         return true;
     }
-
-    /*
-    public static boolean isOrdered(List<? extends RingEntry> list, Comparator<? super RingEntry> cmp) {
-
-        if(list.size()<2)
-            return true;
-
-        if(cmp==null)
-            cmp = RingEntry.COMPARATOR;
-
-        RingEntry e = list.get(0);
-        for(int i=1; i<list.size(); ++i) {
-            RingEntry f = list.get(i);
-            if(cmp.compare(e, f)>=0)
-                return false;
-            e = f;
-        }
-
-        //list.sort(cmp);
-
-        return true;
-    }
-    */
 }

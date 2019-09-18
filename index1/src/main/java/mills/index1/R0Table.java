@@ -4,6 +4,7 @@ import mills.index.IndexProcessor;
 import mills.position.Positions;
 import mills.ring.EntryTable;
 import mills.ring.IndexedMap;
+import mills.ring.RingEntry;
 import mills.util.IndexTable;
 
 import java.util.Collection;
@@ -119,6 +120,14 @@ public class R0Table extends IndexedMap<EntryTable> {
     }
 
     public static R0Table of(EntryTable r0, List<EntryTable> t1) {
+        if(r0.isEmpty())
+            return EMPTY;
+
         return of(r0, t1, IndexTable.sum(t1, Collection::size));
     }
+
+    public static R0Table of(List<RingEntry> r0, List<EntryTable> t1) {
+        return of(EntryTable.of(r0), t1);
+    }
+
 }

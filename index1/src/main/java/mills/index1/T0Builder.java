@@ -21,13 +21,13 @@ import static mills.ring.RingEntry.MAX_INDEX;
 /**
  * This Builder is a mutable R1Table and is not thread safe!
  */
-class T0Builder extends R1Table {
+public class T0Builder extends R1Table {
 
     final LePopTable lePopTable;
 
     final short t0[] = new short[MAX_INDEX];
 
-    T0Builder(PartitionTables partitions, LePopTable lePopTable) {
+    public T0Builder(PartitionTables partitions, LePopTable lePopTable) {
         super(partitions, new short[MAX_INDEX]);
         this.lePopTable = lePopTable;
     }

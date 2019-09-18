@@ -33,6 +33,10 @@ public class FutureReference<V> {
         return AbstractRandomList.generate(source.size(), i->of(()->source.get(i)));
     }
 
+    public static <V> List<V> wrap(List<? extends V> source) {
+        return AbstractRandomList.transform(FutureReference.of(source), FutureReference::get);
+    }
+
     public V get() {
         return computer.getValue();
     }

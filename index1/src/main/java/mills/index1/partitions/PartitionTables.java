@@ -3,13 +3,11 @@ package mills.index1.partitions;
 import mills.bits.PopCount;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
-import mills.util.ListSet;
+import mills.util.PopMap;
 import mills.util.Stat;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -24,52 +22,10 @@ import java.util.function.UnaryOperator;
 /**
  * Class PartitionTables provides a list of 100 PartitionTables for each PopCount.
  */
-public class PartitionTables<T> extends AbstractMap<PopCount, PartitionTable<T>> {
-
-    // pre calculated tables of entries for given PopCounts[00-99]
-    private final List<PartitionTable<T>> tables;
+public class PartitionTables<T> extends PopMap<PartitionTable<T>> {
 
     private PartitionTables(List<PartitionTable<T>> tables) {
-        this.tables = tables;
-        assert tables.size() == PopCount.TABLE.size();
-    }
-
-    private Entry<PopCount, PartitionTable<T>> entry(PopCount pop) {
-        return new SimpleImmutableEntry<>(pop, tables.get(pop.index));
-    }
-
-    @Override
-    public ListSet<Entry<PopCount, PartitionTable<T>>> entrySet() {
-        return PopCount.TABLE.transform(this::entry);
-    }
-
-    @Override
-    public Set<PopCount> keySet() {
-        return PopCount.TABLE;
-    }
-
-    @Override
-    public List<PartitionTable<T>> values() {
-        return tables;
-    }
-
-    @Override
-    public PartitionTable<T> get(Object key) {
-        return key instanceof PopCount ? get((PopCount) key) : null;
-    }
-
-    /**
-     * Return MskTable for a given pop count.
-     *
-     * @param pop count of the requested MskTable.
-     * @return a MskTable for a given pop count.
-     */
-    public PartitionTable<T> get(int pop) {
-        return tables.get(pop);
-    }
-
-    public PartitionTable<T> get(PopCount pop) {
-        return tables.get(pop.getIndex());
+        super(tables);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////

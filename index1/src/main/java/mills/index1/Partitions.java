@@ -37,7 +37,7 @@ public class Partitions extends AbstractRandomList<R2Index> {
         // build parallel
         ForkJoinTask<PartitionTables<EntryTable>> pt = ForkJoinTask.adapt(Partitions::buildPartitions).fork();
         LePopTable lePopTable = LePopTable.build();
-        PartitionTables partitions = pt.join();
+        PartitionTables<EntryTable> partitions = pt.join();
         return new Partitions(partitions, lePopTable);
     }
 

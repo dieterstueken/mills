@@ -60,14 +60,14 @@ public class RClops {
 
     public static void main(String ... args) {
 
-        PartitionTables<RClops> pt = PartitionTables.build(RClops::of);
+        PartitionTables<RClops> pt = PartitionTables.build(Entries.TABLE, RClops::of);
 
         for (int nb = 0; nb < 10; nb++) {
             for (int nw = 0; nw < 10; nw++) {
                 PopCount pop = PopCount.of(nb, nw);
                 RClops rc = pt.get(pop).get(0);
                 if(!rc.root.isEmpty())
-                    System.out.format("%3d:%2d", rc.root.size(), rc.tables.size());
+                    System.out.format("%4d:%2d", rc.root.size(), rc.tables.size());
             }
             System.out.println();
         }
