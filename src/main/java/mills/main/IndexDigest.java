@@ -36,7 +36,7 @@ public class IndexDigest {
         return ForkJoinTask.adapt(() -> indexes.get(pop)).fork();
     }
 
-    void analyze(ForkJoinTask<PosIndex> task) {
+    int analyze(ForkJoinTask<PosIndex> task) {
         if(task!=null) {
             PosIndex posIndex = task.join();
             List<Position> posList = posIndex.positions();
@@ -45,7 +45,9 @@ public class IndexDigest {
             int n20 = posIndex.n20();
             System.out.format("l%d%d%10d, %4d\n", pop.nb, pop.nw, range, n20);
             digest.update(range);
+            return range;
         }
+        return 0;
     }
 
     public void run() {
@@ -53,19 +55,21 @@ public class IndexDigest {
         double start = System.currentTimeMillis();
 
         ForkJoinTask<PosIndex> task = null;
-
+        long total = 0;
         //for(PopCount pop:PopCount.TABLE) {
         for(int nb=0; nb<10; ++nb)
         for(int nw=0; nw<10; ++nw) {
             ForkJoinTask<PosIndex> next = start(nb, nw);
-            analyze(task);
+            total += analyze(task);
             task = next;
         }
 
-        analyze(task);
+        total += analyze(task);
 
         double stop = System.currentTimeMillis();
         System.out.format("%.3f s\n", (stop - start) / 1000);
+
+        System.out.format("total: %s\n" , total);
 
         System.out.println("digest: " + digest.digest());
     }
