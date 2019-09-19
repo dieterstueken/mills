@@ -4,12 +4,11 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
-import mills.util.AbstractRandomList;
+import mills.util.AbstractRandomArray;
+import mills.util.PopMap;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
 
 /**
@@ -20,22 +19,21 @@ import java.util.concurrent.RecursiveTask;
  */
 
 /**
- * A virtual List of EntryTables.
- * Each entry is generated recursively on demand by calling get().
- * <p/>
- * Even if the list is immutable it should be copied in advance to speed up access.
+ * A map of EntryTables filtered by pop count.
  */
-public class LePopTable extends AbstractRandomList<EntryTable> {
+public class LePopTable extends PopMap<EntryTable> {
 
-    public static LePopTable build() {
-        final List<EntryTable> table = createTable();
+    public static LePopTable build(EntryTable root) {
+        final List<EntryTable> table = createTable(root);
         return new LePopTable(table);
     }
 
-    private final List<EntryTable> table;
+    public static LePopTable build() {
+        return build(Entries.TABLE);
+    }
 
-    public LePopTable(List<EntryTable> table) {
-        this.table = table;
+    private LePopTable(List<EntryTable> table) {
+        super(table);
     }
 
     @Override
@@ -43,37 +41,46 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
         return PopCount.TABLE.size();
     }
 
-    @Override
-    public EntryTable get(int index) {
-        // 8:8 and above: full table
-        return index<table.size() ? table.get(index) : Entries.TABLE;
-    }
-
     public EntryTable get(PopCount pop) {
         return pop==null ? null : get(pop.index);
     }
 
-    private static List<EntryTable> createTable() {
+    private static List<EntryTable> createTable(EntryTable root) {
         List<PopCount> p88 = PopCount.TABLE.subList(0, PopCount.P88.index);
         List<RecursiveTask<EntryTable>> tasks = new ArrayList<>(p88.size());
 
-        p88.forEach(pop -> tasks.add(new RecursiveTask<>(){
+        // expanded virtual table for all pops
+        AbstractRandomArray<EntryTable> tables = AbstractRandomArray.virtual(PopCount.TABLE.size(),
+                pop -> pop<tasks.size() ? tasks.get(pop).join() : root);
+
+        class Task extends RecursiveTask<EntryTable> {
+            final PopCount pop;
+
+            Task(PopCount pop) {
+                this.pop = pop;
+            }
+
             @Override
             protected EntryTable compute() {
                 // increment the bigger one if < 9 else the other one
                 Player p =  pop.nw<pop.nb && pop.nw<9 ? Player.White : Player.Black;
                 int index = pop.add(p.pop).index;
-                EntryTable upTable = index<tasks.size() ? tasks.get(index).join() : Entries.TABLE;
+                EntryTable upTable = tables.get(index);
                 EntryTable result = upTable.filter(e -> e.pop.le(pop));
                 return result;
             }
-        }));
+        }
 
+        // prepare tasks to execute
+        p88.stream().map(Task::new).forEach(tasks::add);
+
+        // start bigger tables first
         int i=tasks.size();
         while(i>0)
             tasks.get(--i).fork();
 
-        return AbstractRandomList.transform(tasks, ForkJoinTask::join).copyOf();
+        // materialize virtual table to ensure all tasks are joined
+        return tables.copyOf();
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -93,8 +100,12 @@ public class LePopTable extends AbstractRandomList<EntryTable> {
         }
     }
 
-    public static void main(String... args) throws InterruptedException, ExecutionException {
+    public static void main(String... args) {
         build().dump();
+
+        System.out.println();
+
+        build(Entries.MINIMIZED).dump();
     }
 
 }
