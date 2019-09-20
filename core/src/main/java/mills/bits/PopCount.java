@@ -242,7 +242,7 @@ public class PopCount implements Indexed {
 
     ////////////////////////////////////////////////////////////////////////////
 
-    public static final int SIZE = 100;
+    public static final int SIZE = 100;  // index(9,9)+1
 
 
     // PopCounts <= (9,9)
@@ -251,9 +251,9 @@ public class PopCount implements Indexed {
     // # of closed mills (0-4)
     public static final ListSet<PopCount> CLOSED = TABLE.subList(0, 25);
 
-    public static final PopCount EMPTY = of(0,0);
-    public static final PopCount P44 = of(4,4);
-    public static final PopCount P88 = of(8,8);
+    public static final PopCount EMPTY = get(0,0);
+    public static final PopCount P44 = get(4,4);
+    public static final PopCount P88 = get(8,8);
 
     public static PopCount get(int index) {
         return TABLE.get(index);

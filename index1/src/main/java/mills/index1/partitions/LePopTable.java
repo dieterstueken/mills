@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RecursiveTask;
 
+import static mills.bits.PopCount.P88;
+
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -46,12 +48,21 @@ public class LePopTable extends PopMap<EntryTable> {
     }
 
     private static List<EntryTable> createTable(EntryTable root) {
-        List<PopCount> p88 = PopCount.TABLE.subList(0, PopCount.P88.index);
-        List<RecursiveTask<EntryTable>> tasks = new ArrayList<>(p88.size());
+        List<PopCount> p88 = PopCount.TABLE.subList(0, P88.index);
+        List<RecursiveTask<EntryTable>> tasks = new ArrayList<>(P88.index);
 
-        // expanded virtual table for all pops
-        AbstractRandomArray<EntryTable> tables = AbstractRandomArray.virtual(PopCount.TABLE.size(),
-                pop -> pop<tasks.size() ? tasks.get(pop).join() : root);
+        // expanded virtual table for all pops(9,9)
+        AbstractRandomArray<EntryTable> tables = AbstractRandomArray.virtual(PopCount.TABLE.size(), index -> {
+            // clip down
+            if(index>P88.index)
+                index = PopCount.get(index).min(P88).index;
+
+            // p88 itself was excluded
+            if(index==P88.index)
+                return root;
+
+            return tasks.get(index).join();
+        });
 
         class Task extends RecursiveTask<EntryTable> {
             final PopCount pop;
