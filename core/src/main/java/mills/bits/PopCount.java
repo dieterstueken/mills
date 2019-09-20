@@ -201,7 +201,7 @@ public class PopCount implements Indexed {
         this.string = String.format("%X:%X", nb, nw);
     }
 
-    final String string;
+    private final String string;
 
     public String toString() {
         return string;
@@ -217,10 +217,22 @@ public class PopCount implements Indexed {
      */
     public static PopCount of(int nb, int nw) {
 
-        int index = getIndex(nb, nw);
-        if (index < 0)
+        if (Math.min(nb, nw)<0)
             return null;
+        else
+            return get(nb, nw);
+    }
 
+    /**
+     * Get a PopCount from given positive population counts.
+     * PopCount beyond 100 are  not cached but generated.
+     *
+     * @param nb black population count.
+     * @param nw white population count.
+     * @return a PopCount describing the given occupations.
+     */
+    public static PopCount get(int nb, int nw) {
+        int index = getIndex(nb, nw);
         if (index < SIZE)
             return TABLE.get(index);
 

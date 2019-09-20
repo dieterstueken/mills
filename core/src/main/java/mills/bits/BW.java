@@ -64,7 +64,7 @@ public class BW extends Patterns implements Indexed {
         super(index);
 
         this.index = index;
-        this.pop = PopCount.of(this.b.count(), this.w.count());
+        this.pop = PopCount.get(this.b.count(), this.w.count());
     }
 
     public String pattern() {
