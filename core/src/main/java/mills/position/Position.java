@@ -87,10 +87,9 @@ public class Position implements Comparable<Position> {
         sb.append(normalized ? "!": ":");
         sb.append(pop.nw);
 
-        // reverse order
-        sb.append(format(r1));
-        sb.append(format(r0));
         sb.append(format(r2));
+        sb.append(format(r0));
+        sb.append(format(r1));
 
         return sb;
     }

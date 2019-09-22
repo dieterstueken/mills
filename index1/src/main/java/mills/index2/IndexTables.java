@@ -1,9 +1,9 @@
 package mills.index2;
 
 import mills.bits.PopCount;
-import mills.index.PosIndex;
 import mills.index1.R2Index;
 import mills.ring.Entries;
+import mills.ring.EntryTables;
 import mills.util.IntegerDigest;
 import mills.util.PopMap;
 
@@ -30,6 +30,8 @@ public class IndexTables extends PopMap<R2Index> {
     public static void main(String... args) throws NoSuchAlgorithmException {
         IntegerDigest digest = new IntegerDigest("MD5");
 
+        EntryTables tables = new EntryTables();
+
         IndexBuilder indexes = IndexBuilder.create();
         System.out.format("start %d\n", Entries.TABLE.size());
         double start = System.currentTimeMillis();
@@ -38,17 +40,23 @@ public class IndexTables extends PopMap<R2Index> {
         for(int nb=0; nb<10; ++nb)
             for(int nw=0; nw<10; ++nw) {
                 PopCount pop = PopCount.of(nb, nw);
-                PosIndex posIndex = indexes.build(pop);
+                R2Index posIndex = indexes.build(pop);
 
                 int range = posIndex.range();
                 int n20 = posIndex.n20();
                 System.out.format("l%d%d%10d, %4d\n", pop.nb, pop.nw, range, n20);
                 digest.update(range);
+
+                posIndex.values().parallelStream()
+                        .flatMap(r2e -> r2e.values().values().stream())
+                        .forEach(tables::key);
             }
 
         double stop = System.currentTimeMillis();
         System.out.format("%.3f s\n", (stop - start) / 1000);
 
         System.out.println("digest: " + digest.digest());
+
+        tables.stat(System.out);
     }
 }

@@ -12,8 +12,12 @@ import java.security.NoSuchAlgorithmException;
 public class IntegerDigest {
     final MessageDigest digest;
 
-    public IntegerDigest(final String algorithm) throws NoSuchAlgorithmException {
-        digest = MessageDigest.getInstance(algorithm);
+    public IntegerDigest(final String algorithm) {
+        try {
+            digest = MessageDigest.getInstance(algorithm);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void update(int value) {

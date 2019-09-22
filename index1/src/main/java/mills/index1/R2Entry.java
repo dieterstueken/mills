@@ -21,6 +21,7 @@ public class R2Entry {
     final int base;
 
     final short i2;
+    final RingEntry e2;
 
     final R0Table t0;
 
@@ -28,6 +29,7 @@ public class R2Entry {
         this.index = index;
         this.base = index - t0.range();
         this.i2 = i2;
+        this.e2 = Entries.of(i2);
         this.t0 = t0;
     }
 

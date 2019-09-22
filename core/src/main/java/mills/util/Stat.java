@@ -28,7 +28,7 @@ public class Stat implements IntConsumer {
         System.out.format("%s: %d %d\n", title, stat.size(), sum());
 
         for (Map.Entry<Integer, AtomicInteger> e : stat.entrySet()) {
-            System.out.format("%4d %4d\n", e.getKey(), e.getValue().get());
+            System.out.format("%4x %4d\n", e.getKey(), e.getValue().get());
         }
     }
 

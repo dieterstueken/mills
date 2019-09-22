@@ -173,7 +173,7 @@ public interface Positions {
 
     static long n201(int i2, int i0, int i1) {
         long n201 = i201(i2, i0, i1);
-        assert n201 == (normalize(n201) & M201);
+        //assert n201 == (normalize(n201) & M201);
         return n201;
     }
 

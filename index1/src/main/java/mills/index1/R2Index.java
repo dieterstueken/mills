@@ -64,7 +64,7 @@ public class R2Index implements PosIndex {
             return -entries.get(-1 - pos).range() - 1;
         }
 
-        return entries.get(pos).posIndex(i201);
+        return entries.get(pos).posIndex(n201);
     }
 
     private int findBase(int posIndex) {

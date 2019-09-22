@@ -74,6 +74,16 @@ public class IndexDigest {
         System.out.println("digest: " + digest.digest());
     }
 
+    static void verify(PosIndex posIndex) {
+        posIndex.process((index, i201) -> {
+            int i = posIndex.posIndex(i201);
+            if(i!=index)
+                throw new IllegalStateException();
+            long j201 = posIndex.i201(index);
+            if(j201!=i201)
+                throw new IllegalStateException(); });
+    }
+
     // e1f9dd6500301e4649063163f3c0d633
 
     public static void main(String ... args) throws NoSuchAlgorithmException, IOException {

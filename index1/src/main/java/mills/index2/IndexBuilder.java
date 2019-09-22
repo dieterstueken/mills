@@ -10,12 +10,12 @@ import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
+import mills.util.ListSet;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.ForkJoinTask;
 import java.util.function.UnaryOperator;
 
 /**
@@ -30,22 +30,22 @@ public class IndexBuilder {
     final LePopTable lePopTable;
     final LePopTable minPopTable;
 
-    final PartitionTables<EntryTable> partitions;
+    final List<EntryTable> partitions;
+
+    final List<EntryTable[]> fragments = AbstractRandomList.generate(PopCount.SIZE, pop -> new EntryTable[128]);
 
     private IndexBuilder(LePopTable lePopTable, LePopTable minPopTable,
-                         PartitionTables<EntryTable> partitions) {
+                         List<EntryTable> partitions) {
         this.lePopTable = lePopTable;
         this.minPopTable = minPopTable;
         this.partitions = partitions;
     }
 
     public static IndexBuilder create() {
-        // build parallel
-        ForkJoinTask<PartitionTables<EntryTable>> pt = ForkJoinTask.adapt(IndexBuilder::buildPartitions).fork();
         LePopTable lePopTable = LePopTable.build(Entries.TABLE);
         LePopTable minPopTable = LePopTable.build(Entries.MINIMIZED);
-        PartitionTables<EntryTable> partitions = pt.join();
-        return new IndexBuilder(lePopTable, minPopTable, partitions);
+        ListSet<EntryTable> partitions = PopCount.TABLE.transform(pop->pop.sum()<=8 ? Entries.TABLE.filter(pop.eq) : EntryTable.EMPTY);
+        return new IndexBuilder(lePopTable, minPopTable, partitions.copyOf());
     }
 
     List<R2Index> asList() {
@@ -70,7 +70,7 @@ public class IndexBuilder {
 
         Map<RingEntry, R0Table> r0map = new ConcurrentSkipListMap<>();
 
-        minPopTable.get(pop).forEach(e2->{
+        lePopTable.get(pop).parallelStream().forEach(e2->{
             R0Table t0 = t0(e2, pop);
             if(t0!=null && !t0.isEmpty())
                 r0map.put(e2, t0);
@@ -97,34 +97,71 @@ public class IndexBuilder {
         EntryTable lt0 = lePopTable.get(p2);
         for (RingEntry e0 : lt0) {
 
-            // while e0 < e2
-            if(e0.compareTo(e2)>0)
+            if(e0.index>e2.index)
                 break;
 
             // skip entries that can be reduced further
-            int mlt = e2.meq & e0.mlt;
+            int mlt = e2.mlt20(e0);
             if(mlt!=0)
                 continue;
 
             // remaining PopCount of e1[]
             PopCount p1 = p2.sub(e0.pop);
 
-            EntryTable t1 = partitions.get(p1).get(0);
+            EntryTable t1 = partitions.get(p1.index);
             if(t1.isEmpty())
                 continue;
 
             // mask of stable permutations
-            int msk = e2.meq & ~e0.mlt & 0xff;
+            int msk = meq20(e2, e0);
 
-            // those must not be reduced
-            t1 = t1.filter(e1->(e1.mlt&msk)==0);
-            if(t1.isEmpty())
+            EntryTable tf = fragment(p1, t1,  msk);
+
+            if(tf.isEmpty())
                 continue;
 
             t0.add(e0);
-            tt1.add(t1);
+            tt1.add(tf);
         }
 
         return R0Table.of(t0, tt1);
+    }
+
+    EntryTable fragment(PopCount p1, EntryTable t1, int msk) {
+        EntryTable[] ft = fragments.get(p1.index);
+
+        EntryTable tf = ft[msk/2];
+
+        if(tf==null) {
+            tf = fragment(t1, msk);
+            ft[msk/2] = tf;
+        }
+
+        return tf;
+    }
+
+    static EntryTable fragment(EntryTable t1, int msk) {
+        return t1.filter((e1->(e1.mlt&msk)==0));
+    }
+
+    static int meq20(RingEntry e2, RingEntry e0) {
+        // ether both are stable
+        int meq = e2.meq & e0.meq & 0xff;
+
+        // e2 reduced and e0 increases
+        int msk = e2.mlt & ~e0.meq & ~e0.mlt & 0xff;
+
+        for(int i=1; i<8; ++i) {
+            int m = 1<<i;
+            if(m>msk)
+                break;
+            if((msk&m)!=0) {
+                if(e2.perm(i)==e0.index && e0.perm(i)==e2.index)
+                    meq |= m;
+            }
+        }
+
+
+        return meq;
     }
 }
