@@ -94,7 +94,7 @@ public class IndexBuilder {
         List<RingEntry> t0 = new ArrayList<>();
         List<EntryTable> tt1 = new ArrayList<>();
 
-        EntryTable lt0 = lePopTable.get(p2);
+        EntryTable lt0 = minPopTable.get(p2);
         for (RingEntry e0 : lt0) {
 
             if(e0.index>e2.index)

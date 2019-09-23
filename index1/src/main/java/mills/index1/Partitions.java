@@ -48,7 +48,10 @@ public class Partitions extends AbstractRandomList<R2Index> {
 
     @Override
     public R2Index get(int pc) {
-        final PopCount pop = PopCount.TABLE.get(pc);
+        return get(PopCount.get(pc));
+    }
+
+    public R2Index get(PopCount pop) {
         R2Index index =  new T2Builder(pop, () -> new T0Builder(partitions, lePopTable)).build();
         return index;
     }

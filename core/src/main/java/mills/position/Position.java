@@ -53,6 +53,10 @@ public class Position implements Comparable<Position> {
         return of(p201);
     }
 
+    public static Position of(int i2, int i0, int i1) {
+        return of(i201(i2, i0, i1));
+    }
+
     public static Position of(long i201) {
         return new Position(i201);
     }
