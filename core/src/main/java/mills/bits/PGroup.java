@@ -24,20 +24,20 @@ import static mills.bits.Perm.*;
 public enum PGroup {
 
     // no symmetry at all
-    P0(ID),   // 5616:702
+    P0(R0),   // 5616:702
 
     // mirror one axis (54)
-    P1(ID, MH), // 216:54
-    P2(ID, MR), // 216:96
-    P3(ID, ML), // 216:54
-    P4(ID, MV), // 216:12
+    P1(R0, M0), // 216:54
+    P2(R0, M1), // 216:96
+    P3(R0, M3), // 216:54
+    P4(R0, M2), // 216:12
 
     // central point mirror (9)
-    P5(ID, RX), // 36:9
+    P5(R0, R2), // 36:9
 
     // central point plus and two mirror axis
-    P6(ID, RX, MH, MV), // 18:9
-    P7(ID, RX, MR, ML), // 18:9
+    P6(R0, R2, M0, M2), // 18:9
+    P7(R0, R2, M1, M3), // 18:9
 
     // fully symmetric
     P8(Perm.values());  // 9:9

@@ -203,6 +203,8 @@ public class RingEntry extends BW {
                 meq |= m;
         }
 
+        assert perm[0] == index : "RingEntry: index mismatch";
+
         this.meq = meq;
         this.mlt = mlt;
         this.min = min;

@@ -65,12 +65,43 @@ public enum Sector {
         return (mask>>ordinal())&1;
     }
 
+    /**
+     * Rotate right.
+     * @param i rotation count.
+     * @return rotated sector.
+     */
     public Sector rotate(int i) {
         i += ordinal();
         i &= 3;
+
+        // keep characteristics
         i |= (ordinal()&4);
 
         return SECTORS.get(i);
+    }
+
+    public Sector rotation() {
+        return rotate(1);
+    }
+
+    public Sector inversion() {
+        return rotate(2);
+    }
+
+    /**
+     * Mirror east/west.
+     * @return mirrored Sector.
+     */
+    public Sector mirror() {
+        int i = ordinal();
+
+        // bit to mirror
+        // edges swap E/W
+        // corners swap left/right.
+        int m = i<4 ? (i&1)<<1 : 1;
+
+        // may be stable
+        return m==0 ? this : SECTORS.get(i^m);
     }
 
     public short pow3() {

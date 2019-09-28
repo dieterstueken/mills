@@ -203,7 +203,7 @@ public interface Positions {
         int i2 = r2.perm(perm);
         int i0 = r0.perm(perm);
         int i1 = r1.perm(perm);
-        pm = Perm.compose(pm, perm);
+        pm = Perm.compose(perm, pm);
 
         // compose
         if((perm&Perm.SWP)==0)

@@ -31,24 +31,29 @@ public class PermTest {
     @Test
     public void composeTest() {
 
-        for (Perm p1 : Perm.VALUES) {
-            for (Perm p2 : Perm.VALUES) {
-                Perm pc = p1.compose(p2);
-                assertEquals("Perm.compose", pc.ordinal(), p1.compose(p2.ordinal()));
-                assertEquals("Perm.compose", pc.ordinal(), Perm.compose(p1.ordinal(), p2.ordinal()));
+        for (Perm first : Perm.VALUES) {
+            for (Perm then : Perm.VALUES) {
+                Perm pc = then.compose(first);
+
+                assertEquals("Perm.compose", pc.ordinal(), then.compose(first.ordinal()));
+                assertEquals("Perm.compose", pc.ordinal(), Perm.compose(then.ordinal(), first.ordinal()));
+
+                System.out.format(" %s", pc);
+
+                if(then.ordinal()==3)
+                    System.out.print(" |");
 
                 for (RingEntry e : Entries.TABLE) {
-                    RingEntry ex = e.permute(p1).permute(p2);
+                    RingEntry ex = e.permute(first).permute(then);
                     RingEntry ey = e.permute(pc);
+                    if(ex!=ey)
+                        ey = e.permute(pc);
                     assertEquals("Perm.compose", ex, ey);
                 }
-                System.out.format(" %s", pc);
-                if(p2.ordinal()==3)
-                    System.out.print(" |");
             }
             System.out.println();
 
-            if(p1.ordinal()==3)
+            if(first.ordinal()==3)
                 System.out.println(" ------------------------+------------------------");
         }
     }

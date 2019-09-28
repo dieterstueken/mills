@@ -29,16 +29,16 @@ import java.util.List;
     D C
 
     rotations:
-    ___   ID identity      ABCD
-    __R   RR rotate  90°   DABC
-    _X_   RX rotate 180°   CDAB
-    _XR   RL rotate 270°   BCDA
+    ___   R0 identity      ABCD
+    __R   R1 rotate  90°   DABC
+    _X_   R2 rotate 180°   CDAB
+    _XR   R3 rotate 270°   BCDA
 
     mirrors:
-    M__   MH           |   BADC
-    M_R   MR = M * RR  /   ADCB
-    MX_   MV = M * RX  -   DCBA
-    MXR   ML = M * RL  \   CBAD
+    M__   M0           |   BADC
+    M_R   M1 = M * RR  /   ADCB
+    MX_   M2 = M * RX  -   DCBA
+    MXR   M3 = M * RL  \   CBAD
 
     The permutation can be applied to a pattern of stones.
 */
@@ -51,33 +51,19 @@ public enum Perm implements Operation {
      * bit 1:
      */
 
-    ID, RR, RX, RL,
-    MH, MR, MV, ML;
+    R0, R1, R2, R3,
+    M0, M1, M2, M3;
 
-    private final SectorOperation op = op(ordinal());
+    private final SectMap map = map(ordinal());
 
     // pre calculated permutations
     private final int composed = composed(ordinal());
-
-    // # of rotations
-    public int nr() {
-        return ordinal()%4;
-    }
-
-    // if this operation mirrors
-    public boolean mirrors() {
-        return (ordinal()&4)!=0;
-    }
 
     /**
      * @return Return bit mask to use for meq.
      */
     public int msk() {
         return 1<<ordinal();
-    }
-
-    public SectorOperation op() {
-        return op;
     }
 
     /**
@@ -88,15 +74,24 @@ public enum Perm implements Operation {
      */
     @Override
     public int apply(int pattern) {
-        return op.apply(pattern);
+        int id = ordinal();
+
+        int result = rotate(pattern, id%4);
+
+        if(id>=4)
+            result = mirror(result);
+
+        assert result == map.apply(pattern);
+
+        return result;
     }
 
     // return inverse operation
     @Override
     public Perm invert() {
         switch(this) {
-            case RL: return RR;
-            case RR: return RL;
+            case R3: return R1;
+            case R1: return R3;
             default:
         }
 
@@ -109,12 +104,12 @@ public enum Perm implements Operation {
         return (composed>>>n)&7;
     }
 
-    public Perm compose(final Perm p) {
-        return get(compose(p.ordinal()));
+    public Perm compose(final Perm before) {
+        return get(compose(before.ordinal()));
     }
 
-    public static int compose(int p0, int p1) {
-        return get(p0).compose(p1);
+    public static int compose(int then, int first) {
+        return get(then).compose(first);
     }
 
     @Override
@@ -124,11 +119,19 @@ public enum Perm implements Operation {
 
     /////////////////////// static utilities ///////////////////////
 
-    static SectorOperation op(int m) {
-        SectorOperation op = SectorOperations.ROTATE.get(m&3);
+    static SectMap map(int m) {
+        SectMap map = SectMap.IDENTITY;
+
+        if((m&1)!=0)
+            map = map.andThen(SectMap.ROTATION);
+
+        if((m&2)!=0)
+            map = map.andThen(SectMap.INVERSION);
+
         if((m&4)!=0)
-            op = op.join(SectorOperations.MOP);
-        return op;
+            map = map.andThen(SectMap.MIRRORING);
+
+        return map;
     }
 
     static int composed(int m) {
@@ -137,13 +140,13 @@ public enum Perm implements Operation {
         // # of rotations
         int mr = m%4;
 
-        // mirrors 1 : -1
-        int mm = 1 - (m&4)/2;
-
         for(int k=1; k<8; ++k) {
-            // add positive or negative rotation
-            int mc = mr + mm * (k%4);
-            mc &= 3;
+
+            // mirrors ? 1 : -1
+            int mm = 1 - (k&4)/2;
+
+            // rotation gets possibly mirrored
+            int mc = (mm * mr + k) & 3;
 
             // xor mirrors
             mc |= (m^k)&4;
@@ -155,6 +158,39 @@ public enum Perm implements Operation {
             m |= mc;
         }
         return m;
+    }
+
+    static int rotate(int pattern, int count) {
+        count &= 3;
+
+        if(count!=0) {
+            pattern <<= count;
+            int mask = (0x0f << count) & 0xf0;
+            mask *= 0x111111;
+            mask &= pattern;
+            mask ^= mask >>> 4;
+            pattern ^= mask;
+        }
+
+        return pattern;
+    }
+
+    static final int EW = Sector.E.masks();
+    static final int NS = Sector.NW.masks() | Sector.SE.masks();
+
+    static int mirror(int pattern) {
+
+        int m = pattern ^ (pattern>>>2);
+        m &= EW;
+        m |= m<<2;
+        pattern ^= m;
+
+        m = pattern ^ (pattern>>>1);
+        m &= NS;
+        m |= m<<1;
+        pattern ^= m;
+
+        return pattern;
     }
 
     public static final List<Perm> VALUES = List.of(values());

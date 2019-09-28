@@ -19,10 +19,15 @@ class RingTable extends EntryTable {
     private final RingEntry[] entries = new RingEntry[MAX_INDEX];
 
     RingTable() {
-        IntStream.range(0, MAX_INDEX).parallel()
-                .mapToObj(RingEntry::create)
-                .forEach(e -> entries[e.index]=e);
-        //Arrays.setAll(entries, RingEntry::create);
+        IntStream is = IntStream.range(0, MAX_INDEX);
+
+        boolean asserts = false;
+        assert asserts=true;
+
+        if(!asserts)
+            is = is.parallel();
+
+        is.mapToObj(RingEntry::create).forEach(e -> entries[e.index]=e);
     }
 
     @Override

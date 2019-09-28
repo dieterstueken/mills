@@ -221,11 +221,14 @@ public class Pattern extends Sectors {
                 for(int p=0; p<8; p++) {
 
                     long perm = Perm.get(p).apply(i);
+
                     pattern |= perm<<(8*p);
 
                     if(perm==i)
                         meq |= 1<<p;
                 }
+
+                assert (pattern&0xff) == i : "pattern mismatch";
 
                 byte closed = 0;
                 byte closes = 0;
