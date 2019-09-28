@@ -44,7 +44,7 @@ public class ScoreSlices {
      */
     public int getScore201(long i201) {
         int index = map.posIndex(i201);
-        final ScoreSlice slice = slices.get(index >> 15);
+        final ScoreSlice slice = slices.get(index >>> 15);
         final short offset = (short) (index & Short.MAX_VALUE);
         return slice.getScore(offset);
     }
@@ -69,7 +69,7 @@ public class ScoreSlices {
                 int other = Stones.stones(i201, player.other());
 
                 if (!anyMove(self, other)) {
-                    ScoreSlice slice = slices.get(posIndex >> 15);
+                    ScoreSlice slice = slices.get(posIndex >>> 15);
                     final short offset = (short) (posIndex & Short.MAX_VALUE);
 
                     assert slice.getScore(offset) == 0 : "concurrent update of stuck position";

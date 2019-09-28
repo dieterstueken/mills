@@ -36,7 +36,7 @@ public interface SectorOperation extends Operation {
                 Sector t = map(s);
                 int is = t.ordinal() - i;
                 if(is<0)
-                    result |= bits>>-is;   
+                    result |= bits>>>-is;
                 else
                     result |= bits<<is;
             }

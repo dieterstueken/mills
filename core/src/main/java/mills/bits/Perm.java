@@ -46,7 +46,9 @@ import java.util.List;
 public enum Perm implements Operation {
 
     /**
-     * Enum ordinates and mask to select operations differ.
+     * Enum ordinates select operations applied:
+     * bit 0: rotate right.
+     * bit 1:
      */
 
     ID, RR, RX, RL,
@@ -104,7 +106,7 @@ public enum Perm implements Operation {
 
     public int compose(int perm) {
         int n = 4*(perm&7);
-        return (composed>>n)&7;
+        return (composed>>>n)&7;
     }
 
     public Perm compose(final Perm p) {

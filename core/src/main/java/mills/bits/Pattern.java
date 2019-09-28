@@ -138,7 +138,7 @@ public class Pattern extends Sectors {
 
     // return permutation #i
     public Pattern perm(int i) {
-        int perm = (int) (0xff & (patterns>>8*i));
+        int perm = (int) (0xff & (patterns>>>8*i));
         return of(perm);
     }
 

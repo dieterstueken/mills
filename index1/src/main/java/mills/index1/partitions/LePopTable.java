@@ -22,9 +22,16 @@ import static mills.bits.PopCount.P88;
 
 /**
  * A map of EntryTables filtered by pop count.
+ * Each entry provides a filtered table of entries with equal or lesser population.
+ * Since population is limited to 8 the tables are repeated for n>8.
  */
 public class LePopTable extends PopMap<EntryTable> {
 
+    /**
+     * Build from a subset root.
+     * @param root of entries distribute
+     * @return LePopTable of distributed entries.
+     */
     public static LePopTable build(EntryTable root) {
         final List<EntryTable> table = createTable(root);
         return new LePopTable(table);
@@ -57,7 +64,7 @@ public class LePopTable extends PopMap<EntryTable> {
             if(index>P88.index)
                 index = PopCount.get(index).min(P88).index;
 
-            // p88 itself was excluded
+            // p88 itself was excluded and is virtual
             if(index==P88.index)
                 return root;
 
@@ -65,7 +72,7 @@ public class LePopTable extends PopMap<EntryTable> {
         });
 
         class Task extends RecursiveTask<EntryTable> {
-            final PopCount pop;
+            private final PopCount pop;
 
             Task(PopCount pop) {
                 this.pop = pop;
@@ -85,7 +92,7 @@ public class LePopTable extends PopMap<EntryTable> {
         // prepare tasks to execute
         p88.stream().map(Task::new).forEach(tasks::add);
 
-        // start bigger tables first
+        // start with bigger tables first
         int i=tasks.size();
         while(i>0)
             tasks.get(--i).fork();

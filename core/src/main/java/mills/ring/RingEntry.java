@@ -254,15 +254,15 @@ public class RingEntry extends BW {
 
         while(candidates!=0) {
 
-            candidates >>= 1;
+            candidates >>>= 1;
 
             if(candidates%16==0) {
-                candidates >>= 4;
+                candidates >>>= 4;
                 pi += 4;
             }
 
             if(candidates%4==0) {
-                candidates >>= 2;
+                candidates >>>= 2;
                 pi += 2;
             }
 

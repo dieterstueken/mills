@@ -19,7 +19,7 @@ public enum Ring {
     }
 
     public int getMask(int stones) {
-        return stones >> 8 * radius;
+        return stones >>> 8 * radius;
     }
 
     public int getStones(int mask) {

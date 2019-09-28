@@ -46,13 +46,13 @@ abstract public class MoveTable {
             while(mask!=0) {
                 m >>= 1;
 
-                if(mask<=(j=m>>8))
+                if(mask<=(j=m>>>8))
                     m = j;
 
-                if(mask<=(j=m>>4))
+                if(mask<=(j=m>>>4))
                     m = j;
 
-                if(mask<=(j=m>>2))
+                if(mask<=(j=m>>>2))
                     m = j;
 
                 if((m&mask)!=0) {

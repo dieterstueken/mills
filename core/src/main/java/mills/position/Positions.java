@@ -82,10 +82,10 @@ public interface Positions {
         return (i201&CLOSED) != 0;
     }
 
-    static short i2(long i201) {return (short) (MASK&(i201>>S2));}
-    static short i0(long i201) {return (short) (MASK&(i201>>S0));}
-    static short i1(long i201) {return (short) (MASK&(i201>>S1));}
-    static byte perm(long i201) {return (byte) (Perm.PERM&(i201>>SP));}
+    static short i2(long i201) {return (short) (MASK&(i201>>>S2));}
+    static short i0(long i201) {return (short) (MASK&(i201>>>S0));}
+    static short i1(long i201) {return (short) (MASK&(i201>>>S1));}
+    static byte perm(long i201) {return (byte) (Perm.PERM&(i201>>>SP));}
 
     static RingEntry r2(long i201) {return Entries.of(i2(i201));}
     static RingEntry r0(long i201) {return Entries.of(i0(i201));}
@@ -294,18 +294,18 @@ public interface Positions {
         int candidates = r1.meq & (r2.mlt|r0.mlt) & 0xff;
 
         perm=0;
-        candidates >>= 1;
+        candidates >>>= 1;
         while(candidates!=0) {
 
             ++perm;
 
             if(candidates%16==0) {
-                candidates >>= 4;
+                candidates >>>= 4;
                 perm += 4;
             }
 
             if(candidates%4==0) {
-                candidates >>= 2;
+                candidates >>>= 2;
                 perm += 2;
             }
 
@@ -324,7 +324,7 @@ public interface Positions {
                 }
             }
 
-            candidates >>= 1;
+            candidates >>>= 1;
         }
 
         return m201;

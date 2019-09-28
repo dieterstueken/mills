@@ -67,8 +67,8 @@ public class Stones {
     }
 
     static Pattern p2(int stones) {return Pattern.of(stones);}
-    static Pattern p0(int stones) {return Pattern.of(stones>>8);}
-    static Pattern p1(int stones) {return Pattern.of(stones>>16);}
+    static Pattern p0(int stones) {return Pattern.of(stones>>>8);}
+    static Pattern p1(int stones) {return Pattern.of(stones>>>16);}
 
     public static short i2(int black, int white) {return BW.index(p2(black), p2(white));}
     public static short i0(int black, int white) {return BW.index(p0(black), p0(white));}

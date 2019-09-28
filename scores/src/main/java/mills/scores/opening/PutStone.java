@@ -86,15 +86,15 @@ public class PutStone<Target extends Position.Factory> {
         int m = 1 << 24;
         while (mask != 0) {
             int j;
-            m >>= 1;
+            m >>>= 1;
 
-            if (mask <= (j = m >> 8))
+            if (mask <= (j = m >>> 8))
                 m = j;
 
-            if (mask <= (j = m >> 4))
+            if (mask <= (j = m >>> 4))
                 m = j;
 
-            if (mask <= (j = m >> 2))
+            if (mask <= (j = m >>> 2))
                 m = j;
 
             if ((m & mask) != 0) {
