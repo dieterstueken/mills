@@ -52,12 +52,10 @@ public enum Perm implements Operation {
     ID, RR, RX, RL,
     MH, MR, MV, ML;
 
-    public static final List<Perm> VALUES = List.of(values());
+    private final SectorOperation op = op(ordinal());
 
-    public static final int MSK = 7;
-
-    // get by index [0,8[
-    public static Perm get(int i) { return VALUES.get(i & MSK);}
+    // pre calculated permutations
+    private final int composed = composed(ordinal());
 
     // # of rotations
     public int nr() {
@@ -76,14 +74,8 @@ public enum Perm implements Operation {
         return 1<<ordinal();
     }
 
-    private final SectorOperation op;
-
-    Perm() {
-        SectorOperation tmp = SectorOperations.ROTATE.get(nr());
-        if(mirrors())
-            tmp = tmp.join(SectorOperations.MOP);
-
-        this.op = tmp;
+    public SectorOperation op() {
+        return op;
     }
 
     /**
@@ -110,44 +102,69 @@ public enum Perm implements Operation {
         return this;
     }
 
-    // return composed operation
+    public int compose(int perm) {
+        int n = 4*(perm&7);
+        return (composed>>n)&7;
+    }
+
     public Perm compose(final Perm p) {
-        int nr = nr();
+        return get(compose(p.ordinal()));
+    }
 
-        // if his mirrors any rotation goes to the other direction.
-        if(mirrors())
-            nr += 4 - p.nr();
-        else
-            nr += p.nr();
+    public static int compose(int p0, int p1) {
+        return get(p0).compose(p1);
+    }
 
-        // normalize
-        nr &= 3;
-
-        // mirror is an xor of both
-        if(mirrors() != p.mirrors())
-            return VALUES.get(nr+4);
-        else
-            return VALUES.get(nr);
+    @Override
+    public String toString() {
+        return String.format("%s[%d]", name(), ordinal());
     }
 
     /////////////////////// static utilities ///////////////////////
+
+    static SectorOperation op(int m) {
+        SectorOperation op = SectorOperations.ROTATE.get(m&3);
+        if((m&4)!=0)
+            op = op.join(SectorOperations.MOP);
+        return op;
+    }
+
+    static int composed(int m) {
+        m &= 7;
+
+        // # of rotations
+        int mr = m%4;
+
+        // mirrors 1 : -1
+        int mm = 1 - (m&4)/2;
+
+        for(int k=1; k<8; ++k) {
+            // add positive or negative rotation
+            int mc = mr + mm * (k%4);
+            mc &= 3;
+
+            // xor mirrors
+            mc |= (m^k)&4;
+
+            // shift up
+            mc <<= 4*k;
+
+            // setup
+            m |= mc;
+        }
+        return m;
+    }
+
+    public static final List<Perm> VALUES = List.of(values());
+
+    public static final int MSK = 7;
+
+    // get by index [0,8[
+    public static Perm get(int i) { return VALUES.get(i & MSK);}
 
     // take 4th bit into account to reflect 2:0 swaps
     public static final int SWP = 8;
 
     // 4 bit mask
     public static final int PERM = 0x0f;
-
-    public static void main(String ... args) {
-
-        for(final Perm p1:Perm.values()) {
-            
-            for(final Perm p2:Perm.values()) {
-                final Perm p3 = p1.compose(p2);
-                System.out.format(" %s", p3.name());
-            }
-
-            System.out.println();
-        }
-    }
 }
