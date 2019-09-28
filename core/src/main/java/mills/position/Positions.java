@@ -8,8 +8,6 @@ import mills.ring.RingEntry;
 import mills.stones.Mills;
 import mills.stones.Stones;
 
-import java.util.function.IntBinaryOperator;
-
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -30,8 +28,8 @@ import java.util.function.IntBinaryOperator;
  *
  * Since a long value keeps 64 bits the uppermost 16 bit my carry some additional information.
  * Bits 48,49,50 carry the applied permutations, bit 51 shows if the i20 part was swapped.
- * Bit 52 indicates if the position has been normalized already.
- * Bit 53 is used to indicate closed positions after elevation.
+ * Bit 52 is used to indicate closed positions after elevation.
+ * Bit 53 indicates if the position has been normalized already.
  *
  * A i201 position is normalized if r1 is minimized and r0 <= r2.
  *
@@ -50,35 +48,35 @@ public interface Positions {
      * Thus 16 bits are available to carry additional status information.
      */
 
-    static int MASK = (1<<16)-1;
-    static long M201 = (1L<<48)-1;
+    int MASK = (1<<16)-1;
+    long M201 = (1L<<48)-1;
 
-    //static int S2 = 0;
-    //static int S0 = 16;
-    //static int S1 = 32;
+    //int S2 = 0;
+    //int S0 = 16;
+    //int S1 = 32;
 
-    static int S1 = 0;
-    static int S0 = 16;
-    static int S2 = 32;
+    int S1 = 0;
+    int S0 = 16;
+    int S2 = 32;
 
-    static int SP = 48; // base of additional bits
+    int SP = 48; // base of additional bits
 
     // bits 48,49,50,51: permutations/swap applied
 
     // bits 52:53 SWP3: swapped rings if jumping
-    static long SWPX = 1L<<(SP+4);
-    static long SWPY = 1L<<(SP+5);
+    long SWPX = 1L<<(SP+4);
+    long SWPY = 1L<<(SP+5);
 
 
      // if the entry was already normalized
-    static long NORMALIZED = 1L<<(SP+7);
+    long NORMALIZED = 1L<<(SP+8);
 
     static boolean normalized(long i201) {
         return (i201&NORMALIZED) != 0;
     }
 
     // the entry results of an elevated close
-    static long CLOSED = 1L<<(SP+8);
+    long CLOSED = 1L<<(SP+7);
 
     static boolean closed(long i201) {
         return (i201&CLOSED) != 0;
@@ -104,7 +102,7 @@ public interface Positions {
         long i201(int black, int white);
     }
 
-    static final Builder BW = new Builder() {
+    Builder BW = new Builder() {
         @Override
         public long i201(int black, int white) {
             return stones(black, white);
@@ -115,7 +113,7 @@ public interface Positions {
         }
     };
 
-    static final Builder WB = new Builder() {
+    Builder WB = new Builder() {
         @Override
         public long i201(int black, int white) {
             return stones(white, black);
@@ -205,7 +203,7 @@ public interface Positions {
         int i2 = r2.perm(perm);
         int i0 = r0.perm(perm);
         int i1 = r1.perm(perm);
-        pm = compose(pm, perm);
+        pm = Perm.compose(pm, perm);
 
         // compose
         if((perm&Perm.SWP)==0)
@@ -266,7 +264,7 @@ public interface Positions {
     static long normalize(RingEntry r2, RingEntry r0, RingEntry r1, int pm) {
         long m201 = normalize(r2, r0, r1);
         int px = perm(m201);
-        px ^= compose(pm, px); // get changed bits
+        px ^= Perm.compose(pm, px); // get changed bits
         m201 ^= (long) px << SP;    // assume px is unsigned
         return m201;
     }
@@ -335,29 +333,4 @@ public interface Positions {
     static int m02(long i201) {
         return i0(i201)*(1<<16) + i2(i201);
     }
-
-    static byte compose(int p1, int p2) {
-        return (byte) PERMS.applyAsInt(p1, p2);
-    }
-
-    IntBinaryOperator PERMS = new IntBinaryOperator() {
-
-        // put into the protected context of a class
-        private byte composed[] = new byte[64];
-
-        {
-            for (Perm p1 : Perm.VALUES) {
-                for (Perm p2 : Perm.VALUES) {
-                    Perm px = p1.compose(p2);
-                    composed[8*p1.ordinal() + p2.ordinal()] = (byte) px.ordinal();
-                }
-            }
-
-        }
-
-        @Override
-        public int applyAsInt(int left, int right) {
-            return composed[8*left + right];
-        }
-    };
 }
