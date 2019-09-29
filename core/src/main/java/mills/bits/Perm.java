@@ -175,20 +175,20 @@ public enum Perm implements Operation {
         return pattern;
     }
 
-    static final int EW = Sector.E.masks();
-    static final int NS = Sector.NW.masks() | Sector.SE.masks();
+    private static final int MEDGES = Sector.E.masks();
+    private static final int MCORNERS = Sector.NW.masks() | Sector.SE.masks();
 
     static int mirror(int pattern) {
 
-        int m = pattern ^ (pattern>>>2);
-        m &= EW;
-        m |= m<<2;
-        pattern ^= m;
+        int mask = pattern ^ (pattern>>>2);
+        mask &= MEDGES;
+        mask |= mask<<2;
+        pattern ^= mask;
 
-        m = pattern ^ (pattern>>>1);
-        m &= NS;
-        m |= m<<1;
-        pattern ^= m;
+        mask = pattern ^ (pattern>>>1);
+        mask &= MCORNERS;
+        mask |= mask<<1;
+        pattern ^= mask;
 
         return pattern;
     }
