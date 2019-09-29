@@ -1,7 +1,5 @@
 package mills.bits;
 
-import java.util.function.IntFunction;
-
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -18,7 +16,7 @@ public class Patterns {
         this.w = w;
     }
 
-    protected Patterns(short index, IntFunction<Pattern> patterns) {
+    protected Patterns(short index) {
         int b = 0;
         int w = 0;
 
@@ -33,8 +31,8 @@ public class Patterns {
 
         assert (b&w) == 0 : "duplicate occupation";
 
-        this.b = patterns.apply(b);
-        this.w = patterns.apply(w);
+        this.b = Pattern.of(b);
+        this.w = Pattern.of(w);
     }
 
     public Patterns and(Patterns other) {

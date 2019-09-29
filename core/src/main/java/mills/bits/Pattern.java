@@ -7,8 +7,6 @@ package mills.bits;
  * Time: 15:43:39
  */
 
-import mills.util.AbstractRandomList;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.IntFunction;
@@ -184,6 +182,7 @@ public class Pattern extends Sectors {
     }
 
     ///////////////////////////////////////////////////////////
+
     // there is no need ever to create any further Bit objects
     private Pattern(long patterns, byte meq, byte closed, byte closes, byte mcount) {
         super((int)(patterns&0xff));
@@ -253,6 +252,7 @@ public class Pattern extends Sectors {
 
         Pattern[] patterns = new Pattern[256];
         Arrays.parallelSetAll(patterns, generate);
+
         return patterns;
     }
 }

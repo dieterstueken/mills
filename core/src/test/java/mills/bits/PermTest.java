@@ -4,6 +4,9 @@ import mills.ring.Entries;
 import mills.ring.RingEntry;
 import org.junit.Test;
 
+import java.util.Set;
+import java.util.TreeSet;
+
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -55,6 +58,18 @@ public class PermTest {
 
             if(first.ordinal()==3)
                 System.out.println(" ------------------------+------------------------");
+        }
+    }
+
+    @Test
+    public void meqPerms() {
+        Set<Perms> perms = new TreeSet<>();
+
+        Entries.TABLE.stream().mapToInt(RingEntry::pmeq).mapToObj(Perms::of).forEach(perms::add);
+
+        System.out.format("%d:\n", perms.size());
+        for (Perms perm : perms) {
+            System.out.println(perm);
         }
     }
 }
