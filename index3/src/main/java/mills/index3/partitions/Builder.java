@@ -1,9 +1,6 @@
 package mills.index3.partitions;
 
-import mills.bits.PGroup;
-import mills.bits.Patterns;
-import mills.bits.Player;
-import mills.bits.PopCount;
+import mills.bits.*;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.EntryTables;
@@ -226,8 +223,8 @@ public class Builder {
         // 2) all colors are the same
         //      -> all clop counts are affected the same way
 
-        Patterns any = Patterns.NONE;
-        Patterns all = Patterns.ALL;
+        Patterns any = new Patterns(Pattern.NONE, Pattern.NONE);
+        Patterns all = new Patterns(Pattern.ALL, Pattern.ALL);
 
         for (RingEntry e : table) {
             e = e.radials(); // radials only

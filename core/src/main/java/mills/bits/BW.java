@@ -9,6 +9,8 @@ package mills.bits;
 
 import mills.util.Indexed;
 
+import java.util.function.IntFunction;
+
 /**
  * Class BW holds a pair of patterns occupied by black and white stones on a single 8 bit ringTable.
  * All combinations are kept by RING_TABLE.table, so no further instances are needed.
@@ -60,8 +62,8 @@ public class BW extends Patterns implements Indexed {
         return pop.nw();
     }
 
-    protected BW(short index) {
-        super(index);
+    protected BW(short index, IntFunction<Pattern> patterns) {
+        super(index, patterns);
 
         this.index = index;
         this.pop = PopCount.get(this.b.count(), this.w.count());

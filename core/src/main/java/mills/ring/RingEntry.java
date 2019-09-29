@@ -5,6 +5,7 @@ import mills.bits.*;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
+import java.util.function.IntFunction;
 
 /**
  * Created by IntelliJ IDEA.
@@ -164,12 +165,8 @@ public class RingEntry extends BW {
         return b.contains(other.b) && w.contains(other.w);
     }
 
-    static RingEntry create(int index) {
-        return new RingEntry((short) index);
-    }
-
-    private RingEntry(short index) {
-        super(index);
+    RingEntry(short index, IntFunction<Pattern> patterns) {
+        super(index, patterns);
 
         this.swapped = BW.index(w, b);
 

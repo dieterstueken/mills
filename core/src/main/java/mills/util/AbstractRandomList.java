@@ -94,9 +94,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
             return Collections.singletonList(generate.apply(0));
 
         Object[] values = new Object[size];
-        for(int i=0; i<size; ++i)
-            values[i] = generate.apply(i);
-
+        Arrays.setAll(values, generate);
         return AbstractRandomArray.construct(values);
     }
 

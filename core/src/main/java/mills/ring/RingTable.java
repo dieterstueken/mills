@@ -7,6 +7,13 @@ package mills.ring;
  * Time: 13:37:50
  */
 
+import mills.bits.Pattern;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveTask;
+import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
 import static mills.ring.RingEntry.MAX_INDEX;
@@ -19,15 +26,21 @@ class RingTable extends EntryTable {
     private final RingEntry[] entries = new RingEntry[MAX_INDEX];
 
     RingTable() {
-        IntStream is = IntStream.range(0, MAX_INDEX);
 
-        boolean asserts = false;
-        assert asserts=true;
+        ForkJoinTask<IntFunction<Pattern>> patterns = new RecursiveTask<IntFunction<Pattern>>() {
+            @Override
+            protected IntFunction<Pattern> compute() {
+                List<Pattern> patterns = Pattern.PATTERNS;
+                return patterns::get;
+            }
+        }.fork();
 
-        if(!asserts)
-            is = is.parallel();
+        ForkJoinTask<?> fill = ForkJoinTask.adapt(()->
+            Arrays.parallelSetAll(entries, index -> new RingEntry((short) index, patterns.join())))
+                .fork();
 
-        is.mapToObj(RingEntry::create).forEach(e -> entries[e.index]=e);
+        patterns.join();
+        fill.join();
     }
 
     @Override

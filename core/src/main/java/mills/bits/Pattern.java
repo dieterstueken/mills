@@ -9,7 +9,9 @@ package mills.bits;
 
 import mills.util.AbstractRandomList;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.IntFunction;
 
 /**
  * class Pattern represents the occupied positions on a ringTable of 8 positions.
@@ -201,20 +203,20 @@ public class Pattern extends Sectors {
     }
 
     // a pre calculated list of all 256 Pattern
-    public static final List<Pattern> PATTERNS = List.copyOf(patterns());
+    public static final List<Pattern> PATTERNS = List.of(patterns());
 
     public static final Pattern NONE = of(0);
     public static final Pattern RADIALS = of(Sector.RADIALS);
     public static final Pattern ALL = of(0xff);
 
-    private static List<Pattern> patterns() {
+    private static Pattern[] patterns() {
 
-        return new AbstractRandomList<>() {
+        IntFunction<Pattern> generate = new IntFunction<>() {
 
             final int[] mills = Sector.mills();
 
             @Override
-            public Pattern get(final int i) {
+            public Pattern apply(final int i) {
                 long pattern = 0;
                 byte meq = 0;
 
@@ -247,11 +249,10 @@ public class Pattern extends Sectors {
 
                 return new Pattern(pattern, meq, closed, closes, mcount);
             }
-
-            @Override
-            public int size() {
-                return 256;
-            }
         };
+
+        Pattern[] patterns = new Pattern[256];
+        Arrays.parallelSetAll(patterns, generate);
+        return patterns;
     }
 }
