@@ -1,6 +1,7 @@
 package mills.bits;
 
 import mills.util.Indexed;
+import mills.util.IndexedSet;
 import mills.util.ListSet;
 
 import java.util.Objects;
@@ -246,7 +247,7 @@ public class PopCount implements Indexed {
 
 
     // PopCounts <= (9,9)
-    public static final ListSet<PopCount> TABLE = ListSet.indexed(table());
+    public static final ListSet<PopCount> TABLE = IndexedSet.of(table());
 
     // # of closed mills (0-4)
     public static final ListSet<PopCount> CLOSED = TABLE.subList(0, 25);
