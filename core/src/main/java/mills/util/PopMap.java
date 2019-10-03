@@ -13,6 +13,11 @@ import java.util.Set;
  * modified by: $
  * modified on: $
  */
+
+/**
+ * Class PopMap implements an immutable map of PopCounts.
+ * @param <T> the type of mapped values.
+ */
 public class PopMap<T> extends AbstractMap<PopCount, T> {
 
     private ListSet<PopCount> keySet;

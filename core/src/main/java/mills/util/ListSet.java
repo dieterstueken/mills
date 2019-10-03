@@ -244,10 +244,10 @@ abstract public class ListSet<T> extends AbstractRandomList<T> implements Sorted
         }
     }
 
-    private static final ListSet<?> EMPTY = new Empty<Object>();
+    private static final ListSet<?> EMPTY = new Empty<>();
 
     @SuppressWarnings("unchecked")
-    protected <T> ListSet<T> empty() {
+    protected ListSet<T> empty() {
         return (ListSet<T>) EMPTY;
     }
 
@@ -273,6 +273,11 @@ abstract public class ListSet<T> extends AbstractRandomList<T> implements Sorted
         }
 
         @Override
+        public int findIndex(Object key) {
+            return value.equals(key) ? 1 : -1;
+        }
+
+        @Override
         public Iterator<T> iterator() {
             //return Iterators.singletonIterator(entry());
             return super.iterator();
@@ -293,9 +298,9 @@ abstract public class ListSet<T> extends AbstractRandomList<T> implements Sorted
         Comparator<? super T>  cmp = comparator();
 
         if(cmp==null)
-            return new Singleton<T>(value);
+            return new Singleton<>(value);
         else
-            return new Singleton<T>(value) {
+            return new Singleton<>(value) {
                 @Override
                 public Comparator<? super T> comparator() {
                     return cmp;
@@ -333,7 +338,7 @@ abstract public class ListSet<T> extends AbstractRandomList<T> implements Sorted
 
                 // was negative, limit negative size.
                 int limit = -(size+1);
-                return index<limit ? limit : index;
+                return Math.max(index, limit);
             }
 
             // index >= offset

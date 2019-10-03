@@ -2,7 +2,6 @@ package mills.util;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.ToIntFunction;
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,15 +18,10 @@ import java.util.function.ToIntFunction;
  *
  * @param <T>
  */
-public interface Indexer<T> extends Comparator<T>, ToIntFunction<T> {
+public interface Indexer<T> extends Comparator<T> {
 
     // mapping to be implemented.
     int index(T element);
-
-    @Override
-    default int applyAsInt(T value) {
-        return index(value);
-    }
 
     @Override
     default int compare(T e1, T e2) {

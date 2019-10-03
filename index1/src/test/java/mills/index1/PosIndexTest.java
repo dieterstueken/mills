@@ -7,6 +7,9 @@ import mills.ring.Entries;
 import mills.util.IntegerDigest;
 import org.junit.Test;
 
+import java.util.stream.IntStream;
+
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class PosIndexTest {
@@ -43,11 +46,31 @@ public class PosIndexTest {
         int range = index.range();
 
         //assertEquals(range, 1);
-
     }
 
     @Test
     public void testDigest() {
+        testDigest(false);
+    }
+
+    @Test
+    public void testVerify() {
+        testDigest(true);
+    }
+
+    @Test
+    public void testVerify88() {
+        double start = System.currentTimeMillis();
+        
+        PopCount pop = PopCount.of(8, 8);
+        R2Index posIndex = indexes.get(pop);
+        verify(posIndex);
+
+        double stop = System.currentTimeMillis();
+        System.out.format("%.3f s\n", (stop - start) / 1000);
+    }
+
+    public void testDigest(boolean verify) {
         final IntegerDigest digest = new IntegerDigest("MD5");
         System.out.format("start %d\n", Entries.TABLE.size());
 
@@ -62,23 +85,26 @@ public class PosIndexTest {
                 System.out.format("l%d%d%10d, %4d\n", pop.nb, pop.nw, range, n20);
                 digest.update(range);
 
-                verify(posIndex);
+                if(verify)
+                    verify(posIndex);
             }
 
         double stop = System.currentTimeMillis();
         System.out.format("%.3f s\n", (stop - start) / 1000);
 
-        System.out.println("digest: " + digest.digest());
+        byte[] result = digest.digest();
+
+        System.out.println("digest: " + IntegerDigest.toString(result));
+
+        assertArrayEquals(IntegerDigest.EXPECTED, result);
     }
     
     static void verify(R2Index posIndex) {
-        posIndex.process((index, i201) -> {
-            int i = posIndex.posIndex(i201);
-            if(i!=index)
-                throw new IllegalStateException();
-            long j201 = posIndex.i201(index);
-            if(j201!=i201)
-                 throw new IllegalStateException();
+
+        IntStream.range(0, posIndex.range()).parallel().forEach(index->{
+            long i201 = posIndex.i201(index);
+            int j = posIndex.posIndex(i201);
+            assertEquals(index, j);
         });
     }
 }

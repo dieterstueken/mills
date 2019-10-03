@@ -26,7 +26,9 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
         return index<0 ? -(index+1) : index+1;
     }
 
-    abstract public int range();
+    public int range() {
+        return isEmpty() ? 0 : get(size()-1);
+    }
 
     @Override
     public Integer get(int i) {
@@ -90,7 +92,7 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
         };
     }
 
-    public static IndexTable of(final int table[]) {
+    public static IndexTable of(int[] table) {
 
         if(table.length==0)
             return EMPTY;

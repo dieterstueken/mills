@@ -10,6 +10,10 @@ import java.security.NoSuchAlgorithmException;
 * Time: 11:05:34
 */
 public class IntegerDigest {
+
+    public static final byte[] EXPECTED = {(byte)0xe1, (byte)0xf9, (byte)0xdd, 0x65, 0x00, 0x30, 0x1e, 0x46,
+            0x49, 0x06, 0x31, 0x63, (byte)0xf3, (byte)0xc0, (byte)0xd6, (byte)0x33};
+
     final MessageDigest digest;
 
     public IntegerDigest(final String algorithm) {
@@ -28,13 +32,21 @@ public class IntegerDigest {
         }
     }
 
-    public String digest() {
-        byte[] result = digest.digest();
+    @Override
+    public String toString() {
+        return toString(digest.digest());
+    }
+
+    public static String toString(byte[] result) {
         StringBuilder sb = new StringBuilder();
         for(final byte b:result) {
             sb.append(String.format("%02x", b));
         }
 
         return sb.toString();
+    }
+
+    public byte[] digest() {
+        return digest.digest();
     }
 }

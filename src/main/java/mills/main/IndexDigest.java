@@ -71,7 +71,7 @@ public class IndexDigest {
 
         System.out.format("total: %s\n" , total);
 
-        System.out.println("digest: " + digest.digest());
+        System.out.println("digest: " + digest.toString());
     }
 
     static void verify(PosIndex posIndex) {
