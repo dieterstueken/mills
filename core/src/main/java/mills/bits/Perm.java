@@ -1,6 +1,6 @@
 package mills.bits;
 
-import java.util.List;
+import mills.util.ListSet;
 
 /**
  * Created by IntelliJ IDEA.
@@ -193,7 +193,7 @@ public enum Perm implements Operation {
         return pattern;
     }
 
-    public static final List<Perm> VALUES = List.of(values());
+    public static final ListSet<Perm> VALUES = ListSet.of(values());
 
     public static final int MSK = 7;
 

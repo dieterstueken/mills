@@ -24,14 +24,14 @@ public class PopMap<T> extends AbstractMap<PopCount, T> {
     private static final Comparator<Entry<PopCount, ?>> ENTRY_COMARATOR = Comparator.comparing(Entry::getKey);
 
 
-    private UnitSet<PopCount> keySet;
+    private ListSet<PopCount> keySet;
 
     private final List<T> values;
     
     private final ListSet<Entry<PopCount, T>> entries;
 
     protected PopMap(List<T> values, ListSet<Entry<PopCount, T>> entries) {
-        this.keySet = PopCount.TABLE.subSet(values.size());
+        this.keySet = PopCount.TABLE.subList(values.size());
         this.values = values;
 
         // create virtual entry set

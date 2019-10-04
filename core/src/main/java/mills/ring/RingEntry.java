@@ -2,6 +2,7 @@ package mills.ring;
 
 import mills.bits.*;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
@@ -164,7 +165,7 @@ public class RingEntry extends BW {
         return b.contains(other.b) && w.contains(other.w);
     }
 
-    RingEntry(short index) {
+    private RingEntry(short index) {
         super(index);
 
         this.swapped = BW.index(w, b);
@@ -207,6 +208,12 @@ public class RingEntry extends BW {
         this.mix = mix;
 
         this.grp = PGroup.group(pmeq());
+    }
+
+    static RingEntry[] table() {
+        RingEntry[] table = new RingEntry[MAX_INDEX];
+        Arrays.parallelSetAll(table, index -> new RingEntry((short) index));
+        return table;
     }
 
     // return short instead of byte to avoid any negative values

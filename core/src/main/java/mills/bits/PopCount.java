@@ -1,7 +1,7 @@
 package mills.bits;
 
 import mills.util.Indexed;
-import mills.util.UnitSet;
+import mills.util.ListSet;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -246,10 +246,10 @@ public class PopCount implements Indexed {
 
 
     // PopCounts <= (9,9)
-    public static final UnitSet<PopCount> TABLE = UnitSet.of(table());
+    public static final ListSet<PopCount> TABLE = ListSet.of(root());
 
     // # of closed mills (0-4)
-    public static final UnitSet<PopCount> CLOSED = TABLE.subSet(5);
+    public static final ListSet<PopCount> CLOSED = TABLE.subList(5);
 
     public static final PopCount EMPTY = get(0,0);
     public static final PopCount P44 = get(4,4);
@@ -259,7 +259,7 @@ public class PopCount implements Indexed {
         return TABLE.get(index);
     }
 
-    private static PopCount[] table() {
+    private static PopCount[] root() {
 
         PopCount table[] = new PopCount[SIZE];
         for (int nw = 0; nw < 10; ++nw) {

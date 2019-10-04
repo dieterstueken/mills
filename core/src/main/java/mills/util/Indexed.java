@@ -16,5 +16,4 @@ public interface Indexed extends Comparable<Indexed> {
         return Integer.compare(getIndex(), o.getIndex());
     }
 
-    Indexer<Indexed> INDEXER = Indexed::getIndex;
 }

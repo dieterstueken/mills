@@ -1,8 +1,12 @@
 package mills.ring;
 
-import mills.util.IndexedSet;
+
+import mills.util.AbstractListSet;
+import mills.util.Indexed;
+import mills.util.Indexer;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -18,12 +22,17 @@ import java.util.function.Predicate;
  * In addition it provides utility methods to get the RingEntry.index directly,
  * to find the table indexOf a given RingEntry and to generate filtered subsets of itself.
  */
-public interface EntryTable extends IndexedSet<RingEntry> {
+abstract public class EntryTable extends AbstractListSet<RingEntry> {
+
+    @Override
+    public Comparator<Indexed> comparator() {
+        return Indexer.INDEXED;
+    }
 
     // fast lookup of table index of a given ring index
-    int findIndex(int ringIndex);
+    abstract public int findIndex(int ringIndex);
 
-    default int indexOf(RingEntry entry) {
+    public int indexOf(RingEntry entry) {
         return findIndex(entry.index);
     }
 
@@ -33,7 +42,7 @@ public interface EntryTable extends IndexedSet<RingEntry> {
      * @param ringIndex to find.
      * @return index of the first element which is greater than ringIndex.
      */
-    default int lowerBound(int ringIndex) {
+    public int lowerBound(int ringIndex) {
         int index = findIndex(ringIndex);
         return index<0 ? -(index+1) : index;
     }
@@ -44,13 +53,13 @@ public interface EntryTable extends IndexedSet<RingEntry> {
      * @param ringIndex to find.
      * @return index of the first element which is greater than ringIndex.
      */
-    default int upperBound(int ringIndex) {
+    public int upperBound(int ringIndex) {
         int index = findIndex(ringIndex);
         return index<0 ? -(index+1) : index+1;
     }
 
     @Override
-    default int indexOf(Object obj) {
+    public int indexOf(Object obj) {
 
         if(obj instanceof RingEntry)
             return indexOf((RingEntry) obj);
@@ -59,38 +68,51 @@ public interface EntryTable extends IndexedSet<RingEntry> {
     }
 
     @Override
-    default boolean contains(Object obj) {
+    public boolean contains(Object obj) {
         return indexOf(obj) >= 0;
     }
 
     // shortcut
-    default short ringIndex(int index) {
-        return get(index).index;
-    }
+    abstract public short ringIndex(int index);
 
-    RingEntry getEntry(int index);
+    abstract RingEntry getEntry(int index);
 
     @Override
-    default EntryTable subList(int fromIndex, int toIndex) {
-        return new SubTable(this, fromIndex, toIndex);
+    public EntryTable subList(int fromIndex, int toIndex) {
+        int size = checkRange(fromIndex, toIndex);
+
+        if(size==0)
+            return EMPTY;
+
+        if(size==1)
+            return get(fromIndex).singleton;
+
+        if(size==this.size())
+            return this;
+
+        return partition(fromIndex, size);
+    }
+
+    public EntryTable partition(int fromIndex, int size) {
+        return new SubTable(this, fromIndex, size);
     }
 
     @Override
-    default EntryTable subSet(RingEntry fromElement, RingEntry toElement) {
+    public EntryTable subSet(RingEntry fromElement, RingEntry toElement) {
         return subList(lowerBound(fromElement.index), lowerBound(toElement.index));
     }
 
     @Override
-    default EntryTable headSet(RingEntry toElement) {
+    public EntryTable headSet(RingEntry toElement) {
         return subList(0, lowerBound(toElement.index));
     }
 
     @Override
-    default EntryTable tailSet(RingEntry fromElement) {
+    public EntryTable tailSet(RingEntry fromElement) {
         return subList(lowerBound(fromElement.index), size());
     }
 
-    default EntryTable filter(Predicate<? super RingEntry> predicate) {
+    public EntryTable filter(Predicate<? super RingEntry> predicate) {
 
         if(predicate == Entries.ALL)
             return this;
@@ -163,9 +185,9 @@ public interface EntryTable extends IndexedSet<RingEntry> {
     ////////////////////////////////////////////////////////////////////////////////////////////
 
     // an empty table template
-    EmptyTable EMPTY = EmptyTable.of();
+    public static final EmptyTable EMPTY = EmptyTable.of();
 
-    static EntryTable of(List<? extends RingEntry> entries) {
+    public static EntryTable of(List<? extends RingEntry> entries) {
 
         if(entries instanceof EntryTable) {
             return (EntryTable) entries;
@@ -174,7 +196,7 @@ public interface EntryTable extends IndexedSet<RingEntry> {
         final int size = entries.size();
 
         if(size==0)
-            return EntryTable.EMPTY;
+            return EMPTY;
 
         RingEntry e = entries.get(0);
 
@@ -198,7 +220,7 @@ public interface EntryTable extends IndexedSet<RingEntry> {
         return EntryArray.of(index);
     }
 
-    static EntryTable of(int ... index) {
+    public static EntryTable of(int ... index) {
         short[] values = new short[index.length];
 
         for(int i=0; i<index.length; ++i)
@@ -207,11 +229,11 @@ public interface EntryTable extends IndexedSet<RingEntry> {
         return of(values, values.length);
     }
 
-    static EntryTable of(short[] ringIndex, int size) {
+    public static EntryTable of(short[] ringIndex, int size) {
         return of(ringIndex, 0, size);
     }
 
-    static EntryTable of(short[] table, int fromIndex, int toIndex) {
+    public static EntryTable of(short[] table, int fromIndex, int toIndex) {
 
         int size = toIndex - fromIndex;
         if(size==0)

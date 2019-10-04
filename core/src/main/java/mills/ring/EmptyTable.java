@@ -51,7 +51,7 @@ class EmptyTable extends EntryList {
         return Collections.emptyIterator();
     }
 
-    public final RingEntry empty[] = new RingEntry[0];
+    public final RingEntry[] empty = new RingEntry[0];
 
     @Override
     public RingEntry[] toArray() {

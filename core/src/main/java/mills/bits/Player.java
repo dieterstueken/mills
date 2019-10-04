@@ -7,6 +7,8 @@ package mills.bits;
 * Time: 18:17:23
 */
 
+import mills.util.ListSet;
+
 import java.util.List;
 
 /**
@@ -90,7 +92,7 @@ public enum Player {
 
     public final PopCount pop;
 
-    public static final List<Player> PLAYERS = List.of(values());
+    public static final ListSet<Player> PLAYERS = ListSet.of(values());
     public static final List<Player> BW = List.of(Black, White);
 
     public static Player of(int i) {

@@ -7,8 +7,10 @@ package mills.bits;
  * Time: 15:43:39
  */
 
+import mills.util.Indexed;
+import mills.util.ListSet;
+
 import java.util.Arrays;
-import java.util.List;
 import java.util.function.IntFunction;
 
 /**
@@ -17,7 +19,7 @@ import java.util.function.IntFunction;
  * Thus no new objects have to be created.
  * Each Pattern object also keeps all possible permutations of itself in a pre calculated lookup array.
  */
-public class Pattern extends Sectors {
+public class Pattern extends Sectors implements Indexed {
 
     // the pattern is composed of 8 bytes of permuted pattern
     public final long patterns;
@@ -32,6 +34,10 @@ public class Pattern extends Sectors {
     // return the bit mask of occupied positions
     public int stones() {
         return (0xff & pattern);
+    }
+
+    public int getIndex() {
+        return stones();
     }
 
     // return the count of occupied bits.
@@ -202,7 +208,7 @@ public class Pattern extends Sectors {
     }
 
     // a pre calculated list of all 256 Pattern
-    public static final List<Pattern> PATTERNS = List.of(patterns());
+    public static final ListSet<Pattern> PATTERNS = ListSet.of(patterns());
 
     public static final Pattern NONE = of(0);
     public static final Pattern RADIALS = of(Sector.RADIALS);

@@ -20,8 +20,11 @@ import java.util.List;
  */
 public interface Indexer<T> extends Comparator<T> {
 
+    Indexer<Indexed> INDEXED = Indexed::getIndex;
+    Indexer<Enum> ENUM = Enum::ordinal;
+
     // mapping to be implemented.
-    int index(T element);
+    int indexOf(T element);
 
     @Override
     default int compare(T e1, T e2) {
@@ -31,7 +34,7 @@ public interface Indexer<T> extends Comparator<T> {
         if(e1==null)
             return -1;
 
-        return Integer.compare(index(e1), index(e2));
+        return Integer.compare(indexOf(e1), indexOf(e2));
     }
 
     default int lowerBound(List<? extends T> sortedList, int key) {
@@ -54,7 +57,7 @@ public interface Indexer<T> extends Comparator<T> {
 
         while (low <= high) {
             int mid = (low + high) >>> 1;
-            int midVal = index(sortedList.get(mid));
+            int midVal = indexOf(sortedList.get(mid));
 
             if (midVal < key)
                 low = mid + 1;

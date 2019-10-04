@@ -13,7 +13,7 @@ public class SubTable extends EntryList {
     final int offset;
     final int size;
 
-    public SubTable(EntryTable parent, int offset, int size) {
+    SubTable(EntryTable parent, int offset, int size) {
         this.parent = parent;
         this.offset = offset;
         this.size = size;

@@ -16,11 +16,6 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
             return indexOf(obj) >= 0;
         }
 
-    @Override
-    default Comparator<? super T> comparator() {
-        return null;
-    }
-
     /**
      *
      * @param key the key to be searched for.
@@ -88,12 +83,35 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
     @Override
     ListSet<T> subList(int fromIndex, int toIndex);
 
+    default ListSet<T> subList(int toIndex) {
+        return subList(0, toIndex);
+    }
+
+    int checkRange(int fromIndex, int toIndex);
+
     @Override
     default Spliterator<T> spliterator() {
         return Spliterators.spliterator(this, Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.ORDERED | Spliterator.IMMUTABLE);
     }
 
-    default <X> ListSet<X> transform(Function<? super T, ? extends X> mapper, Comparator<? super X> comparator) {
-        return new ListSetAdapter<X>(AbstractRandomList.transform(this, mapper), comparator);
+    default <E> ListSet<E> transform(Function<? super T, ? extends E> mapper, Comparator<? super E> comparator) {
+        List<E> transformed = AbstractRandomList.transform(this, mapper);
+        return AbstractListSet.of(transformed, comparator);
+    }
+
+    static <T> ListSet<T> of(List<T> values, Comparator<? super T> comparator) {
+        return AbstractListSet.of(values, comparator);
+    }
+
+    static <T extends Indexed> ListSet<T> of(List<T> values) {
+        return AbstractListSet.of(values, Indexer.INDEXED);
+    }
+
+    static <T extends Indexed> ListSet<T> of(T[] values) {
+        return AbstractListSet.of(List.of(values), Indexer.INDEXED);
+    }
+
+    static <T extends Enum<T>> ListSet<T> of(T[] values) {
+        return AbstractListSet.of(List.of(values), Indexer.ENUM);
     }
 }

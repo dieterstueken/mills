@@ -1,6 +1,8 @@
 package mills.bits;
 
 import mills.util.AbstractRandomList;
+import mills.util.Indexed;
+import mills.util.ListSet;
 
 import java.util.*;
 
@@ -10,12 +12,17 @@ import java.util.*;
  * Date: 29.09.19
  * Time: 18:03
  */
-public class Perms extends AbstractSet<Perm> implements Comparable<Perms> {
+public class Perms extends AbstractSet<Perm> implements Indexed {
 
     final int perms;
 
     private Perms(int perms) {
         this.perms = perms;
+    }
+
+    @Override
+    public int getIndex() {
+        return perms;
     }
 
     @Override
@@ -42,11 +49,6 @@ public class Perms extends AbstractSet<Perm> implements Comparable<Perms> {
 
     public boolean contains(Perm p) {
         return (perms & p.msk()) != 0;
-    }
-
-    @Override
-    public int compareTo(Perms o) {
-        return Integer.compare(perms, o.perms);
     }
 
     @Override
@@ -111,7 +113,7 @@ public class Perms extends AbstractSet<Perm> implements Comparable<Perms> {
 
     //////////////////////////////////////////
 
-    public static final List<Perms> VALUES = AbstractRandomList.generate(256, Perms::new);
+    public static final ListSet<Perms> VALUES = ListSet.of(AbstractRandomList.generate(256, Perms::new));
 
     public static final Perms EMPTY = VALUES.get(0);
 

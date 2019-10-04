@@ -1,6 +1,6 @@
 package mills.bits;
 
-import java.util.List;
+import mills.util.ListSet;
 
 /**
  * Created by IntelliJ IDEA.
@@ -30,7 +30,7 @@ public enum Ring {
         return ring << 16*ordinal();
     }
 
-    public static final List<Ring> RINGS = List.of(values());
+    public static final ListSet<Ring> RINGS = ListSet.of(values());
 
     public static Ring of(int i) {
         return RINGS.get(i);
