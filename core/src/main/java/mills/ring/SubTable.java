@@ -7,7 +7,7 @@ package mills.ring;
  * modified by: $Author$
  * modified on: $Date$
  */
-public class SubTable extends EntryTable {
+public class SubTable extends EntryList {
 
     final EntryTable parent;
     final int offset;
@@ -23,6 +23,11 @@ public class SubTable extends EntryTable {
     }
 
     @Override
+    public RingEntry getEntry(int index) {
+        return parent.getEntry(index);
+    }
+
+    @Override
     public int findIndex(int ringIndex) {
         int index = parent.findIndex(ringIndex);
 
@@ -33,7 +38,7 @@ public class SubTable extends EntryTable {
 
             // was negative, limit negative size.
             int limit = -(size+1);
-            return index<limit ? limit : index;
+            return Math.max(index, limit);
         }
 
         // index >= offset

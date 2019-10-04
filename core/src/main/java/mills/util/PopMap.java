@@ -3,6 +3,7 @@ package mills.util;
 import mills.bits.PopCount;
 
 import java.util.AbstractMap;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -20,21 +21,28 @@ import java.util.Set;
  */
 public class PopMap<T> extends AbstractMap<PopCount, T> {
 
-    private ListSet<PopCount> keySet;
+    private static final Comparator<Entry<PopCount, ?>> ENTRY_COMARATOR = Comparator.comparing(Entry::getKey);
+
+
+    private UnitSet<PopCount> keySet;
 
     private final List<T> values;
     
     private final ListSet<Entry<PopCount, T>> entries;
 
     protected PopMap(List<T> values, ListSet<Entry<PopCount, T>> entries) {
-        this.keySet = PopCount.TABLE.subList(0, values.size());
+        this.keySet = PopCount.TABLE.subSet(values.size());
         this.values = values;
 
         // create virtual entry set
         if(entries==null)
-            entries = keySet.transform(pop -> new SimpleImmutableEntry<>(pop, values.get(pop.index)));
+            entries = keySet.transform(this::entry, ENTRY_COMARATOR);
 
         this.entries = entries;
+    }
+
+    private Entry<PopCount, T> entry(PopCount pop) {
+        return new SimpleImmutableEntry<>(pop, values.get(pop.index));
     }
 
     protected PopMap(List<T> tables) {

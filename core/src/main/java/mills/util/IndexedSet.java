@@ -1,62 +1,29 @@
 package mills.util;
 
-import java.util.List;
+import java.util.Comparator;
+import java.util.function.Function;
 
 /**
  * Class IndexedSet implements a sorted set of indexes values.
  * @param <I> the type of values.
  */
-abstract public class IndexedSet<I extends Indexed> extends ListSet<I> {
-
-    public static <I extends Indexed> IndexedSet<I> of(I[] values) {
-
-        return new IndexedSet<I>() {
-
-            @Override
-            public I get(int index) {
-                return values[index];
-            }
-
-            @Override
-            public int size() {
-                return values.length;
-            }
-        }.verify();
-    }
-
-    public static <I extends Indexed> IndexedSet<I> of(List<I> values) {
-
-        return new IndexedSet<I>() {
-
-            @Override
-            public I get(int index) {
-                return values.get(index);
-            }
-
-            @Override
-            public int size() {
-                return values.size();
-            }
-        }.verify();
-    }
+public interface IndexedSet<I extends Indexed> extends ListSet<I> {
 
     @Override
-    public int indexOf(Object o) {
+    default int indexOf(Object o) {
         if(o instanceof Indexed) {
             int key = ((Indexed)o).getIndex();
             return Indexed.INDEXER.binarySearchKey(this, key);
         } else
-            return super.indexOf(o);
+            return -1;
     };
 
     @Override
-    public Indexer<? super I> comparator() {
+    default Comparator<? super I> comparator() {
         return Indexed.INDEXER;
     }
 
-    IndexedSet<I> verify() {
-        super.verify();
-        return this;
+    default <T extends Indexed> IndexedSet<T> transform(Function<? super I, ? extends T> mapper) {
+        return new IndexedList<>(AbstractRandomList.transform(this, mapper));
     }
-
 }

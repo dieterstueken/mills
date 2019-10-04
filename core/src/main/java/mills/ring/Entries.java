@@ -19,7 +19,7 @@ public interface Entries {
     /**
      * Immutable tables.
      */
-    EntryTable TABLE = new RingTable();
+    EntryTable TABLE = RingTable.create();
     EntryTable RADIALS = TABLE.subList(0, 81);
     EntryTable MINIMIZED = TABLE.filter(RingEntry::isMin);
     RingEntry EMPTY = of(0);

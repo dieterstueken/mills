@@ -12,7 +12,11 @@ import java.util.stream.Stream;
  * Time: 18:15
  */
 
-class EmptyTable extends EntryTable {
+class EmptyTable extends EntryList {
+
+    static EmptyTable of() {
+        return new EmptyTable();
+    }
 
     @Override
     public EmptyTable filter(Predicate<? super RingEntry> predicate) {
@@ -30,6 +34,11 @@ class EmptyTable extends EntryTable {
 
     @Override
     public int findIndex(int ringIndex) {
+        return -1;
+    }
+
+    @Override
+    public int indexOf(RingEntry entry) {
         return -1;
     }
 

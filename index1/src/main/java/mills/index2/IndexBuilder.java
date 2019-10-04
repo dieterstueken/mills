@@ -10,7 +10,6 @@ import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
-import mills.util.ListSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +43,7 @@ public class IndexBuilder {
     public static IndexBuilder create() {
         LePopTable lePopTable = LePopTable.build(Entries.TABLE);
         LePopTable minPopTable = LePopTable.build(Entries.MINIMIZED);
-        ListSet<EntryTable> partitions = PopCount.TABLE.transform(pop->pop.sum()<=8 ? Entries.TABLE.filter(pop.eq) : EntryTable.EMPTY);
+        AbstractRandomList<EntryTable> partitions = AbstractRandomList.transform(PopCount.TABLE, pop->pop.sum()<=8 ? Entries.TABLE.filter(pop.eq) : EntryTable.EMPTY);
         return new IndexBuilder(lePopTable, minPopTable, partitions.copyOf());
     }
 

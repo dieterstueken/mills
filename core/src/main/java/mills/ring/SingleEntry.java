@@ -11,7 +11,7 @@ import java.util.stream.Stream;
  * Date: 13.08.11
  * Time: 18:16
  */
-class SingleEntry extends EntryTable {
+class SingleEntry extends EntryList {
 
     final RingEntry entry;
 

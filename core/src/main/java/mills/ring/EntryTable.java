@@ -1,11 +1,8 @@
 package mills.ring;
 
-import mills.bits.PopCount;
-import mills.util.Indexed;
-import mills.util.ListSet;
+import mills.util.IndexedSet;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -21,12 +18,12 @@ import java.util.function.Predicate;
  * In addition it provides utility methods to get the RingEntry.index directly,
  * to find the table indexOf a given RingEntry and to generate filtered subsets of itself.
  */
-public abstract class EntryTable extends ListSet<RingEntry> {
+public interface EntryTable extends IndexedSet<RingEntry> {
 
     // fast lookup of table index of a given ring index
-    abstract public int findIndex(int ringIndex);
+    int findIndex(int ringIndex);
 
-    public int indexOf(RingEntry entry) {
+    default int indexOf(RingEntry entry) {
         return findIndex(entry.index);
     }
 
@@ -36,7 +33,7 @@ public abstract class EntryTable extends ListSet<RingEntry> {
      * @param ringIndex to find.
      * @return index of the first element which is greater than ringIndex.
      */
-    public int lowerBound(int ringIndex) {
+    default int lowerBound(int ringIndex) {
         int index = findIndex(ringIndex);
         return index<0 ? -(index+1) : index;
     }
@@ -47,13 +44,13 @@ public abstract class EntryTable extends ListSet<RingEntry> {
      * @param ringIndex to find.
      * @return index of the first element which is greater than ringIndex.
      */
-    public int upperBound(int ringIndex) {
+    default int upperBound(int ringIndex) {
         int index = findIndex(ringIndex);
         return index<0 ? -(index+1) : index+1;
     }
 
     @Override
-    public int indexOf(Object obj) {
+    default int indexOf(Object obj) {
 
         if(obj instanceof RingEntry)
             return indexOf((RingEntry) obj);
@@ -62,54 +59,38 @@ public abstract class EntryTable extends ListSet<RingEntry> {
     }
 
     @Override
-    public boolean contains(Object obj) {
+    default boolean contains(Object obj) {
         return indexOf(obj) >= 0;
     }
 
     // shortcut
-    public short ringIndex(int index) {
+    default short ringIndex(int index) {
         return get(index).index;
     }
 
+    RingEntry getEntry(int index);
+
     @Override
-    public EntryTable subList(int fromIndex, int toIndex) {
-        // legal up cast since all paths return an EntryTable
-        return (EntryTable) super.subList(fromIndex, toIndex);
-    }
-
-    protected EntryTable empty() {
-        return EntryTable.EMPTY;
-    }
-
-    protected EntryTable singleton(RingEntry entry) {
-        return entry.singleton;
-    }
-
-    protected EntryTable partition(int fromIndex, int range) {
-        return new SubTable(this, fromIndex, range);
+    default EntryTable subList(int fromIndex, int toIndex) {
+        return new SubTable(this, fromIndex, toIndex);
     }
 
     @Override
-    public final Comparator<Indexed> comparator() {
-        return Indexed.INDEXER;
-    }
-
-    @Override
-    public EntryTable subSet(RingEntry fromElement, RingEntry toElement) {
+    default EntryTable subSet(RingEntry fromElement, RingEntry toElement) {
         return subList(lowerBound(fromElement.index), lowerBound(toElement.index));
     }
 
     @Override
-    public EntryTable headSet(RingEntry toElement) {
+    default EntryTable headSet(RingEntry toElement) {
         return subList(0, lowerBound(toElement.index));
     }
 
     @Override
-    public EntryTable tailSet(RingEntry fromElement) {
+    default EntryTable tailSet(RingEntry fromElement) {
         return subList(lowerBound(fromElement.index), size());
     }
 
-    public EntryTable filter(Predicate<? super RingEntry> predicate) {
+    default EntryTable filter(Predicate<? super RingEntry> predicate) {
 
         if(predicate == Entries.ALL)
             return this;
@@ -179,20 +160,12 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         return EntryArray.of(indexes);
     }
 
-    public EntryTable eq(PopCount pop) {
-        return pop.sum()>8 ? EMPTY : filter(pop.eq);
-    }
-
-    public EntryTable le(PopCount pop) {
-        return pop.min()<8 ? filter(pop.le) : this;
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////
 
     // an empty table template
-    public static final EmptyTable EMPTY = new EmptyTable();
+    EmptyTable EMPTY = EmptyTable.of();
 
-    public static EntryTable of(List<? extends RingEntry> entries) {
+    static EntryTable of(List<? extends RingEntry> entries) {
 
         if(entries instanceof EntryTable) {
             return (EntryTable) entries;
@@ -225,8 +198,8 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         return EntryArray.of(index);
     }
 
-    public static EntryTable of(int ... index) {
-        short values[] = new short[index.length];
+    static EntryTable of(int ... index) {
+        short[] values = new short[index.length];
 
         for(int i=0; i<index.length; ++i)
             values[i] = (short) index[i];
@@ -234,11 +207,11 @@ public abstract class EntryTable extends ListSet<RingEntry> {
         return of(values, values.length);
     }
 
-    public static EntryTable of(short[] ringIndex, int size) {
+    static EntryTable of(short[] ringIndex, int size) {
         return of(ringIndex, 0, size);
     }
 
-    public static EntryTable of(short[] table, int fromIndex, int toIndex) {
+    static EntryTable of(short[] table, int fromIndex, int toIndex) {
 
         int size = toIndex - fromIndex;
         if(size==0)
@@ -249,20 +222,5 @@ public abstract class EntryTable extends ListSet<RingEntry> {
 
         table = Arrays.copyOfRange(table, fromIndex, toIndex);
         return EntryArray.of(table);
-    }
-
-    public static boolean isOrdered(short[] entries) {
-        if(entries.length<2)
-            return true;
-
-        short entry = entries[0];
-        for(int i=1; i<entries.length; ++i) {
-            short e = entries[i];
-            if(entry>=e)
-                return false;
-            entry = e;
-        }
-
-        return true;
     }
 }
