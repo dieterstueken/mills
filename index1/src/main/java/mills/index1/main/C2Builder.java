@@ -3,9 +3,9 @@ package mills.index1.main;
 import mills.bits.BW;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
+import mills.index1.I2Entry;
 import mills.index1.IndexList;
 import mills.index1.R0Table;
-import mills.index1.R2Entry;
 import mills.index1.R2Index;
 import mills.position.Positions;
 import mills.ring.Entries;
@@ -59,7 +59,7 @@ public class C2Builder {
 
     RingEntry r2;
     int index = 0;
-    final List<R2Entry> l2 = new ArrayList<>(81);
+    final List<I2Entry> l2 = new ArrayList<>(81);
 
     void open2(RingEntry e2) {
         if(r2==null)
@@ -72,7 +72,7 @@ public class C2Builder {
                 EntryTable r0 = table_builder.apply(l0);
                 R0Table t0 = R0Table.of(r0, List.copyOf(t1));
                 index += t0.range();
-                R2Entry entry = new R2Entry(index, r2.index, t0);
+                I2Entry entry = new I2Entry(index, r2.index, t0);
                 l2.add(entry);
                 l0.clear();
                 t1.clear();
@@ -82,7 +82,7 @@ public class C2Builder {
         }
     }
 
-    public List<R2Entry> build() {
+    public List<I2Entry> build() {
         open2(null);
         index=0;
         return List.copyOf(l2);

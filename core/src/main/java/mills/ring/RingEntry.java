@@ -182,7 +182,7 @@ public class RingEntry extends BW {
         byte min = 1;
         byte mlt = 0;
 
-        for(byte i=0; i<8; i++) {
+        for(int i=1; i<8; i++) {
             // generate permutations
             final short k = index(b.perm(i), w.perm(i));
             perm[i] = k;
@@ -191,8 +191,8 @@ public class RingEntry extends BW {
 
             // find if new permutation is smaller than current mix index
             if(k<perm[mix]) {
-                mix = i;        // found better minimal index
-                min = 0;        // reset any previous masks
+                mix = (byte)i;        // found better minimal index
+                min = (byte)m;        // reset any previous masks
             }
             else
             if(k==perm[mix])
@@ -302,7 +302,7 @@ public class RingEntry extends BW {
         pattern(sb);
 
         // add permutation info
-        sb.append(String.format(" %d:%02x %02x %02x ", pmix(), pmin(), pmeq(), pmlt()));
+        sb.append(String.format(" ix%d m:%02x e:%02x l:%02x ", pmix(), pmin(), pmeq(), pmlt()));
 
         // add permutation group (reversed)
         for(int i=0; i<8; i++)

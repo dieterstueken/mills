@@ -2,8 +2,8 @@ package mills.index1.main;
 
 import mills.bits.BW;
 import mills.bits.PopCount;
+import mills.index1.I2Entry;
 import mills.index1.IndexList;
-import mills.index1.R2Entry;
 import mills.index1.R2Index;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
@@ -39,7 +39,7 @@ public class ClopFilter extends RecursiveAction {
 
     public void compute() {
 
-        for (R2Entry e2 : posIndex.values()) {
+        for (I2Entry e2 : posIndex.values()) {
             for (Map.Entry<RingEntry, EntryTable> e0 : e2.values().entrySet()) {
 
                 EntryTable fragment = e0.getValue().filter(filter(e2.r2(), e0.getKey()));

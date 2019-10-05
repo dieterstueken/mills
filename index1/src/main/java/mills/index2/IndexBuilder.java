@@ -1,10 +1,9 @@
 package mills.index2;
 
-import mills.bits.Perm;
-import mills.bits.Perms;
 import mills.bits.PopCount;
 import mills.index.PosIndex;
 import mills.index1.R0Table;
+import mills.index1.R2Entry;
 import mills.index1.R2Table;
 import mills.index1.partitions.LePopTable;
 import mills.ring.Entries;
@@ -14,7 +13,8 @@ import mills.util.AbstractRandomList;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * version:     $
@@ -61,18 +61,22 @@ public class IndexBuilder {
     }
 
     public R2Table build(PopCount pop) {
-        ConcurrentSkipListMap<RingEntry, R0Table> r0map = new ConcurrentSkipListMap<>();
 
-        minPopTable.get(pop).stream().forEach(e2->{
-            R0Table t0 = t0(e2, pop);
-            if(t0!=null && !t0.isEmpty())
-                r0map.put(e2, t0);
-        });
+        List<R2Entry> table = lePopTable.get(pop).parallelStream()
+                .map(e2 -> r2t0(e2, pop))
+                .filter(Objects::nonNull)
+                .sorted(R2Entry.R2)
+                .collect(Collectors.toList());
 
-        EntryTable t2 = EntryTable.of(r0map.keySet());
-        List<R0Table> r0t = List.copyOf(r0map.values());
+        EntryTable t2 = EntryTable.of(AbstractRandomList.transform(table, R2Entry::r2));
+        List<R0Table> r0t = AbstractRandomList.transform(table, R2Entry::t0).copyOf();
 
         return R2Table.of(pop, t2, r0t);
+    }
+
+    private R2Entry r2t0(RingEntry e2, PopCount pop) {
+        R0Table t0 = t0(e2, pop);
+        return t0.isEmpty()? null : new R2Entry(e2, t0);
     }
 
     private R0Table t0(RingEntry e2, PopCount pop) {
@@ -80,14 +84,13 @@ public class IndexBuilder {
         List<RingEntry> t0 = new ArrayList<>();
         List<EntryTable> tt1 = new ArrayList<>();
 
-        // all r0>=r2
-        EntryTable lt0 = lePopTable.get(p2).tailSet(e2);
+        EntryTable lt0 = minPopTable.get(p2);
         for (RingEntry e0 : lt0) {
 
-            // e0 can be reduced further while e2 remains stable.
-            if((e0.mlt&e2.min)!=0)
-                continue;
-
+            // else may be swapped
+            if(e0.index>e2.min())
+                break;
+            
             // remaining PopCount of e1[]
             PopCount p1 = p2.sub(e0.pop);
 
@@ -95,16 +98,10 @@ public class IndexBuilder {
             if(t1.isEmpty())
                 continue;
 
-            // mask of stable permutations
-            int meq = e2.meq & e0.meq & 0xff;
-            if(e0!=e2 && e0.min()==e2.index) {
-                // test e0 minimums if equals e2
-                for(Perms pm = Perms.of(e0.pmin()); !pm.isEmpty(); pm = pm.next()) {
-                    Perm p = pm.first();
-                    if(e2.perm(p.ordinal())==e0.index)
-                        meq |= p.msk();
-                }
-            }
+            int meq = meq(e2, e0);
+            if(meq==0)
+                continue;
+
             EntryTable tf = fragment(p1, t1,  meq);
 
             if(tf.isEmpty())
@@ -134,23 +131,49 @@ public class IndexBuilder {
         return t1.filter((e1->(e1.mlt&msk)==0));
     }
 
-    static int meq20(RingEntry e2, RingEntry e0) {
+    /**
+     * Return a perm mask of all stable permutations.
+     * If any permutation reduces r20 return 0.
+     * Else bit #0 is set.
+     * @param e2 entry on ring 2.
+     * @param e0 entry on ring 0 (minimized).
+     * @return a perm mask of all stable permutations or 0.
+     */
+    static int meq(RingEntry e2, RingEntry e0) {
+
+        // no further analysis necessary.
+        if(e0==e2)
+            return e0.meq & 0xff;
+
+        // may be reduced easily
+        int mlt = e0.meq & e2.mlt & 0xff;
+        if (mlt != 0) // unstable anyway
+            return 0;
+
         // ether both are stable
         int meq = e2.meq & e0.meq & 0xff;
 
-        // e2 reduced and e0 increases
-        int msk = e2.mlt & ~e0.meq & ~e0.mlt & 0xff;
+        // no swap possible if e2 has an other minimum
+        if (e0.index != e2.min())
+            return meq;
 
-        for(int i=1; i<8; ++i) {
-            int m = 1<<i;
-            if(m>msk)
-                break;
-            if((msk&m)!=0) {
-                if(e2.perm(i)==e0.index && e0.perm(i)==e2.index)
-                    meq |= m;
+        // analyze all minima
+        int min = e2.min & 0xff;
+        while (min != 0) {
+            int mi = Integer.lowestOneBit(min);
+            min ^= mi;
+            int i = Integer.numberOfTrailingZeros(mi);
+
+            // even reduces
+            if (e0.perm(i) < e2.index) {
+                return 0;
+            }
+
+            // also stable with swap
+            if (e0.perm(i) == e2.index) {
+                meq |= mi;
             }
         }
-
 
         return meq;
     }

@@ -18,9 +18,9 @@ public class R2Index implements PosIndex {
     final PopCount pop;
 
     // partial table
-    final List<R2Entry> entries;
+    final List<I2Entry> entries;
 
-    public R2Index(final PopCount pop, final List<R2Entry> entries) {
+    public R2Index(final PopCount pop, final List<I2Entry> entries) {
         this.pop = pop;
         this.entries = List.copyOf(entries);
     }
@@ -29,7 +29,7 @@ public class R2Index implements PosIndex {
         return pop;
     }
 
-    public List<R2Entry> values() {
+    public List<I2Entry> values() {
         return entries;
     }
 
@@ -43,7 +43,7 @@ public class R2Index implements PosIndex {
 
     public int n20() {
         int n20 = 0;
-        for (R2Entry e : entries) {
+        for (I2Entry e : entries) {
             n20 += e.size();
         }
         return n20;
@@ -68,7 +68,7 @@ public class R2Index implements PosIndex {
     }
 
     private int findBase(int posIndex) {
-        return R2Entry.INDEX.upperBound(entries, posIndex);
+        return I2Entry.INDEX.upperBound(entries, posIndex);
     }
 
     public long i201(int posIndex) {
@@ -76,7 +76,7 @@ public class R2Index implements PosIndex {
         final int pos = findBase(posIndex);
 
         // may throw IndexOutOfBoundsException
-        final R2Entry entry = entries.get(pos);
+        final I2Entry entry = entries.get(pos);
 
         return entry.i201(posIndex);
     }
@@ -85,7 +85,7 @@ public class R2Index implements PosIndex {
         final int i0 = start>0 ? findBase(start) : 0;
 
         for(int i=i0; i<entries.size(); ++i) {
-            final R2Entry entry = entries.get(i);
+            final I2Entry entry = entries.get(i);
             if(!entry.process(processor, start, end))
                 break;
         }

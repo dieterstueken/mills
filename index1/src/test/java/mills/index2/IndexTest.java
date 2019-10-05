@@ -31,7 +31,7 @@ public class IndexTest {
 
     @Test
     public void testVerifyOld() {
-        testVerifyOld(PopCount.get(0,3));
+        testVerifyOld(PopCount.get(0,2));
     }
 
     public void testVerifyOld(PopCount pop) {

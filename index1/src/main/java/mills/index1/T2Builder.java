@@ -69,10 +69,10 @@ class T2Builder {
             return new R2Index(pop, List.of());
 
         int index = 0;
-        final List<R2Entry> sparseTable = new ArrayList<>(count.get());
+        final List<I2Entry> sparseTable = new ArrayList<>(count.get());
 
         // create a full table if 30% of all entries are occupied
-        final List<R2Entry> fullTable = 3*count.get()> RingEntry.MAX_INDEX ? new ArrayList<>(RingEntry.MAX_INDEX) : null;
+        final List<I2Entry> fullTable = 3*count.get()> RingEntry.MAX_INDEX ? new ArrayList<>(RingEntry.MAX_INDEX) : null;
 
         for (short i2 = 0; i2 < RingEntry.MAX_INDEX; i2++) {
 
@@ -81,7 +81,7 @@ class T2Builder {
             index += count;
 
             if(count!=0 || fullTable!=null) {
-                final R2Entry entry = new R2Entry(index, i2, r0t);
+                final I2Entry entry = new I2Entry(index, i2, r0t);
                 if(count>0) {
                     if(!entry.r2().isMin()) {
                         RingEntry r2 = entry.r2();
@@ -105,7 +105,7 @@ class T2Builder {
 
                     final long n201 = Positions.normalize(i201);
                     final short i2 = Positions.i2(n201);
-                    final R2Entry entry = fullTable.get(i2);
+                    final I2Entry entry = fullTable.get(i2);
                     return entry.posIndex(n201);
                 }
             };
