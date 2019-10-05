@@ -118,6 +118,11 @@ public class RingEntry extends BW {
         return mix==0;
     }
 
+    // return minimized value
+    public short min() {
+        return perm(mix);
+    }
+
     /**
      * @return Occupied sectors.
      */

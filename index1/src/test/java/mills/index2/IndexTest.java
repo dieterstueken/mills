@@ -4,10 +4,10 @@ import mills.bits.Perms;
 import mills.bits.PopCount;
 import mills.index.PosIndex;
 import mills.index1.IndexList;
-import mills.index1.R2Index;
 import mills.position.Position;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
+import mills.ring.EntryTables;
 import mills.util.IntegerDigest;
 import org.junit.Test;
 
@@ -31,7 +31,7 @@ public class IndexTest {
 
     @Test
     public void testVerifyOld() {
-        testVerifyOld(PopCount.get(3,0));
+        testVerifyOld(PopCount.get(0,3));
     }
 
     public void testVerifyOld(PopCount pop) {
@@ -45,29 +45,34 @@ public class IndexTest {
                 pi.range(), pi.n20(),
                 ri.range(), ri.n20());
 
-        Map<Integer, Position> missing = new TreeMap<>();
-        Map<Integer, Position> duplicates = new TreeMap<>();
+        Map<Integer, Long> missing = new TreeMap<>();
+        Map<Integer, Long> duplicates = new TreeMap<>();
 
-        ri.process((index, i201) -> missing.put(index, Position.of(i201)));
+        ri.process(missing::put);
+
+        System.out.println("start");
 
         pi.process((index, p201)-> {
             Position pos = Position.of(p201);
             int refIndex = ri.posIndex(p201);
-            System.out.format("%s: %d %d\n", pos, index, refIndex);
+            //System.out.format("%s: %d %d\n", pos, index, refIndex);
 
             if(missing.remove(refIndex)==null)
-                duplicates.put(refIndex, pos);
+                duplicates.put(refIndex, p201);
         });
 
         System.out.format("missing: %d\n", missing.size());
 
-        missing.entrySet().forEach(e->System.out.format("%s: %d\n", e.getValue(), e.getKey()));
+        missing.entrySet().forEach(e->System.out.format("%s: %d\n", Position.of(e.getValue()), e.getKey()));
 
         System.out.format("duplicates: %d\n", duplicates.size());
 
-        duplicates.entrySet().forEach(e->System.out.format("%s: %d\n", e.getValue(), e.getKey()));
+        duplicates.entrySet().forEach(e->System.out.format("%s: %d\n", Position.of(e.getValue()), e.getKey()));
 
         System.out.println();
+
+        assert missing.size()==0;
+        assert duplicates.size()==0;
     }
 
     @Test
@@ -78,35 +83,41 @@ public class IndexTest {
 
         double start = System.currentTimeMillis();
 
-        for (int nb = 0; nb < 10; ++nb)
+        for (int nb = 0; nb < 10; ++nb) {
             for (int nw = 0; nw < 10; ++nw) {
                 PopCount pop = PopCount.of(nb, nw);
-                    R2Index posIndex = builder.build(pop);
-                    int range = posIndex.range();
-                    int n20 = posIndex.n20();
-                    System.out.format("l%d%d%10d, %4d\n", pop.nb, pop.nw, range, n20);
-                    digest.update(range);
-                }
-
-            double stop = System.currentTimeMillis();
-            System.out.format("%.3f s\n", (stop - start) / 1000);
-
-            byte[] result = digest.digest();
-
-            System.out.println("digest: " + IntegerDigest.toString(result));
-
-            assertArrayEquals(IntegerDigest.EXPECTED, result);
+                PosIndex posIndex = builder.build(pop);
+                int range = posIndex.range();
+                int n20 = posIndex.n20();
+                System.out.format("l%d%d%10d, %4d\n", pop.nb, pop.nw, range, n20);
+                digest.update(range);
+            }
         }
+            
+        double stop = System.currentTimeMillis();
+        System.out.format("%.3f s\n", (stop - start) / 1000);
+
+        byte[] result = digest.digest();
+
+        System.out.println("digest: " + IntegerDigest.toString(result));
+
+        assertArrayEquals(IntegerDigest.EXPECTED, result);
+    }
 
     @Test
     public void testFragments() {
         // find if fragments are unique for each PopCount
 
-        PopCount.TABLE.parallelStream().map(builder::build).forEach(index ->{});
+        PosIndex[] indexes = new PosIndex[PopCount.TABLE.size()];
+
+        PopCount.TABLE.parallelStream().map(builder::build)
+                .forEach(index ->indexes[index.pop().index] = index);
 
         System.out.println("start");
 
         Set<Perms> perms = new TreeSet<>();
+
+        EntryTables stat = new EntryTables();
 
         PopCount.TABLE.stream().filter(pop->pop.sum()<=8).forEach(pop -> {
             EntryTable[] fragment = builder.fragments.get(pop.index);
@@ -120,6 +131,7 @@ public class IndexTest {
                     perms.add(perm);
                     ++n;
                     tables.add(table);
+                    stat.table(table);
                 }
             }
 
@@ -127,5 +139,9 @@ public class IndexTest {
         });
         
         perms.forEach(System.out::println);
+
+        stat.stat(System.out);
+
+        System.out.format("\n total: %d\n", stat.count());
     }
 }

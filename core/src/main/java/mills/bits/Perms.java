@@ -30,6 +30,11 @@ public class Perms extends AbstractSet<Perm> implements Indexed {
         return Integer.bitCount(perms);
     }
 
+    @Override
+    public boolean isEmpty() {
+        return perms==0;
+    }
+
     public Perms and(Perms perm) {
         return of(perms & perm.perms);
     }

@@ -1,11 +1,12 @@
 package mills.index2;
 
+import mills.bits.Perm;
+import mills.bits.Perms;
 import mills.bits.PopCount;
+import mills.index.PosIndex;
 import mills.index1.R0Table;
-import mills.index1.R2Entry;
-import mills.index1.R2Index;
+import mills.index1.R2Table;
 import mills.index1.partitions.LePopTable;
-import mills.index1.partitions.PartitionTables;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
@@ -13,9 +14,7 @@ import mills.util.AbstractRandomList;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.function.UnaryOperator;
 
 /**
  * version:     $
@@ -47,7 +46,7 @@ public class IndexBuilder {
         return new IndexBuilder(lePopTable, minPopTable, partitions.copyOf());
     }
 
-    List<R2Index> asList() {
+    List<PosIndex> asList() {
         return new AbstractRandomList<>() {
             @Override
             public int size() {
@@ -55,37 +54,25 @@ public class IndexBuilder {
             }
 
             @Override
-            public R2Index get(int index) {
+            public PosIndex get(int index) {
                 return build(PopCount.TABLE.get(index));
             }
         };
     }
 
-    private static PartitionTables<EntryTable> buildPartitions() {
-        return PartitionTables.build(Entries.TABLE, UnaryOperator.identity());
-    }
+    public R2Table build(PopCount pop) {
+        ConcurrentSkipListMap<RingEntry, R0Table> r0map = new ConcurrentSkipListMap<>();
 
-    public R2Index build(PopCount pop) {
-
-        Map<RingEntry, R0Table> r0map = new ConcurrentSkipListMap<>();
-
-        lePopTable.get(pop).parallelStream().forEach(e2->{
+        minPopTable.get(pop).stream().forEach(e2->{
             R0Table t0 = t0(e2, pop);
             if(t0!=null && !t0.isEmpty())
                 r0map.put(e2, t0);
         });
 
-        List<R2Entry> t2 = new ArrayList<>(r0map.size());
-        int index = 0;
-        for (Map.Entry<RingEntry, R0Table> entry : r0map.entrySet()) {
-            RingEntry i2 = entry.getKey();
-            R0Table r0t = entry.getValue();
-            index += r0t.range();
-            R2Entry r2e = new R2Entry(index, i2.index, r0t);
-            t2.add(r2e);
-        }
+        EntryTable t2 = EntryTable.of(r0map.keySet());
+        List<R0Table> r0t = List.copyOf(r0map.values());
 
-        return new R2Index(pop, t2);
+        return R2Table.of(pop, t2, r0t);
     }
 
     private R0Table t0(RingEntry e2, PopCount pop) {
@@ -93,15 +80,12 @@ public class IndexBuilder {
         List<RingEntry> t0 = new ArrayList<>();
         List<EntryTable> tt1 = new ArrayList<>();
 
-        EntryTable lt0 = minPopTable.get(p2);
+        // all r0>=r2
+        EntryTable lt0 = lePopTable.get(p2).tailSet(e2);
         for (RingEntry e0 : lt0) {
 
-            if(e0.index>e2.index)
-                break;
-
-            // skip entries that can be reduced further
-            int mlt = e2.mlt20(e0);
-            if(mlt!=0)
+            // e0 can be reduced further while e2 remains stable.
+            if((e0.mlt&e2.min)!=0)
                 continue;
 
             // remaining PopCount of e1[]
@@ -112,9 +96,16 @@ public class IndexBuilder {
                 continue;
 
             // mask of stable permutations
-            int msk = meq20(e2, e0);
-
-            EntryTable tf = fragment(p1, t1,  msk);
+            int meq = e2.meq & e0.meq & 0xff;
+            if(e0!=e2 && e0.min()==e2.index) {
+                // test e0 minimums if equals e2
+                for(Perms pm = Perms.of(e0.pmin()); !pm.isEmpty(); pm = pm.next()) {
+                    Perm p = pm.first();
+                    if(e2.perm(p.ordinal())==e0.index)
+                        meq |= p.msk();
+                }
+            }
+            EntryTable tf = fragment(p1, t1,  meq);
 
             if(tf.isEmpty())
                 continue;

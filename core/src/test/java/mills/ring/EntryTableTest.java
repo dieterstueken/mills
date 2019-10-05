@@ -78,7 +78,7 @@ public class EntryTableTest {
         }
     }
 
-    @Test(expected= AssertionError.class)
+    @Test(expected= IllegalArgumentException.class)
     public void testCreation() throws Exception {
         EntryTable.of(2, 3, 10, 9);
     }

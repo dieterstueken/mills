@@ -6,8 +6,9 @@ import mills.util.Indexed;
 import mills.util.Indexer;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
+import java.util.Iterator;
 import java.util.function.Predicate;
 
 /**
@@ -187,29 +188,23 @@ abstract public class EntryTable extends AbstractListSet<RingEntry> {
     // an empty table template
     public static final EmptyTable EMPTY = EmptyTable.of();
 
-    public static EntryTable of(List<? extends RingEntry> entries) {
-
-        if(entries instanceof EntryTable) {
-            return (EntryTable) entries;
-        }
-        
-        final int size = entries.size();
+    public static EntryTable of(Iterator<? extends RingEntry> entries, int size) {
 
         if(size==0)
             return EMPTY;
 
-        RingEntry e = entries.get(0);
+        RingEntry e = entries.next();
 
         if(size==1)
             return SingleEntry.of(e.index);
 
-        short index[] = new short[size];
+        short[] index = new short[size];
 
         index [0] = e.index;
         boolean ordered = true;
 
         for(int i=1; i<size; i++) {
-            RingEntry f = entries.get(i);
+            RingEntry f = entries.next();
             index[i] = f.index;
             ordered &= e.index>f.index;
         }
@@ -220,11 +215,33 @@ abstract public class EntryTable extends AbstractListSet<RingEntry> {
         return EntryArray.of(index);
     }
 
+    public static EntryTable of(Collection<? extends RingEntry> entries) {
+
+        if(entries instanceof EntryTable) {
+            return (EntryTable) entries;
+        }
+
+        final int size = entries.size();
+
+        if(size==0)
+            return EMPTY;
+
+        return of(entries.iterator(), size);
+    }
+    
     public static EntryTable of(int ... index) {
         short[] values = new short[index.length];
+        int l=-1;
 
-        for(int i=0; i<index.length; ++i)
-            values[i] = (short) index[i];
+        for(int i=0; i<index.length; ++i) {
+            int k = index[i];
+            values[i] = (short) k;
+            
+            if(k<=l)
+                throw new IllegalArgumentException("unordered ENtryTable");
+
+            l = k;
+        }
 
         return of(values, values.length);
     }
