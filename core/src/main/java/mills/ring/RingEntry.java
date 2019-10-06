@@ -2,10 +2,7 @@ package mills.ring;
 
 import mills.bits.*;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -219,6 +216,25 @@ public class RingEntry extends BW {
         RingEntry[] table = new RingEntry[MAX_INDEX];
         Arrays.parallelSetAll(table, index -> new RingEntry((short) index));
         return table;
+    }
+
+    static List<EntryTable> sisters(EntryTable minimized) {
+
+        EntryTable[] result = new EntryTable[MAX_INDEX];
+
+        Set<RingEntry> tmp = new TreeSet<>();
+
+        for (RingEntry e : minimized) {
+            for (Perm perm : Perm.VALUES) {
+                tmp.add(e.permute(perm));
+            }
+
+            EntryTable sisters = EntryTable.of(tmp);
+            sisters.forEach(s -> result[s.index] = sisters);
+            tmp.clear();
+        }
+
+        return List.of(result);
     }
 
     // return short instead of byte to avoid any negative values

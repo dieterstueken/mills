@@ -19,10 +19,12 @@ public interface Entries {
     /**
      * Immutable tables.
      */
-    EntryTable TABLE = new RingTable();
+    EntryTable TABLE = new RingTable(RingEntry.table());
     EntryTable RADIALS = TABLE.subList(0, 81);
     EntryTable MINIMIZED = TABLE.filter(RingEntry::isMin);
     RingEntry EMPTY = of(0);
+
+    List<EntryTable> SISTERS = RingEntry.sisters(MINIMIZED);
 
     static RingEntry of(int index) {
         return TABLE.get(index);

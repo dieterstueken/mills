@@ -16,8 +16,8 @@ class RingTable extends EntryTable {
 
     private final RingEntry[] entries;
 
-    RingTable() {
-        this.entries = RingEntry.table();
+    RingTable(RingEntry[] entries) {
+        this.entries = entries;
     }
 
     @Override
