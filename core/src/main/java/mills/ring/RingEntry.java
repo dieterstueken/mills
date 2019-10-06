@@ -43,6 +43,17 @@ public class RingEntry extends BW {
     // permutation group kept as a short index.
     private final short[] perm = new short[8];
 
+    private EntryTable sisters;
+
+    public EntryTable sisters() {
+
+        if(sisters==null) {
+            sisters = minimized().sisters;
+        }
+
+        return sisters;
+    }
+
     // permutation group fingerprint
     public final PGroup grp;
 
@@ -118,6 +129,10 @@ public class RingEntry extends BW {
     // return minimized value
     public short min() {
         return perm(mix);
+    }
+
+    public RingEntry minimized() {
+        return mix==0 ? this : Entries.of(min());
     }
 
     /**
@@ -210,6 +225,21 @@ public class RingEntry extends BW {
         this.mix = mix;
 
         this.grp = PGroup.group(pmeq());
+
+        // precalculate sisters
+        if(mix==0) {
+            short[] s = Arrays.copyOf(perm, 8);
+            Arrays.sort(s);
+
+            int n=0;
+            for(int i=1; i<8; ++i) {
+                short k = s[i];
+                if(k>s[n])
+                    s[++n] = k;
+            }
+
+            sisters = n==0 ? singleton : EntryTable.of(s, n+1);
+        }
     }
 
     static RingEntry[] table() {

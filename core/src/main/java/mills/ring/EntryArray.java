@@ -40,4 +40,26 @@ class EntryArray extends EntryList {
     public static EntryArray of(short[] indices) {
         return new EntryArray(indices);
     }
+
+    @Override
+    protected EntryArray verify() {
+        assert isOrdered(indices) : "index mismatch";
+        return this;
+    }
+
+    static boolean isOrdered(short[] values) {
+
+        if(values.length<2)
+            return true;
+
+        short t0 = values[0];
+        for (int i = 1; i < values.length; ++i) {
+            short t1 = values[i];
+            if(Short.compare(t0, t1)>=0)
+                return false;
+            t0 = t1;
+        }
+
+        return  true;
+    }
 }

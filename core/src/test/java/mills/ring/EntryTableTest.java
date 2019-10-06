@@ -122,4 +122,12 @@ public class EntryTableTest {
             System.out.format("%3d: %3d %3d\n", i, i1, i2);
         }
     }
+
+    @Test
+    public void testSisters() {
+        Entries.TABLE.forEach(e->{
+            EntryTable sisters = Entries.SISTERS.get(e.index);
+            assertEquals(sisters, e.sisters());
+        });
+    }
 }
