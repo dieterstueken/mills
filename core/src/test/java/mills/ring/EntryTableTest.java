@@ -16,7 +16,7 @@ public class EntryTableTest {
     SortedSet<Integer> intTable = new TreeSet<>(Arrays.asList(2, 3, 7, 9));
 
     @Test
-    public void testFindIndex() throws Exception {
+    public void testFindIndex() {
 
         for(int i=0; i<11; ++i) {
             RingEntry e = Entries.of(i);

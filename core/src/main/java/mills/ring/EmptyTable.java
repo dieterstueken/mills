@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 class EmptyTable extends EntryList {
 
-    static EmptyTable of() {
+    public static EmptyTable of() {
         return new EmptyTable();
     }
 

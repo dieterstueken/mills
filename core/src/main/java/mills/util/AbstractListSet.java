@@ -1,8 +1,6 @@
 package mills.util;
 
-import java.util.AbstractList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -57,6 +55,28 @@ abstract public class AbstractListSet<T> extends AbstractList<T> implements List
         return  true;
     }
 
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+
+        if (!(o instanceof Collection))
+            return false;
+
+        Collection<?> c = (Collection<?>) o;
+        if (c.size() != size())
+            return false;
+
+        Iterator<T> e1 = iterator();
+        Iterator<?> e2 = c.iterator();
+        while (e1.hasNext() && e2.hasNext()) {
+            T o1 = e1.next();
+            Object o2 = e2.next();
+            if (!(o1==null ? o2==null : o1.equals(o2)))
+                return false;
+        }
+        return !(e1.hasNext() || e2.hasNext());
+    }
+
     public static <T> ListSet<T> of(List<T> values, Comparator<? super T> comparator) {
 
         assert isOrdered(values, comparator) : "index mismatch";
@@ -81,6 +101,38 @@ abstract public class AbstractListSet<T> extends AbstractList<T> implements List
             @Override
             public Comparator<? super T> comparator() {
                 return comparator;
+            }
+
+            @Override
+            public int checkRange(int fromIndex, int toIndex) {
+                return super.checkRange(fromIndex, toIndex);
+            }
+
+            @Override
+            public boolean add(T t) {
+                if(isEmpty()) {
+                    values.add(t);
+                } else {
+                    int index = findIndex(t);
+
+                    // already contained
+                    if (index >= 0)
+                        return false;
+
+                    values.add(-index - 1, t);
+                }
+
+                return true;
+            }
+
+            @Override
+            public void clear() {
+                values.clear();
+            }
+
+            @Override
+            public boolean remove(Object o) {
+                return values.remove(o);
             }
         };
     }

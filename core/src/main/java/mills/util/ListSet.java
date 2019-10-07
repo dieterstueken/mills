@@ -99,19 +99,35 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
         return AbstractListSet.of(transformed, comparator);
     }
 
-    static <T> ListSet<T> of(List<T> values, Comparator<? super T> comparator) {
-        return AbstractListSet.of(values, comparator);
-    }
-
     static <T extends Indexed> ListSet<T> of(List<T> values) {
         return AbstractListSet.of(values, Indexer.INDEXED);
     }
 
-    static <T extends Indexed> ListSet<T> of(T[] values) {
+    static <T extends Indexed> ListSet<T> ofIndexed() {
+        return AbstractListSet.of(new ArrayList<>(), Indexer.INDEXED);
+    }
+
+    static <T extends Comparable<T>> ListSet<T> of() {
+        return AbstractListSet.<T>of(new ArrayList<T>(), Comparator.naturalOrder());
+    }
+
+    static <T> ListSet<T> empty(Comparator<? super T> comparator) {
+        return of(new ArrayList<>(), comparator);
+    }
+
+    static <T> ListSet<T> of(List<T> values, Comparator<? super T> comparator) {
+        return AbstractListSet.of(values, comparator);
+    }
+
+    static <T extends Comparable<? super T>> ListSet<T> of(T ... values) {
+        return AbstractListSet.of(List.of(values), Comparator.naturalOrder());
+    }
+
+    static <T extends Indexed> ListSet<T> of(T ... values) {
         return AbstractListSet.of(List.of(values), Indexer.INDEXED);
     }
 
-    static <T extends Enum<T>> ListSet<T> of(T[] values) {
+    static <T extends Enum<T>> ListSet<T> of(T ... values) {
         return AbstractListSet.of(List.of(values), Indexer.ENUM);
     }
 }
