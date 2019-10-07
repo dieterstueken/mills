@@ -14,6 +14,7 @@ import mills.util.AbstractRandomList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -99,7 +100,7 @@ public class IndexBuilder {
             if(t1.isEmpty())
                 continue;
 
-            int meq = meq(e0, e2);
+            int meq = meq(e2, e0);
             if(meq==0)
                 continue;
 
@@ -121,57 +122,59 @@ public class IndexBuilder {
         EntryTable tf = ft[msk/2];
 
         if(tf==null) {
-            tf = fragment(t1, msk);
+            tf = t1.filter(anyMLT(msk));
             ft[msk/2] = tf;
         }
 
         return tf;
     }
 
-    static EntryTable fragment(EntryTable t1, int msk) {
-        return t1.filter((e1->(e1.mlt&msk)==0));
+    static Predicate<RingEntry> anyMLT(int msk) {
+        return e -> (e.mlt&msk)==0;
     }
 
     /**
      * Return a perm mask of all stable permutations.
      * If any permutation reduces r20 return 0.
      * Else bit #0 is set.
-     * @param e2 entry on ring 2.
-     * @param e0 entry on ring 0 (minimized).
+     * @param e2 entry on ring 0 (minimized).
+     * @param e0 entry on ring 2.
      * @return a perm mask of all stable permutations or 0.
      */
     static int meq(RingEntry e2, RingEntry e0) {
 
+        int meq = e2.meq & 0xff;
+
         // no further analysis necessary.
-        if(e0==e2)
-            return e0.meq & 0xff;
+        if(e2==e0)
+            return meq;
 
         // may be reduced easily
-        int mlt = e0.meq & e2.mlt & 0xff;
+        int mlt = meq & e0.mlt;
         if (mlt != 0) // unstable anyway
             return 0;
 
         // ether both are stable
-        int meq = e2.meq & e0.meq & 0xff;
+        meq &= e0.meq;
 
-        // no swap possible if e2 has an other minimum
-        if (e0.index != e2.min())
+        // no swap possible since e0 has an other (bigger) minimum
+        if (e2.index != e0.min())
             return meq;
 
         // analyze all minima
-        int min = e2.min & 0xff;
+        int min = e0.min & 0xff;
         while (min != 0) {
             int mi = Integer.lowestOneBit(min);
             min ^= mi;
             int i = Integer.numberOfTrailingZeros(mi);
 
             // even reduces
-            if (e0.perm(i) < e2.index) {
+            if (e2.perm(i) < e0.index) {
                 return 0;
             }
 
             // also stable with swap
-            if (e0.perm(i) == e2.index) {
+            if (e2.perm(i) == e0.index) {
                 meq |= mi;
             }
         }

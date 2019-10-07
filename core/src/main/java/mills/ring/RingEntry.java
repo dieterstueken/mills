@@ -106,6 +106,10 @@ public class RingEntry extends BW {
         return 0xff & mlt;  // convert to positive int [0, 256[
     }
 
+    public boolean anyMlt(int msk) {
+        return (mlt&msk)==0;
+    }
+
     // return minimum permutation mask
     public int pmin() {
         return 0xff & min;  // convert to positive int [0, 256[
