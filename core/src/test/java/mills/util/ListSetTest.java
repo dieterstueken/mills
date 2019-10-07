@@ -3,7 +3,7 @@ package mills.util;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 import static org.junit.Assert.assertEquals;
@@ -27,18 +27,22 @@ public class ListSetTest {
         list.add(11);
         list.add(7);
 
-        ListSet<Integer> list1 = ListSet.of();
-        list1.addAll(Arrays.asList(11, 7, 1, 5));
+        ListSet<Integer> list1 = ListSet.of(1, 5, 7, 11);
 
         assertEquals(list, list1);
 
         list1.clear();
 
-        list1.addAll(Arrays.asList(1, 5, 11, 7));
+        list1.addAll(Arrays.asList(1, 11, 5, 7));
         assertEquals(list, list1);
 
-        List<Integer> list2 =  Arrays.asList(1, 5, 7, 11);
-        assertEquals(list, list2);
+        Set<Integer> iset =  new TreeSet<>(Arrays.asList(11, 7, 1, 5));
+        assertEquals(list, iset);
+
+        assertTrue(list.remove((Integer)7));
+        assertTrue(iset.remove(7));
+        assertEquals(list, iset);
+
     }
 
     @Test
