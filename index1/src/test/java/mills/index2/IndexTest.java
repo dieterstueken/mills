@@ -11,10 +11,8 @@ import mills.ring.EntryTables;
 import mills.util.IntegerDigest;
 import org.junit.Test;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertArrayEquals;
 
@@ -31,7 +29,7 @@ public class IndexTest {
 
     @Test
     public void testVerifyOld() {
-        testVerifyOld(PopCount.get(0,2));
+        testVerifyOld(PopCount.get(0,1));
     }
 
     public void testVerifyOld(PopCount pop) {
@@ -71,6 +69,8 @@ public class IndexTest {
 
         System.out.println();
 
+        List<Position> positions = missing.values().stream().map(Position::of).collect(Collectors.toList());
+
         assert missing.size()==0;
         assert duplicates.size()==0;
     }
@@ -85,6 +85,7 @@ public class IndexTest {
         System.out.format("start %d\n", Entries.TABLE.size());
 
         double start = System.currentTimeMillis();
+        long count20 = 0;
 
         for (int nb = 0; nb < 10; ++nb) {
             for (int nw = 0; nw < 10; ++nw) {
@@ -93,13 +94,14 @@ public class IndexTest {
                 indexes.put(pop, posIndex);
                 int range = posIndex.range();
                 int n20 = posIndex.n20();
+                count20 += n20;
                 System.out.format("l%d%d%10d, %4d\n", pop.nb, pop.nw, range, n20);
                 digest.update(range);
             }
         }
             
         double stop = System.currentTimeMillis();
-        System.out.format("%.3f s\n", (stop - start) / 1000);
+        System.out.format("%.3fs, n20: %d\n", (stop - start) / 1000, count20);
 
         byte[] result = digest.digest();
 

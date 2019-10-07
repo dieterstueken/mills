@@ -62,7 +62,7 @@ public class IndexBuilder {
 
     public R2Table build(PopCount pop) {
 
-        List<R2Entry> table = lePopTable.get(pop).parallelStream()
+        List<R2Entry> table = minPopTable.get(pop).parallelStream()
                 .map(e2 -> r2t0(e2, pop))
                 .filter(Objects::nonNull)
                 .sorted(R2Entry.R2)
@@ -84,12 +84,13 @@ public class IndexBuilder {
         List<RingEntry> t0 = new ArrayList<>();
         List<EntryTable> tt1 = new ArrayList<>();
 
-        EntryTable lt0 = minPopTable.get(p2);
+        EntryTable lt0 = lePopTable.get(p2);
         for (RingEntry e0 : lt0) {
 
-            // else may be swapped
-            if(e0.index>e2.min())
-                break;
+            // e2 is minimized.
+            // if e0 may be minimized to a smaller value they may be swapped.
+            if(e0.min()>e2.index)
+                continue;
             
             // remaining PopCount of e1[]
             PopCount p1 = p2.sub(e0.pop);
@@ -98,7 +99,7 @@ public class IndexBuilder {
             if(t1.isEmpty())
                 continue;
 
-            int meq = meq(e2, e0);
+            int meq = meq(e0, e2);
             if(meq==0)
                 continue;
 

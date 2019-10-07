@@ -29,4 +29,9 @@ public class R2Entry {
     public R0Table t0() {
         return t0;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s : %d", e2, t0.size());
+    }
 }
