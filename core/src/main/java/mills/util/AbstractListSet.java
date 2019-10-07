@@ -59,7 +59,10 @@ abstract public class AbstractListSet<T> extends AbstractList<T> implements List
 
     public static <T> ListSet<T> of(List<T> values, Comparator<? super T> comparator) {
 
+        assert isOrdered(values, comparator) : "index mismatch";
+
         return new AbstractListSet<>() {
+
             @Override
             public T get(int index) {
                 return values.get(index);

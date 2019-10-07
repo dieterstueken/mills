@@ -96,12 +96,12 @@ public class IndexTest {
                 int range = posIndex.range();
                 int n20 = posIndex.n20();
                 count20 += n20;
-                System.out.format("l%d%d%10d, %4d\n", pop.nb, pop.nw, range, n20);
+                System.out.format("l%d%d%,13d %4d\n", pop.nb, pop.nw, range, n20);
                 digest.update(range);
             }
         }
             
-        System.out.format("\n%.3fs, n20: %d\n", (stop - start) / 1000, count20);
+        System.out.format("\n%.3fs, n20: %d, %,d\n", (stop - start) / 1000, count20, Runtime.getRuntime().totalMemory());
 
         byte[] result = digest.digest();
 
