@@ -79,10 +79,10 @@ public class IndexTest {
     public void testDigest() {
         IntegerDigest digest = new IntegerDigest("MD5");
 
-        // debug
-        Map<PopCount, PosIndex> indexes = new TreeMap<>();
-
         System.out.format("start %d\n", Entries.TABLE.size());
+
+        PosIndex[] indexes = new PosIndex[PopCount.SIZE];
+        Arrays.parallelSetAll(indexes, i -> builder.build(PopCount.TABLE.get(i)));
 
         double start = System.currentTimeMillis();
         long count20 = 0;
@@ -90,8 +90,7 @@ public class IndexTest {
         for (int nb = 0; nb < 10; ++nb) {
             for (int nw = 0; nw < 10; ++nw) {
                 PopCount pop = PopCount.of(nb, nw);
-                PosIndex posIndex = builder.build(pop);
-                indexes.put(pop, posIndex);
+                PosIndex posIndex = indexes[pop.index];
                 int range = posIndex.range();
                 int n20 = posIndex.n20();
                 count20 += n20;
