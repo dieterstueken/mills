@@ -80,11 +80,13 @@ public class IndexTest {
         IntegerDigest digest = new IntegerDigest("MD5");
 
         System.out.format("start %d\n", Entries.TABLE.size());
+        double start = System.currentTimeMillis();
 
         PosIndex[] indexes = new PosIndex[PopCount.SIZE];
         Arrays.parallelSetAll(indexes, i -> builder.build(PopCount.TABLE.get(i)));
 
-        double start = System.currentTimeMillis();
+        double stop = System.currentTimeMillis();
+        
         long count20 = 0;
 
         for (int nb = 0; nb < 10; ++nb) {
@@ -99,8 +101,7 @@ public class IndexTest {
             }
         }
             
-        double stop = System.currentTimeMillis();
-        System.out.format("%.3fs, n20: %d\n", (stop - start) / 1000, count20);
+        System.out.format("\n%.3fs, n20: %d\n", (stop - start) / 1000, count20);
 
         byte[] result = digest.digest();
 
