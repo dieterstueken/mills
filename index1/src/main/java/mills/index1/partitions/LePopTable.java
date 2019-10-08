@@ -10,6 +10,7 @@ import mills.util.PopMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RecursiveTask;
+import java.util.function.UnaryOperator;
 
 import static mills.bits.PopCount.P88;
 
@@ -32,9 +33,13 @@ public class LePopTable extends PopMap<EntryTable> {
      * @param root of entries distribute
      * @return LePopTable of distributed entries.
      */
-    public static LePopTable build(EntryTable root) {
-        final List<EntryTable> table = createTable(root);
+    public static LePopTable build(EntryTable root, UnaryOperator<EntryTable> normalize) {
+        final List<EntryTable> table = createTable(root, normalize);
         return new LePopTable(table);
+    }
+
+    public static LePopTable build(EntryTable root) {
+        return build(root, UnaryOperator.identity());
     }
 
     public static LePopTable build() {
@@ -54,7 +59,7 @@ public class LePopTable extends PopMap<EntryTable> {
         return pop==null ? null : get(pop.index);
     }
 
-    private static List<EntryTable> createTable(EntryTable root) {
+    private static List<EntryTable> createTable(EntryTable root, UnaryOperator<EntryTable> normalize) {
         List<PopCount> p88 = PopCount.TABLE.subList(0, P88.index);
         List<RecursiveTask<EntryTable>> tasks = new ArrayList<>(P88.index);
 
@@ -85,7 +90,7 @@ public class LePopTable extends PopMap<EntryTable> {
                 int index = pop.add(p.pop).index;
                 EntryTable upTable = tables.get(index);
                 EntryTable result = upTable.filter(e -> e.pop.le(pop));
-                return result;
+                return normalize.apply(result);
             }
         }
 

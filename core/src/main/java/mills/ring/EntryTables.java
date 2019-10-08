@@ -29,7 +29,7 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
         }
     }
 
-    static TableEntry entry(List<RingEntry> table, short key) {
+    static TableEntry entry(List<RingEntry> table, Short key) {
 
         if(table instanceof TableEntry) {
             TableEntry entry = (TableEntry) table;
@@ -38,30 +38,24 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
         }
 
         if(table instanceof EntryArray) {
-            return new TableEntry((EntryArray) table, key);
+            short[] indices = ((EntryArray)table).indices;
+            return new TableEntry(indices, key);
         }
 
-        final int size = table.size();
-
-        // should not happen...
-        throw new IllegalStateException(String.format("unexpected TableEntry of size %s", size));
-
-/*
-        short index[] = new short[size];
-
+        short[] indices = new short[table.size()];
+        short l=-1;
         boolean ordered = true;
-        RingEntry e = table.get(0);
-        for(int i=1; i<size; i++) {
-            RingEntry f = table.get(i);
-            index[i] = f.index;
-            ordered &= e.index>f.index;
+        for(int i=0; i<indices.length; ++i) {
+            short k = table.get(i).index;
+            indices[i] = k;
+            ordered &= k>l;
+            l=k;
         }
 
         if(!ordered)
-            Arrays.sort(index);
+            Arrays.sort(indices);
 
-        return new TableEntry(index, key);
-*/
+        return new TableEntry(indices, key);
     }
 
     static final int OFFSET = RingEntry.MAX_INDEX+1;
@@ -155,7 +149,7 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
         return tables.get(index-OFFSET);
     }
 
-    public List<EntryTable> build(List<Short> s1) {
+    public List<EntryTable> ofShorts(List<Short> s1) {
         int size = s1.size();
 
         if(size==0)
@@ -171,7 +165,7 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
         for(int i=0; i<size; ++i)
             indexes[i] = s1.get(i);
 
-        return new AbstractRandomList<EntryTable>() {
+        return new AbstractRandomList<>() {
 
             @Override
             public int size() {
@@ -197,16 +191,26 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
         }
 
         short indexes[] = new short[size];
-        int i=0;
-        for (List<RingEntry> list : s1) {
-            short key = key(list);
-            indexes[i] = key;
-            ++i;
+
+        if(s1 instanceof List) {
+            List<? extends List<RingEntry>> l1 = (List)s1;
+            for (int i = 0; i < size; ++i) {
+                List<RingEntry> list = l1.get(i);
+                short key = key(list);
+                indexes[i] = key;
+            }
+        } else {
+            int i = 0;
+            for (List<RingEntry> list : s1) {
+                short key = key(list);
+                indexes[i] = key;
+                ++i;
+            }
+
+            if (i != indexes.length)
+                throw new IllegalStateException("size does not match");
         }
-
-        if(i!=indexes.length)
-            throw new IllegalStateException("size does not match");
-
+        
         return AbstractRandomList.virtual(indexes.length, index -> EntryTables.this.get(indexes[index]));
     }
 
@@ -232,7 +236,7 @@ public class EntryTables extends AbstractRandomList<EntryTable> {
             indexes[i] = key(table);
         }
 
-        return new AbstractRandomList<EntryTable>() {
+        return new AbstractRandomList<>() {
 
             @Override
             public int size() {

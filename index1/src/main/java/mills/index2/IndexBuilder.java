@@ -8,12 +8,14 @@ import mills.index1.R2Table;
 import mills.index1.partitions.LePopTable;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
+import mills.ring.EntryTables;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -26,6 +28,8 @@ import java.util.stream.Collectors;
  */
 public class IndexBuilder {
 
+    final EntryTables tables;
+
     final LePopTable lePopTable;
     final LePopTable minPopTable;
 
@@ -33,18 +37,21 @@ public class IndexBuilder {
 
     final List<EntryTable[]> fragments = AbstractRandomList.generate(PopCount.SIZE, pop -> new EntryTable[128]);
 
-    private IndexBuilder(LePopTable lePopTable, LePopTable minPopTable,
+    private IndexBuilder(EntryTables tables, LePopTable lePopTable, LePopTable minPopTable,
                          List<EntryTable> partitions) {
+        this.tables = tables;
         this.lePopTable = lePopTable;
         this.minPopTable = minPopTable;
         this.partitions = partitions;
     }
 
     public static IndexBuilder create() {
-        LePopTable lePopTable = LePopTable.build(Entries.TABLE);
-        LePopTable minPopTable = LePopTable.build(Entries.MINIMIZED);
-        AbstractRandomList<EntryTable> partitions = AbstractRandomList.transform(PopCount.TABLE, pop->pop.sum()<=8 ? Entries.TABLE.filter(pop.eq) : EntryTable.EMPTY);
-        return new IndexBuilder(lePopTable, minPopTable, partitions.copyOf());
+        EntryTables tables = new EntryTables();
+        LePopTable lePopTable = LePopTable.build(Entries.TABLE, tables::table);
+        LePopTable minPopTable = LePopTable.build(Entries.MINIMIZED, tables::table);
+        AbstractRandomList<EntryTable> partitions = AbstractRandomList.transform(PopCount.TABLE,
+                pop->pop.sum()<=8 ? tables.table(Entries.TABLE.filter(pop.eq)) : EntryTable.EMPTY);
+        return new IndexBuilder(tables, lePopTable, minPopTable, partitions.copyOf());
     }
 
     List<PosIndex> asList() {
@@ -81,9 +88,16 @@ public class IndexBuilder {
     }
 
     private R0Table t0(RingEntry e2, PopCount pop) {
+        T0Builder builder = getBuilder();
+        try{
+            return t0(builder, e2, pop);
+        } finally {
+            release(builder);
+        }
+    }
+
+    private R0Table t0(T0Builder builder, RingEntry e2, PopCount pop) {
         PopCount p2 = pop.sub(e2.pop);
-        List<RingEntry> t0 = new ArrayList<>();
-        List<EntryTable> tt1 = new ArrayList<>();
 
         EntryTable lt0 = lePopTable.get(p2);
         for (RingEntry e0 : lt0) {
@@ -109,11 +123,10 @@ public class IndexBuilder {
             if(tf.isEmpty())
                 continue;
 
-            t0.add(e0);
-            tt1.add(tf);
+            builder.add(e0, tf);
         }
 
-        return R0Table.of(t0, tt1);
+        return builder.build();
     }
 
     EntryTable fragment(PopCount p1, EntryTable t1, int msk) {
@@ -123,6 +136,7 @@ public class IndexBuilder {
 
         if(tf==null) {
             tf = t1.filter(anyMLT(msk));
+            tf = tables.table(tf);
             ft[msk/2] = tf;
         }
 
@@ -180,5 +194,38 @@ public class IndexBuilder {
         }
 
         return meq;
+    }
+
+    class T0Builder {
+        final List<RingEntry> t0 = new ArrayList<>();
+        final List<EntryTable> t1 = new ArrayList<>();
+
+        public void clear() {
+            t0.clear();
+            t1.clear();
+        }
+
+        void add(RingEntry e0, EntryTable t) {
+            t0.add(e0);
+            t1.add(t);
+        }
+
+        R0Table build() {
+            return R0Table.of(EntryTable.of(t0), tables.build(t1));
+        }
+    }
+
+    private final ConcurrentLinkedQueue<T0Builder> builders = new ConcurrentLinkedQueue<>();
+
+    private T0Builder getBuilder() {
+        T0Builder builder = builders.poll();
+        if(builder==null)
+            builder = new T0Builder();
+        return builder;
+    }
+
+    private void release(T0Builder builder) {
+        builder.clear();
+        builders.offer(builder);
     }
 }

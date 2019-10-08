@@ -27,7 +27,7 @@ public class ListSetTest {
         list.add(11);
         list.add(7);
 
-        ListSet<Integer> list1 = ListSet.of(1, 5, 7, 11);
+        ListSet<Integer> list1 = ListSet.mutable(1, 5, 7, 11);
 
         assertEquals(list, list1);
 

@@ -122,12 +122,27 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
     static <T extends Comparable<? super T>> ListSet<T> of(T ... values) {
         return AbstractListSet.of(values, Comparator.naturalOrder());
     }
-
-    static <T extends Indexed> ListSet<T> of(T ... values) {
+static <T extends Indexed> ListSet<T> of(T ... values) {
         return AbstractListSet.of(values, Indexer.INDEXED);
     }
 
     static <T extends Enum<T>> ListSet<T> of(T ... values) {
         return AbstractListSet.of(values, Indexer.ENUM);
+    }
+
+    static <T> ListSet<T> mutable(T[] values, Comparator<? super T> comparator) {
+        return of(new ArrayList<>(Arrays.asList(values)), comparator);
+    }
+
+    static <T> ListSet<T> mutable(Comparator<? super T> comparator) {
+            return of(new ArrayList<>(), comparator);
+        }
+
+    static <T extends Comparable<? super T>> ListSet<T> mutable(T ... values) {
+        return mutable(values, Comparator.naturalOrder());
+    }
+
+    static <T extends Comparable<? super T>> ListSet<T> mutable() {
+        return mutable(Comparator.naturalOrder());
     }
 }
