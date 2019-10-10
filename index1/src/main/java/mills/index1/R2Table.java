@@ -6,7 +6,9 @@ import mills.index.PosIndex;
 import mills.position.Positions;
 import mills.ring.EntryTable;
 import mills.ring.IndexedMap;
+import mills.ring.RingEntry;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -87,7 +89,7 @@ public class R2Table extends IndexedMap<R0Table> implements PosIndex {
         this.pop = pop;
     }
 
-    public static R2Table of(final PopCount pop, EntryTable t2, List<R0Table> t0) {
-        return new R2Table(pop, t2, t0);
+    public static R2Table of(final PopCount pop, Collection<? extends RingEntry> t2, List<R0Table> t0) {
+        return new R2Table(pop, EntryTable.of(t2), t0);
     }
 }

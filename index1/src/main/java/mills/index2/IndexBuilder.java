@@ -28,8 +28,6 @@ import java.util.stream.Collectors;
  */
 public class IndexBuilder {
 
-    final EntryTables tables;
-
     final LePopTable lePopTable;
     final LePopTable minPopTable;
 
@@ -37,21 +35,45 @@ public class IndexBuilder {
 
     final List<EntryTable[]> fragments = AbstractRandomList.generate(PopCount.SIZE, pop -> new EntryTable[128]);
 
-    private IndexBuilder(EntryTables tables, LePopTable lePopTable, LePopTable minPopTable,
+    private IndexBuilder(LePopTable lePopTable, LePopTable minPopTable,
                          List<EntryTable> partitions) {
-        this.tables = tables;
         this.lePopTable = lePopTable;
         this.minPopTable = minPopTable;
         this.partitions = partitions;
     }
 
+    private IndexBuilder() {
+        lePopTable = LePopTable.build(Entries.TABLE, this::table);
+        minPopTable = LePopTable.build(Entries.MINIMIZED, this::table);
+        partitions = AbstractRandomList.transform(PopCount.TABLE,
+                pop->pop.sum()<=8 ? this.table(Entries.TABLE.filter(pop.eq)) : EntryTable.EMPTY)
+                .copyOf();
+    }
+
+    EntryTable table(EntryTable table) {
+        return table;
+    }
+
+    List<EntryTable> tables(List<EntryTable> tables) {
+        return tables;
+    }
+
     public static IndexBuilder create() {
-        EntryTables tables = new EntryTables();
-        LePopTable lePopTable = LePopTable.build(Entries.TABLE, tables::table);
-        LePopTable minPopTable = LePopTable.build(Entries.MINIMIZED, tables::table);
-        AbstractRandomList<EntryTable> partitions = AbstractRandomList.transform(PopCount.TABLE,
-                pop->pop.sum()<=8 ? tables.table(Entries.TABLE.filter(pop.eq)) : EntryTable.EMPTY);
-        return new IndexBuilder(tables, lePopTable, minPopTable, partitions.copyOf());
+        return new IndexBuilder();
+    }
+
+    public static IndexBuilder create(EntryTables tables) {
+        return new IndexBuilder() {
+            @Override
+            EntryTable table(EntryTable table) {
+                return tables.table(table);
+            }
+
+            @Override
+            List<EntryTable> tables(List<EntryTable> list) {
+                 return tables.build(list);
+            }
+        };
     }
 
     List<PosIndex> asList() {
@@ -76,7 +98,7 @@ public class IndexBuilder {
                 .sorted(R2Entry.R2)
                 .collect(Collectors.toList());
 
-        EntryTable t2 = EntryTable.of(AbstractRandomList.transform(table, R2Entry::r2));
+        List<RingEntry> t2 = AbstractRandomList.transform(table, R2Entry::r2);
         List<R0Table> r0t = AbstractRandomList.transform(table, R2Entry::t0).copyOf();
 
         return R2Table.of(pop, t2, r0t);
@@ -136,7 +158,7 @@ public class IndexBuilder {
 
         if(tf==null) {
             tf = t1.filter(anyMLT(msk));
-            tf = tables.table(tf);
+            tf = table(tf);
             ft[msk/2] = tf;
         }
 
@@ -211,7 +233,7 @@ public class IndexBuilder {
         }
 
         R0Table build() {
-            return R0Table.of(EntryTable.of(t0), tables.build(t1));
+            return R0Table.of(EntryTable.of(t0), tables(t1));
         }
     }
 

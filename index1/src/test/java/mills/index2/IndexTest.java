@@ -24,7 +24,8 @@ import static org.junit.Assert.assertArrayEquals;
  */
 public class IndexTest {
 
-    IndexBuilder builder = IndexBuilder.create();
+    EntryTables table = new EntryTables();
+    IndexBuilder builder = IndexBuilder.create(table);
     IndexList refBuilder = IndexList.create();
 
     @Test
