@@ -126,6 +126,12 @@ public class PopCount implements Indexed {
         return of(nb, nw);
     }
 
+    public PopCount max(final PopCount other) {
+        final int nb = Math.max(this.nb, other.nb);
+        final int nw = Math.max(this.nw, other.nw);
+        return of(nb, nw);
+    }
+
     public void forEach(Consumer<? super PopCount> action) {
         Objects.requireNonNull(action);
         for(int rb = 0; rb<=nb; ++rb)

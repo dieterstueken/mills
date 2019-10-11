@@ -151,4 +151,54 @@ public class IndexTest {
 
         System.out.format("\n total: %d\n", stat.count());
     }
+
+    @Test
+    public void indexGroups() {
+        for (int nb = 0; nb <= 9; ++nb) {
+            for (int nw = 0; nw <= 9; ++nw) {
+                PopCount pop = PopCount.get(nb, nw);
+                indexGroup(pop);
+            }
+        }
+    }
+
+    @Test
+    public void indexGroups1() {
+        for (int nb = 0; nb <= 9; ++nb) {
+            PopCount pop = PopCount.get(nb, nb);
+            indexGroup(pop);
+        }
+    }
+
+    @Test
+    public void testGroup() {
+        PopCount pop = PopCount.get(3, 3);
+        indexGroup(pop);
+    }
+
+    public void indexGroup(PopCount pop) {
+        var group = builder.buildGroup(pop);
+
+        PopCount max = group.keySet().stream().reduce(PopCount.EMPTY, PopCount::max);
+
+        int count = group.values().stream().mapToInt(PosIndex::range).sum();
+
+        System.out.format("group (%d,%d) [%d,%d] +%d,%13d\n",
+                pop.nb, pop.nw, max.nb, max.nw,
+                group.size(), count);
+
+        for (int mb = 0; mb <= max.nb; ++mb) {
+            for (int mw = 0; mw <= max.nw; ++mw) {
+                PopCount clop = PopCount.of(mb, mw);
+                PosIndex pi = group.get(clop);
+                if(pi==null)
+                    System.out.append("             |");
+                else
+                    System.out.format("%,13d|", pi.range());
+            }
+            System.out.println();
+        }
+
+        System.out.println();
+    }
 }
