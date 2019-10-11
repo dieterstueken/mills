@@ -14,7 +14,6 @@ class EntryArray extends EntryList {
 
     protected EntryArray(short[] indices) {
         this.indices = indices;
-        verify();
     }
 
     @Override
@@ -38,6 +37,7 @@ class EntryArray extends EntryList {
     }
 
     public static EntryArray of(short[] indices) {
+        assert isOrdered(indices) : "index mismatch";
         return new EntryArray(indices);
     }
 

@@ -63,7 +63,7 @@ public class IndexBuilder extends RecursiveTask<ClopIndex> {
         @Override
         protected IndexedMap<EntryTable> compute() {
             final IndexTable it = IndexTable.sum(l1, EntryTable::size);
-            final List<EntryTable> t1 = partitions.registry.build(l1);
+            final List<EntryTable> t1 = partitions.registry.register(l1);
             l1.clear();
 
             final EntryTable t0 = EntryTable.of(l0);

@@ -66,7 +66,7 @@ public class Builder {
         protected IndexedMap<EntryTable> compute() {
 
             EntryTable t0 = EntryTable.of(l0);
-            List<EntryTable> t1 = registry.build(l1);
+            List<EntryTable> t1 = registry.register(l1);
 
             l0.clear();
             l1.clear();

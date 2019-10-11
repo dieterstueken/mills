@@ -5,10 +5,7 @@ import mills.util.AbstractListSet;
 import mills.util.Indexed;
 import mills.util.Indexer;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -24,6 +21,12 @@ import java.util.function.Predicate;
  * to find the table indexOf a given RingEntry and to generate filtered subsets of itself.
  */
 abstract public class EntryTable extends AbstractListSet<RingEntry> {
+
+    public final List<EntryTable> singleton = List.of(this);
+
+    public List<EntryTable> singleton() {
+        return singleton;
+    }
 
     @Override
     public Comparator<Indexed> comparator() {

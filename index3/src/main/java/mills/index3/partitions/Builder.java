@@ -104,7 +104,7 @@ public class Builder {
 
                 stat = Builder.this.toString();
 
-                return registry.build(t100);
+                return registry.register(t100);
             }
 
             EntryTable set(PopCount pop, List<RingEntry> entries) {
@@ -310,7 +310,7 @@ public class Builder {
 
             String parent = name;
 
-            return new ClopTable(registry.build(clops.values())) {
+            return new ClopTable(registry.register(clops.values())) {
                 @Override
                 public String toString() {
                     return parent;

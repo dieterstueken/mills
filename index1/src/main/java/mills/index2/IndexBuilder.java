@@ -71,7 +71,7 @@ public class IndexBuilder {
 
             @Override
             List<EntryTable> tables(List<EntryTable> list) {
-                 return tables.build(list);
+                 return tables.register(list);
             }
         };
     }
