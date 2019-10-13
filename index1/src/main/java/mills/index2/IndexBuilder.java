@@ -81,6 +81,7 @@ public class IndexBuilder {
     public Map<PopCount, C2Table> buildGroup(PopCount pop) {
         return PopCount.CLOSED.parallelStream()
                 .map(clop -> build(pop, clop))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toUnmodifiableMap(c2->c2.clop, Function.identity()));
     }
 
@@ -96,9 +97,13 @@ public class IndexBuilder {
                 .sorted(R2Entry.R2)
                 .collect(Collectors.toList());
 
+        if(table.isEmpty())
+            return null;
+
         List<RingEntry> t2 = AbstractRandomList.transform(table, R2Entry::r2);
         List<R0Table> r0t = AbstractRandomList.transform(table, R2Entry::t0).copyOf();
 
+        // todo normalize t2
         return C2Table.of(pop, clop, t2, r0t);
     }
 
@@ -106,6 +111,8 @@ public class IndexBuilder {
         R0Table t0 = t0(e2, pop, clop);
         return t0.isEmpty()? null : new R2Entry(e2, t0);
     }
+
+    static final PopCount DEBUG = PopCount.of(2, 1);
 
     private R0Table t0(RingEntry e2, PopCount pop, PopCount clop) {
         PopCount pop2 = pop.sub(e2.pop);
@@ -118,8 +125,16 @@ public class IndexBuilder {
             // remaining closes
             PopCount clop2 = clop.sub(e2.clop());
 
+            boolean debug = clop.equals(DEBUG);
+            if(debug)
+                e2.singleton();
+
             // too many
             if(clop2==null)
+                return R0Table.EMPTY;
+            
+            // can be reached?
+            if(pop2.mclop().add(e2.radials().pop).sub(clop2)==null)
                 return R0Table.EMPTY;
 
             milf = e0 -> {
@@ -128,12 +143,26 @@ public class IndexBuilder {
                 if(clop0==null)
                     return null;
 
+                // are those reachable?
+
                 RingEntry rad20 = e2.radials().and(e0.radials());
 
                 return e1 -> {
+                    if(debug)
+                        e2.singleton();
+
                     // mills closed by e1
-                    PopCount clop1 = rad20.and(e1.radials()).pop().add(e0.clop());
-                    return clop1.equals(clop0);
+                    PopCount clop1 = rad20.and(e1.radials()).pop().add(e1.clop());
+                    if(clop1.equals(clop0)) {
+                        if(debug)
+                            return true;
+                        else
+                            return true;
+                    } else
+                    if(debug)
+                        return false;
+                    else
+                        return false;
                 };
             };
         }
@@ -147,7 +176,6 @@ public class IndexBuilder {
     }
 
     private R0Table t0(T0Builder builder, RingEntry e2, PopCount pop2, Function<RingEntry, Predicate<RingEntry>> milf) {
-
         EntryTable lt0 = lePopTable.get(pop2);
 
         for (RingEntry e0 : lt0) {
@@ -261,8 +289,9 @@ public class IndexBuilder {
     }
 
     class T0Builder {
-        final List<RingEntry> t0 = new ArrayList<>();
-        final List<EntryTable> t1 = new ArrayList<>();
+
+        final List<RingEntry> t0 = new ArrayList<>(RingEntry.MAX_INDEX);
+        final List<EntryTable> t1 = new ArrayList<>(RingEntry.MAX_INDEX);
 
         public void clear() {
             t0.clear();
@@ -274,9 +303,9 @@ public class IndexBuilder {
             t = table(t);
             t1.add(t);
         }
-
         R0Table build() {
-            return R0Table.of(EntryTable.of(t0), tables(t1));
+            List<EntryTable> n1 = tables(t1);
+            return R0Table.of(EntryTable.of(t0), n1);
         }
     }
 

@@ -3,6 +3,7 @@ package mills.ring;
 import mills.bits.*;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Created by IntelliJ IDEA.
@@ -158,12 +159,24 @@ public class RingEntry extends BW {
     }
 
     /**
+     * Iterate all positions with fewer stones.
+     * @param action to be taken on each minor position.
+     */
+    public void forEachMinor(Consumer<? super RingEntry> action) {
+        sectors().forEach(sector->{
+            RingEntry minor = withPlayer(sector, Player.None);
+            action.accept(minor);
+            //minor.forEachMinor(action);
+        });
+    }
+
+    /**
      * setup a new player for a given sector.
      * @param sector to setup
      * @param player to set.
-     * @return a RingEntry with giben player at given sector.
+     * @return a RingEntry with given player at given sector.
      */
-    public RingEntry setPlayer(Sector sector, Player player) {
+    public RingEntry withPlayer(Sector sector, Player player) {
         final Player current = player(sector);
 
         // noop

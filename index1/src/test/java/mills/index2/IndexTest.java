@@ -2,13 +2,16 @@ package mills.index2;
 
 import mills.bits.Perms;
 import mills.bits.PopCount;
+import mills.bits.RClop;
 import mills.index.PosIndex;
+import mills.index1.C2Table;
 import mills.index1.IndexList;
 import mills.position.Position;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.EntryTables;
 import mills.util.IntegerDigest;
+import mills.util.Stat;
 import org.junit.Test;
 
 import java.util.*;
@@ -124,42 +127,81 @@ public class IndexTest {
 
         Set<Perms> perms = new TreeSet<>();
 
-        EntryTables stat = new EntryTables();
+        PopCount debug = PopCount.of(3,4);
 
-        PopCount.TABLE.stream().filter(pop->pop.sum()<=8).forEach(pop -> {
+        long k =PopCount.TABLE.stream().filter(pop->pop.sum()<=8).mapToInt(pop -> {
             EntryTable[] fragment = builder.fragments.get(pop.index);
 
-            Set<EntryTable> tables = new TreeSet<>(Entries.BY_SIZE);
+            Set<EntryTable> tset = new TreeSet<>(Entries.BY_SIZE);
             int n=0;
+            if(pop.equals(debug))
+                n=0;
+
             for (int m = 0; m < fragment.length; m++) {
                 EntryTable table = fragment[m];
                 if (table != null) {
                     Perms perm = Perms.of(2*m);
                     perms.add(perm);
                     ++n;
-                    tables.add(table);
-                    stat.table(table);
+                    tset.add(table);
                 }
             }
 
-            System.out.format("%s: %d %d\n", pop, n, tables.size());
-        });
-        
+            Stat stat = new Stat();
+
+            tset.forEach(et -> stat.accept(countClops(et)));
+            stat.forEach((i,j)-> System.out.format(" %d[%d]", i, j));
+            System.out.println();
+
+            System.out.format("%s: %d %d, ", pop, n, tset.size());
+            return tset.size();
+        }).sum();
+
+        System.out.format("\n tset: %d, total: %d\n", k, registry.count());
+
         perms.forEach(System.out::println);
 
-        stat.stat(System.out);
+        registry.stat(System.out);
+    }
 
-        System.out.format("\n total: %d\n", stat.count());
+    private int countClops(EntryTable et) {
+
+        Set<RClop> rset = new TreeSet<>();
+        et.forEach(e->rset.add(RClop.of(e)));
+
+        Map<RClop, Set<RClop>> rmap = new TreeMap<>();
+
+        rset.forEach(rc -> {
+            rc.rad.forEachMinor(rx->{
+                PopCount cx = rc.clop.add(rx.pop);
+                if(cx.max()<=4) {
+                    RClop rcx = RClop.of(rx, rc.clop.add(rx.pop));
+                    rmap.computeIfAbsent(rcx, x -> new TreeSet<>()).add(rc);
+                }
+            });
+        });
+
+        Set<Set<RClop>> xset = new HashSet<>(rmap.values());
+
+        return xset.size();
     }
 
     @Test
     public void indexGroups() {
+        double start = System.currentTimeMillis();
+
         for (int nb = 0; nb <= 9; ++nb) {
             for (int nw = 0; nw <= 9; ++nw) {
                 PopCount pop = PopCount.get(nb, nw);
                 indexGroup(pop);
             }
         }
+
+        double stop = System.currentTimeMillis();
+
+        System.out.format("\n%.3fs, mem: %,d\n", (stop - start) / 1000, Runtime.getRuntime().totalMemory());
+
+        registry.stat(System.out);
     }
 
     @Test
@@ -172,18 +214,33 @@ public class IndexTest {
 
     @Test
     public void testGroup() {
-        PopCount pop = PopCount.get(3, 3);
-        indexGroup(pop);
+        PopCount pop = PopCount.get(5, 5);
+        Map<PopCount, C2Table> group = indexGroup(pop);
+
+        PosIndex ref = refBuilder.get(pop);
+        BitSet refSet = new BitSet(ref.range());
+        refSet.set(0, ref.range());
+
+        group.values().stream().forEach(pi->
+            pi.process((posIndex, i201)->{
+                int refIndex = ref.posIndex(i201);
+                refSet.set(refIndex, false);
+            })
+        );
+
+        var positions = refSet.stream().mapToLong(ref::i201).mapToObj(Position::of).collect(Collectors.toList());
+
+        System.out.format("missing: %d\n", positions.size());
     }
 
-    public void indexGroup(PopCount pop) {
+    public Map<PopCount, C2Table> indexGroup(PopCount pop) {
         var group = builder.buildGroup(pop);
 
         PopCount max = group.keySet().stream().reduce(PopCount.EMPTY, PopCount::max);
 
         int count = group.values().stream().mapToInt(PosIndex::range).sum();
 
-        System.out.format("group (%d,%d) [%d,%d] +%d,%13d\n",
+        System.out.format("group (%d,%d) [%d,%d] +%d: %,d\n",
                 pop.nb, pop.nw, max.nb, max.nw,
                 group.size(), count);
 
@@ -200,5 +257,7 @@ public class IndexTest {
         }
 
         System.out.println();
+
+        return group;
     }
 }

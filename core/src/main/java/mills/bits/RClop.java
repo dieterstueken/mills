@@ -13,6 +13,7 @@ import mills.ring.EntryTable;
 import mills.ring.EntryTables;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
+import mills.util.Indexed;
 
 import java.util.List;
 import java.util.Set;
@@ -24,13 +25,13 @@ import java.util.TreeSet;
  *
  * RClop accepts a RingEntry if its clop count plus the count of closing radials matches this given popCount.
  */
-public class RClop implements Comparable<RClop> {
+public class RClop implements Indexed {
 
     public final PopCount clop;
 
     public final RingEntry rad;
 
-    public static int index(RingEntry rad, PopCount clop) {
+    public static int getIndex(RingEntry rad, PopCount clop) {
         assert clop.max()<=4;
         return rad.radix() + 81 * clop.index;
     }
@@ -45,8 +46,8 @@ public class RClop implements Comparable<RClop> {
         this.rad = Entries.RADIALS.get(index%81);
     }
 
-    public int index() {
-        return index(rad, clop);
+    public int getIndex() {
+        return getIndex(rad, clop);
     }
 
     // add radials and clop
@@ -67,7 +68,7 @@ public class RClop implements Comparable<RClop> {
     }
 
     public static RClop of(RingEntry rad, PopCount clop) {
-        return TABLE.get(index(rad, clop));
+        return TABLE.get(getIndex(rad, clop));
     }
 
     /**
@@ -80,12 +81,7 @@ public class RClop implements Comparable<RClop> {
     }
 
     public int hashCode() {
-        return index();
-    }
-
-    @Override
-    public int compareTo(RClop o) {
-        return Integer.compare(index(), o.index());
+        return getIndex();
     }
 
     // singletons: no equals necessary.

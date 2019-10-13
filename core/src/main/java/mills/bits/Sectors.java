@@ -1,6 +1,7 @@
 package mills.bits;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import static java.util.Spliterator.*;
 
@@ -47,6 +48,18 @@ public class Sectors extends AbstractSet<Sector> {
         int m = Integer.lowestOneBit(pattern);
         int k = Integer.numberOfTrailingZeros(m);
         return Sector.SECTORS.get(k);
+    }
+
+    public void forEach(Consumer<? super Sector> action) {
+        int remaining = pattern;
+        while(remaining!=0) {
+            int m = Integer.lowestOneBit(remaining);
+            if(m==0)
+                break;
+            remaining ^= m;
+            int k = Integer.numberOfTrailingZeros(m);
+            action.accept(Sector.SECTORS.get(k));
+        }
     }
 
     @Override
