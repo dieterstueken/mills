@@ -31,25 +31,25 @@ public class Fragments {
 
     final List<List<EntryTable>> fragments;
 
-    final Map<PopCount, List<EntryTable>> maps;
+    final Map<PopCount, List<EntryTable>> map;
 
     final List<EntryTable> roots;
 
     private Fragments() {
         this.fragments = AbstractRandomList.virtual(CLOPS, null);
         this.roots = EntryTable.EMPTY.singleton();
-        this.maps = Collections.emptyMap();
+        this.map = Collections.emptyMap();
     }
 
     Fragments(List<List<EntryTable>> fragments, List<EntryTable> roots) {
         this.fragments = fragments;
         this.roots = roots;
 
-        maps = new TreeMap<>();
+        map = new TreeMap<>();
         for (PopCount clop : PopCount.CLOSED) {
             List<EntryTable> fragment = fragments.get(clop.index);
             if(fragment!=null)
-                maps.put(clop, fragment);
+                map.put(clop, fragment);
         }
     }
 
@@ -59,7 +59,7 @@ public class Fragments {
     }
 
     public String toString() {
-        return String.format("F[%d;%d]", maps.size(), roots.size()-1);
+        return String.format("F[%d;%d]", map.size(), roots.size()-1);
     }
 
     public EntryTable root() {

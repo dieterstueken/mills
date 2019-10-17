@@ -158,14 +158,15 @@ public class IndexBuilder {
 
         T0Builder builder = getBuilder();
         try{
-            return t0(builder, e2, pop2, milf);
+            return t0(builder, e2, pop2, clop);
         } finally {
             release(builder);
         }
     }
 
-    private R0Table t0(T0Builder builder, RingEntry e2, PopCount pop2, Function<RingEntry, Predicate<RingEntry>> milf) {
+    private R0Table t0(T0Builder builder, RingEntry e2, PopCount pop2, PopCount clop) {
         EntryTable lt0 = lePopTable.get(pop2);
+        PopCount clop2 = clop==null ? null : clop.sub(e2.clop());
 
         for (RingEntry e0 : lt0) {
 
@@ -174,22 +175,25 @@ public class IndexBuilder {
             if(e0.min()>e2.index)
                 continue;
 
-            // no filter by default
-            Predicate<RingEntry> f1 = null;
-
-            if(milf!=null) {
-                // if given this indicates an aboard
-                f1 = milf.apply(e0);
-                if (f1 == null)
-                    continue;
-            }
-            
             // remaining PopCount of e1[]
             PopCount pop1 = pop2.sub(e0.pop);
 
             EntryTable t1 = partitions.get(pop1).root();
             if(t1.isEmpty())
                 continue;
+
+            // no filter by default
+            PopCount clop1 = null;
+
+            if(clop2!=null) {
+                clop1 = clop2.sub(e0.clop());
+
+                if(clop1==null)
+                    continue;
+
+                if(clop1.max()>4)
+                    continue;
+            }
 
             int meq = meq(e2, e0);
             if(meq==0)
@@ -198,8 +202,9 @@ public class IndexBuilder {
             EntryTable tf = fragment(pop1, t1,  meq);
 
             // apply possible clop filter
-            if(f1!=null)
-                tf = tf.filter(f1);
+            if(clop1!=null) {
+                tf = tf.filter(clpopf(e2, e0, clop1));
+            }
 
             if(tf.isEmpty())
                 continue;
@@ -208,6 +213,14 @@ public class IndexBuilder {
         }
 
         return builder.build();
+    }
+
+    private static Predicate<RingEntry> clpopf(RingEntry e2, RingEntry e0, PopCount clop) {
+        if(clop==null)
+            return Entries.ALL;
+
+        RingEntry rad20 = e2.radials().and(e0.radials());
+        return e1 -> rad20.and(e1.radials()).pop().add(e1.clop()).equals(clop);
     }
 
     EntryTable fragment(PopCount p1, EntryTable t1, int msk) {
