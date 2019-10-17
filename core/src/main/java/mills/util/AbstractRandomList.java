@@ -45,6 +45,10 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         };
     }
 
+    public static <T> ArrayList<T> filled(int size, T fill) {
+        return new ArrayList<>(AbstractRandomArray.of(size, fill));
+    }
+
     public static <U, T> AbstractRandomList<T> transform(List<U> source, Function<? super U, ? extends T> mapper) {
          return new AbstractRandomList<T>() {
 

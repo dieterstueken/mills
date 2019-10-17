@@ -29,8 +29,11 @@ public class EntryTables {
 
     private final List<KeyedEntry> tables = new ArrayList<>();
 
+    // must never be resized
+    private final List<Map<List<RingEntry>, KeyedEntry>> maps = AbstractRandomList.filled(RingEntry.MAX_INDEX-2, null);
+
+    // generated maps so far
     private Map<Short, Map<List<RingEntry>, KeyedEntry>> metamap = new ConcurrentSkipListMap<>();
-    private final List<Map<List<RingEntry>, KeyedEntry>> maps = Arrays.asList(new Map[RingEntry.MAX_INDEX-2]);
 
     /**
      * Public normalisation.
@@ -54,7 +57,11 @@ public class EntryTables {
 
     private Map<List<RingEntry>, KeyedEntry> map(int size) {
         int index = size-2;
+
+        // try map array first
         Map<List<RingEntry>, KeyedEntry> map = maps.get(index);
+
+        // generate on demand if still missing
         if(map==null) {
             map = metamap.computeIfAbsent((short)index, i->new ConcurrentSkipListMap<>(Entries.BY_ORDER));
             maps.set(index, map);
