@@ -5,6 +5,7 @@ import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -15,6 +16,8 @@ import java.util.List;
 public class Fragments {
 
     final List<List<EntryTable>> fragments;
+
+    final Map<PopCount, List<EntryTable>> maps = Map.of(null, null);
 
     final List<EntryTable> roots;
 

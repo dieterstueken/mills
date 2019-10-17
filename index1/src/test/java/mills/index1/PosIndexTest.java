@@ -1,12 +1,16 @@
 package mills.index1;
 
+import mills.bits.Perms;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
 import mills.ring.Entries;
+import mills.ring.RingEntry;
 import mills.util.IntegerDigest;
 import org.junit.Test;
 
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -106,5 +110,34 @@ public class PosIndexTest {
             int j = posIndex.posIndex(i201);
             assertEquals(index, j);
         });
+    }
+
+    @Test
+    public void testPerms() {
+
+        Set<Perms> total = new TreeSet<>();
+
+        for (PopCount pop : PopCount.TABLE) {
+            R2Index index = indexes.get(pop);
+            Set<Perms> perms = new TreeSet<>();
+
+            for (I2Entry i2 : index.entries) {
+                RingEntry e2 = i2.e2;
+                for (RingEntry e0 : i2.t0.keySet()) {
+                    int m = e2.mlt20(e0);
+                    Perms p = Perms.of(m);
+                    perms.add(p);
+                }
+            }
+
+            int range = index.range();
+            int n20 = index.n20();
+            System.out.format("l%d%d%10d, %4d %d\n", pop.nb, pop.nw, range, n20, perms.size());
+            total.addAll(perms);
+        }
+
+        System.out.format("perms: %d\n", total.size());
+
+        total.forEach(System.out::println);
     }
 }

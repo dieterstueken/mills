@@ -33,7 +33,7 @@ public class FragmentBuilder {
 
     final List<List<RingEntry>> fragments = new ArrayList<>();
 
-    final byte[][] backup = new byte[CLOPS][];
+    final List<byte[]> backup = new ArrayList<>();
     final byte[][] entries = new byte[CLOPS][];
 
     FragmentBuilder(EntryTables registry) {
@@ -42,15 +42,19 @@ public class FragmentBuilder {
 
     public void clear() {
         fragments.clear();
-        Arrays.fill(entries, null);
-        for (byte[] bytes : backup) {
-            Arrays.fill(bytes, (byte) 0);
+
+        for (int i = 0; i < entries.length; i++) {
+            byte[] radix = entries[i];
+            if(radix!=null) {
+                Arrays.fill(radix, (byte) 0);
+                backup.add(radix);
+                entries[i] = null;
+            }
         }
     }
 
     private void addEntry(RingEntry entry) {
-        RingEntry rad = entry.radials();
-        addEntry(rad, entry, 0);
+        addEntry(Entries.of(0), entry, 0);
     }
 
     private void addEntry(RingEntry rad, RingEntry entry, int pix) {
@@ -93,9 +97,11 @@ public class FragmentBuilder {
         // propagate frix as reference to all minors
         int mid = Math.abs(frix);
 
-        for (Sector sector : rad.sectors()) {
-            RingEntry mirad = rad.withPlayer(sector, Player.None);
-            addEntry(mirad, entry, mid);
+        for (Sector sector : rad.sectors(Player.None)) {
+            RingEntry added = rad.withPlayer(sector, Player.Black);
+            addEntry(added, entry, mid);
+            added = rad.withPlayer(sector, Player.White);
+            addEntry(added, entry, mid);
         }
     }
 
@@ -132,7 +138,11 @@ public class FragmentBuilder {
 
         // create on demand
         if (radix == null) {
-            radix = new byte[RADS];
+            if(backup.isEmpty())
+                radix = new byte[RADS];
+            else
+                radix = backup.remove(backup.size()-1);
+
             entries[clop.index] = radix;
         }
 
@@ -147,7 +157,7 @@ public class FragmentBuilder {
         }
     }
 
-    public Fragments _build(EntryTable root) {
+    Fragments _build(EntryTable root) {
 
         if(!fragments.isEmpty())
             throw new IllegalStateException("fragment builder in use");
