@@ -28,6 +28,11 @@ class EmptyTable extends EntryList {
         return 0;
     }
 
+    @Override
+    public int hashCode() {
+        return Collections.emptyList().hashCode();
+    }
+
     public RingEntry get(int index) {
         throw new IndexOutOfBoundsException("Index: " + index);
     }
@@ -56,11 +61,6 @@ class EmptyTable extends EntryList {
     @Override
     public RingEntry[] toArray() {
         return empty;
-    }
-
-    @Override
-    public int hashCode() {
-        return -1;
     }
 
     @Override

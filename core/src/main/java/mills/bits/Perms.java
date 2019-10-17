@@ -135,4 +135,8 @@ public class Perms extends AbstractSet<Perm> implements Indexed {
 
         return of(perm);
     }
+
+    public static List<Perms> listOf(int ... perms) {
+        return AbstractRandomList.virtual(perms.length, Perms::of).copyOf();
+    }
 }

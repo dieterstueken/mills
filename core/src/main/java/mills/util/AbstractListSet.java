@@ -55,26 +55,25 @@ abstract public class AbstractListSet<T> extends AbstractList<T> implements List
         return  true;
     }
 
+    @Override
     public boolean equals(Object o) {
         if (o == this)
             return true;
 
-        if (!(o instanceof Collection))
+        if (!(o instanceof List))
             return false;
 
-        Collection<?> c = (Collection<?>) o;
-        if (c.size() != size())
+        List<?> l = (List) o;
+
+        if (l.size() != size())
             return false;
 
-        Iterator<T> e1 = iterator();
-        Iterator<?> e2 = c.iterator();
-        while (e1.hasNext() && e2.hasNext()) {
-            T o1 = e1.next();
-            Object o2 = e2.next();
-            if (!(o1==null ? o2==null : o1.equals(o2)))
+        for(int i=0; i<size(); ++i) {
+            if(!Objects.equals(get(i), l.get(i)))
                 return false;
         }
-        return !(e1.hasNext() || e2.hasNext());
+
+        return true;
     }
 
     public static <T> ListSet<T> of(T[] values, Comparator<? super T> comparator) {

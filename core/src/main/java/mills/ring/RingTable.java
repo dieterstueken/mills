@@ -7,6 +7,8 @@ package mills.ring;
  * Time: 13:37:50
  */
 
+import java.util.Arrays;
+
 import static mills.ring.RingEntry.MAX_INDEX;
 
 /**
@@ -16,8 +18,11 @@ class RingTable extends EntryTable {
 
     private final RingEntry[] entries;
 
+    private final int hashCode;
+
     RingTable(RingEntry[] entries) {
         this.entries = entries;
+        this.hashCode = Arrays.hashCode(entries);
     }
 
     @Override
@@ -47,5 +52,22 @@ class RingTable extends EntryTable {
         assert inRange(index) : "invalid RingTable index: " + index;
 
         return (short) index;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o instanceof RingTable) {
+            RingTable that = (RingTable) o;
+            return Arrays.equals(entries, that.entries);
+        }
+
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
     }
 }

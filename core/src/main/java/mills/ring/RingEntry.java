@@ -143,11 +143,11 @@ public class RingEntry extends BW {
     /**
      * @return Occupied sectors.
      */
-    public Set<Sector> sectors() {
+    public Pattern sectors() {
         return b.or(w);
     }
 
-    public Set<Sector> sectors(Player player) {
+    public Pattern sectors(Player player) {
 
         switch(player) {
             case Black: return b;
@@ -155,7 +155,7 @@ public class RingEntry extends BW {
             case None: return b.or(w).not();
         }
 
-        return Collections.emptySet();
+        return Pattern.NONE;
     }
 
     /**

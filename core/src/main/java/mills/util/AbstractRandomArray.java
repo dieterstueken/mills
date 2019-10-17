@@ -21,21 +21,11 @@ public abstract class AbstractRandomArray<T> extends AbstractRandomList<T> {
         return size;
     }
 
-    public static <T> AbstractRandomArray<T> of(int size, T value) {
-        return new AbstractRandomArray<T>(size) {
-
-            @Override
-            public T get(int index) {
-                return value;
-            }
-        };
+    public static <T> AbstractRandomArray<T> virtual(T[] data) {
+        return asList(data);
     }
 
-    public static <T> AbstractRandomArray<T> of(T[] data) {
-        return construct(data);
-    }
-
-    static <T> AbstractRandomArray<T> construct(Object[] data) {
+    static <T> AbstractRandomArray<T> asList(Object[] data) {
 
         return new AbstractRandomArray<T>(data.length) {
 
@@ -43,6 +33,18 @@ public abstract class AbstractRandomArray<T> extends AbstractRandomList<T> {
             @SuppressWarnings("unchecked")
             public T get(int index) {
                 return (T) data[index];
+            }
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public T set(int index, T value) {
+                T t = (T) data[index];
+                if(t==value)
+                    return t;
+
+                data[index] = value;
+                modCount = 0;
+                return t;
             }
 
             @Override

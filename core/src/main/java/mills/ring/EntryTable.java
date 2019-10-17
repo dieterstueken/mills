@@ -189,7 +189,7 @@ abstract public class EntryTable extends AbstractListSet<RingEntry> {
     ////////////////////////////////////////////////////////////////////////////////////////////
 
     // an empty table template
-    public static final EmptyTable EMPTY = EmptyTable.of();
+    public static final EntryTable EMPTY = EmptyTable.of();
 
     public static EntryTable of(Iterator<? extends RingEntry> entries, int size) {
 

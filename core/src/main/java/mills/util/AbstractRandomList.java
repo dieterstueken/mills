@@ -24,6 +24,25 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         return List.copyOf(this);
     }
 
+    public static <T> AbstractRandomArray<T> constant(int size, T value) {
+        return new AbstractRandomArray<T>(size) {
+
+            @Override
+            public T get(int index) {
+                return value;
+            }
+        };
+    }
+
+    public static <T> AbstractRandomArray<T> preset(int size, T value) {
+        Object[] values = new Object[size];
+
+        if(value!=null)
+            Arrays.fill(values, value);
+
+        return AbstractRandomArray.asList(values);
+    }
+
     public static <T> AbstractRandomArray<T> virtual(int size, IntFunction<? extends T> generate) {
         return new AbstractRandomArray<T>(size) {
 
@@ -43,10 +62,6 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
                 return System.identityHashCode(this);
             }
         };
-    }
-
-    public static <T> ArrayList<T> filled(int size, T fill) {
-        return new ArrayList<>(AbstractRandomArray.of(size, fill));
     }
 
     public static <U, T> AbstractRandomList<T> transform(List<U> source, Function<? super U, ? extends T> mapper) {
@@ -99,7 +114,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
 
         Object[] values = new Object[size];
         Arrays.setAll(values, generate);
-        return AbstractRandomArray.construct(values);
+        return AbstractRandomArray.asList(values);
     }
 
     @SuppressWarnings("unchecked")
@@ -117,7 +132,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         for(int i=size-1; i>=0; --i)
             values[i] = mapper.apply(source.get(i));
 
-        return AbstractRandomArray.construct(values);
+        return AbstractRandomArray.asList(values);
     }
 
     @SuppressWarnings("unchecked")
@@ -136,7 +151,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
             values[i++] = v;
         }
 
-        return AbstractRandomArray.construct(values);
+        return AbstractRandomArray.asList(values);
     }
 
     // check sizes first

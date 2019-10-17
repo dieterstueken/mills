@@ -14,8 +14,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static mills.util.AbstractRandomList.virtual;
-
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -24,17 +22,12 @@ import static mills.util.AbstractRandomList.virtual;
  */
 public class FragmentBuilder {
 
-    static final int CLOPS = PopCount.CLOSED.size();
-    static final int RADS = Entries.RADIALS.size();
-
-    static final List<EntryTable> EMPTY = virtual(RADS, i -> EntryTable.EMPTY);
-
     final EntryTables registry;
 
     final List<List<RingEntry>> fragments = new ArrayList<>();
 
     final List<byte[]> backup = new ArrayList<>();
-    final byte[][] entries = new byte[CLOPS][];
+    final byte[][] entries = new byte[Fragments.CLOPS][];
 
     FragmentBuilder(EntryTables registry) {
         this.registry = registry;
@@ -54,13 +47,17 @@ public class FragmentBuilder {
     }
 
     private void addEntry(RingEntry entry) {
-        addEntry(Entries.of(0), entry, 0);
+        addEntry(Entries.EMPTY, entry, 0);
     }
 
     private void addEntry(RingEntry rad, RingEntry entry, int pix) {
 
         // actual clop count with external rad
         PopCount clop = entry.clop().add(rad.pop);
+
+        // ain't no clop>4
+        if(clop.max()>4)
+            return;
 
         byte[] radix = radix(clop);
 
@@ -97,7 +94,7 @@ public class FragmentBuilder {
         // propagate frix as reference to all minors
         int mid = Math.abs(frix);
 
-        for (Sector sector : rad.sectors(Player.None)) {
+        for (Sector sector : rad.sectors(Player.None).radials()) {
             RingEntry added = rad.withPlayer(sector, Player.Black);
             addEntry(added, entry, mid);
             added = rad.withPlayer(sector, Player.White);
@@ -125,10 +122,11 @@ public class FragmentBuilder {
         List<RingEntry> fragment = new ArrayList<>(size);
         fragment.addAll(parent);
         
-        fragments.add(fragment);
         int frix = fragments.size();
         if (frix > Byte.MAX_VALUE)
             throw new IndexOutOfBoundsException("fagments overflow");
+
+        fragments.add(fragment);
 
         return (byte) frix;
     }
@@ -139,7 +137,7 @@ public class FragmentBuilder {
         // create on demand
         if (radix == null) {
             if(backup.isEmpty())
-                radix = new byte[RADS];
+                radix = new byte[Fragments.RADS];
             else
                 radix = backup.remove(backup.size()-1);
 
@@ -175,7 +173,7 @@ public class FragmentBuilder {
 
         // convert all entry arrays into entry tables
 
-        List<List<EntryTable>> tables = AbstractRandomList.generate(CLOPS, i-> generateTable(entries[i]));
+        List<List<EntryTable>> tables = AbstractRandomList.generate(Fragments.CLOPS, i-> generateTable(entries[i]));
         List<EntryTable> roots = registry.register(fragments);
 
         return new Fragments(tables, roots);
@@ -183,19 +181,11 @@ public class FragmentBuilder {
 
     private List<EntryTable> generateTable(byte[] entries) {
         if(entries==null)
-            return EMPTY;
+            return null;
 
-        assert entries.length == RADS;
+        assert entries.length == Fragments.RADS;
 
-        // fill remaining major entries
-
-        for(int i=0; i<RADS; ++i) {
-            propagateMajors(entries, i, entries[i]);
-        }
-
-        List<EntryTable> table = AbstractRandomList.virtual(RADS, this::getTable);
-
-        return table;
+        return AbstractRandomList.virtual(Fragments.RADS, this::getTable);
     }
 
     private EntryTable getTable(int i) {
@@ -206,24 +196,4 @@ public class FragmentBuilder {
         List<RingEntry> fragment = fragments.get(i);
         return registry.table(fragment);
     }
-
-    void propagateMajors(byte[] entries, int irad, byte frix) {
-
-        if(entries[irad]!=frix) {
-            assert entries[irad] == 0;
-            entries[irad] = frix;
-        }
-
-        if(frix<=0)
-            return;
-
-        RingEntry rad = Entries.RADIALS.get(irad);
-        for (Sector sector : rad.sectors(Player.None)) {
-            RingEntry major = rad.withPlayer(sector, Player.Black);
-            propagateMajors(entries, major.index, frix);
-            major = rad.withPlayer(sector, Player.White);
-            propagateMajors(entries, major.index, frix);
-        }
-    }
-
 }

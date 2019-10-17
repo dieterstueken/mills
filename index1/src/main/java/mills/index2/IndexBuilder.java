@@ -30,52 +30,41 @@ import java.util.stream.Collectors;
  */
 public class IndexBuilder {
 
+    final EntryTables registry;
+
     final LePopTable lePopTable;
     final LePopTable minPopTable;
 
-    final List<EntryTable> partitions;
+    final Partitions partitions;
 
     final List<EntryTable[]> fragments = AbstractRandomList.generate(PopCount.SIZE, pop -> new EntryTable[128]);
 
     public IndexBuilder(LePopTable lePopTable, LePopTable minPopTable,
-                         List<EntryTable> partitions) {
+                        Partitions partitions, EntryTables registry) {
         this.lePopTable = lePopTable;
         this.minPopTable = minPopTable;
         this.partitions = partitions;
-    }
-
-    public IndexBuilder() {
-        lePopTable = LePopTable.build(Entries.TABLE, this::table);
-        minPopTable = LePopTable.build(Entries.MINIMIZED, this::table);
-        partitions = AbstractRandomList.transform(PopCount.TABLE,
-                pop->pop.sum()<=8 ? this.table(Entries.TABLE.filter(pop.eq)) : EntryTable.EMPTY)
-                .copyOf();
+        this.registry = registry;
     }
 
     EntryTable table(EntryTable table) {
-        return table;
+        return registry==null ? table : registry.table(table);
     }
 
     List<EntryTable> tables(List<EntryTable> tables) {
-        return tables;
+        return registry==null ? tables : registry.register(tables);
     }
 
     public static IndexBuilder create() {
-        return new IndexBuilder();
+        return create(new EntryTables());
     }
 
-    public static IndexBuilder create(EntryTables tables) {
-        return new IndexBuilder() {
-            @Override
-            EntryTable table(EntryTable table) {
-                return tables.table(table);
-            }
+    public static IndexBuilder create(EntryTables registry) {
+        LePopTable lePopTable = LePopTable.build(Entries.TABLE, registry::table);
+        LePopTable minPopTable = LePopTable.build(Entries.MINIMIZED, registry::table);
+        Partitions partitions = Partitions.build(Entries.TABLE, registry);
 
-            @Override
-            List<EntryTable> tables(List<EntryTable> list) {
-                 return tables.register(list);
-            }
-        };
+        return new IndexBuilder(lePopTable, minPopTable, partitions, registry);
     }
 
     public Map<PopCount, C2Table> buildGroup(PopCount pop) {
@@ -198,7 +187,7 @@ public class IndexBuilder {
             // remaining PopCount of e1[]
             PopCount pop1 = pop2.sub(e0.pop);
 
-            EntryTable t1 = partitions.get(pop1.index);
+            EntryTable t1 = partitions.get(pop1).root();
             if(t1.isEmpty())
                 continue;
 

@@ -12,8 +12,11 @@ class EntryArray extends EntryList {
 
     final short[] indices;
 
+    final int hashCode;
+
     protected EntryArray(short[] indices) {
         this.indices = indices;
+        this.hashCode = Arrays.hashCode(indices);
     }
 
     @Override
@@ -55,11 +58,30 @@ class EntryArray extends EntryList {
         short t0 = values[0];
         for (int i = 1; i < values.length; ++i) {
             short t1 = values[i];
-            if(Short.compare(t0, t1)>=0)
+            if(t0 >= t1)
                 return false;
             t0 = t1;
         }
 
         return  true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+
+        if ((o instanceof EntryArray)) {
+            EntryArray a = (EntryArray) o;
+
+            return Arrays.equals(this.indices, a.indices);
+        }
+
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
     }
 }
