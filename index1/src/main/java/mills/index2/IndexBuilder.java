@@ -204,6 +204,10 @@ public class IndexBuilder {
             // apply possible clop filter
             if(clop1!=null) {
                 tf = tf.filter(clpopf(e2, e0, clop1));
+                RingEntry rad20 = e2.radials().and(e0.radials());
+                EntryTable tx = partitions.get(pop1).get(meq).get(clop1, rad20);
+                if(!tx.equals(tf))
+                    tx.size();
             }
 
             if(tf.isEmpty())

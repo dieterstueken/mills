@@ -34,20 +34,21 @@ public class Partition {
     }
 
     public Fragments get(int msk) {
-        int index = INDEX[msk];
+        int index = INDEX[msk/2];
 
         if(index<0)
-            return null;
+            return Fragments.EMPTY;
 
         return fragments.get(index);
     }
 
-    private static final int[] INDEX = new int[PERMS.size()];
+    private static final int[] INDEX = new int[Perms.VALUES.size()/2];
 
     static{
         Arrays.fill(INDEX, -1);
         for(int i=0; i<PERMS.size(); ++i) {
-            INDEX[i] = i;
+            Perms p = PERMS.get(i);
+            INDEX[p.getIndex()/2] = i;
         }
     }
 
