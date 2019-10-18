@@ -50,7 +50,6 @@ public class LePopTable extends PopMap<EntryTable> {
         super(table);
     }
 
-    @Override
     public int size() {
         return PopCount.TABLE.size();
     }

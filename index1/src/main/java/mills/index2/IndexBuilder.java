@@ -12,10 +12,7 @@ import mills.ring.EntryTables;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -35,12 +32,12 @@ public class IndexBuilder {
     final LePopTable lePopTable;
     final LePopTable minPopTable;
 
-    final Partitions partitions;
+    final Map<PopCount, Partition> partitions;
 
     final List<EntryTable[]> fragments = AbstractRandomList.generate(PopCount.SIZE, pop -> new EntryTable[128]);
 
     public IndexBuilder(LePopTable lePopTable, LePopTable minPopTable,
-                        Partitions partitions, EntryTables registry) {
+                        Map<PopCount, Partition> partitions, EntryTables registry) {
         this.lePopTable = lePopTable;
         this.minPopTable = minPopTable;
         this.partitions = partitions;
@@ -62,16 +59,25 @@ public class IndexBuilder {
     public static IndexBuilder create(EntryTables registry) {
         LePopTable lePopTable = LePopTable.build(Entries.TABLE, registry::table);
         LePopTable minPopTable = LePopTable.build(Entries.MINIMIZED, registry::table);
-        Partitions partitions = Partitions.build(Entries.TABLE, registry);
+        Map<PopCount, Partition> partitions = Partition.partitions(Entries.TABLE, registry);
 
         return new IndexBuilder(lePopTable, minPopTable, partitions, registry);
     }
 
     public Map<PopCount, C2Table> buildGroup(PopCount pop) {
-        return PopCount.CLOSED.parallelStream()
-                .map(clop -> build(pop, clop))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toUnmodifiableMap(c2->c2.clop, Function.identity()));
+
+        C2Table[] tables = new C2Table[PopCount.CLOSED.size()];
+
+        PopCount.CLOSED.stream().forEach(clop -> tables[clop.index] = build(pop, clop));
+
+        Map<PopCount, C2Table> group = new TreeMap<>();
+
+        for (C2Table table : tables) {
+            if(table!=null)
+                group.put(table.clop, table);
+        }
+
+        return group;
     }
 
     public R2Table build(PopCount pop) {
@@ -80,7 +86,7 @@ public class IndexBuilder {
 
     public C2Table build(PopCount pop, PopCount clop) {
 
-        List<R2Entry> table = minPopTable.get(pop).parallelStream()
+        List<R2Entry> table = minPopTable.get(pop).stream()
                 .map(e2 -> r2t0(e2, pop, clop))
                 .filter(Objects::nonNull)
                 .sorted(R2Entry.R2)
@@ -178,7 +184,9 @@ public class IndexBuilder {
             // remaining PopCount of e1[]
             PopCount pop1 = pop2.sub(e0.pop);
 
-            EntryTable t1 = partitions.get(pop1).root();
+            Partition partition = partitions.get(pop1);
+
+            EntryTable t1 = partition.root();
             if(t1.isEmpty())
                 continue;
 
@@ -204,10 +212,15 @@ public class IndexBuilder {
             // apply possible clop filter
             if(clop1!=null) {
                 tf = tf.filter(clpopf(e2, e0, clop1));
+
                 RingEntry rad20 = e2.radials().and(e0.radials());
-                EntryTable tx = partitions.get(pop1).get(meq).get(clop1, rad20);
-                if(!tx.equals(tf))
-                    tx.size();
+                Fragments fragments = partition.get(meq);
+                EntryTable tx = fragments.get(clop1, rad20);
+                if(!tx.equals(tf)) {
+                    partition.get(meq);
+                    fragments.get(clop1, rad20);
+                    throw new RuntimeException("mismatch");
+                }
             }
 
             if(tf.isEmpty())

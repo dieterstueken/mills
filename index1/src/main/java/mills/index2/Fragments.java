@@ -4,12 +4,10 @@ import mills.bits.PopCount;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
-import mills.util.AbstractRandomList;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Created by IntelliJ IDEA.
@@ -29,37 +27,27 @@ public class Fragments {
     static final int CLOPS = PopCount.CLOSED.size();
     static final int RADS = Entries.RADIALS.size();
 
-    final List<List<EntryTable>> fragments;
+    private final Map<PopCount, Map<RingEntry, EntryTable>> fragments;
 
-    final Map<PopCount, List<EntryTable>> map;
-
-    final List<EntryTable> roots;
+    private final List<EntryTable> roots;
 
     private Fragments() {
-        this.fragments = AbstractRandomList.virtual(CLOPS, null);
+        this.fragments = Collections.emptyMap();
         this.roots = EntryTable.EMPTY.singleton();
-        this.map = Collections.emptyMap();
     }
 
-    Fragments(List<List<EntryTable>> fragments, List<EntryTable> roots) {
+    Fragments(Map<PopCount, Map<RingEntry, EntryTable>> fragments, List<EntryTable> roots) {
         this.fragments = fragments;
         this.roots = roots;
-
-        map = new TreeMap<>();
-        for (PopCount clop : PopCount.CLOSED) {
-            List<EntryTable> fragment = fragments.get(clop.index);
-            if(fragment!=null)
-                map.put(clop, fragment);
-        }
     }
 
     public EntryTable get(PopCount clop, RingEntry rad) {
-        List<EntryTable> fragment = fragments.get(clop.index);
-        return fragment==null ? EntryTable.EMPTY : fragment.get(rad.index);
+        Map<RingEntry, EntryTable> fragment = fragments.get(clop);
+        return fragment==null ? EntryTable.EMPTY : fragment.get(rad);
     }
 
     public String toString() {
-        return String.format("F[%d;%d]", map.size(), roots.size()-1);
+        return String.format("F[%d;%d]", fragments.size(), roots.size()-1);
     }
 
     public EntryTable root() {

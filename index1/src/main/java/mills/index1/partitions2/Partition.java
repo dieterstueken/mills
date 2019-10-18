@@ -34,7 +34,7 @@ public class Partition extends AbstractRandomList<PartitionGroup> {
 
     public static Partition EMPTY = new Partition(
             Collections.emptyList(),
-            AbstractRandomList.virtual(128, i->PartitionGroup.EMPTY),
+            AbstractRandomList.constant(128, PartitionGroup.EMPTY),
             Collections.emptyList()
     ) {
         @Override

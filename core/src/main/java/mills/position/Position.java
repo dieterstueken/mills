@@ -43,8 +43,6 @@ public class Position implements Comparable<Position> {
 
     public final List<Position> permuted = AbstractRandomList.virtual(16, Position.this::permute);
 
-    public final List<Position> swapped = AbstractRandomList.virtual(1, index -> swap());
-
     private Position permute(int perm) {
         if(perm==0)
             return this;

@@ -2,10 +2,9 @@ package mills.util;
 
 import mills.bits.PopCount;
 
-import java.util.AbstractMap;
-import java.util.Comparator;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * version:     $
@@ -19,66 +18,27 @@ import java.util.Set;
  * Class PopMap implements an immutable map of PopCounts.
  * @param <T> the type of mapped values.
  */
-public class PopMap<T> extends AbstractMap<PopCount, T> {
+public class PopMap<T>  {
 
-    private static final Comparator<Entry<PopCount, ?>> ENTRY_COMARATOR = Comparator.comparing(Entry::getKey);
+    private final Map<PopCount, T> values;
 
-
-    private ListSet<PopCount> keySet;
-
-    private final List<T> values;
-    
-    private final ListSet<Entry<PopCount, T>> entries;
-
-    protected PopMap(List<T> values, ListSet<Entry<PopCount, T>> entries) {
-        this.keySet = PopCount.TABLE.subList(values.size());
-        this.values = values;
-
-        // create virtual entry set
-        if(entries==null)
-            entries = keySet.transform(this::entry, ENTRY_COMARATOR);
-
-        this.entries = entries;
+    protected PopMap(List<T> values) {
+        this.values = ArraySet.of(PopCount::get, values, null).asMap();
     }
 
-    private Entry<PopCount, T> entry(PopCount pop) {
-        return new SimpleImmutableEntry<>(pop, values.get(pop.index));
+    public Collection<T> values() {
+        return values.values();
     }
 
-    protected PopMap(List<T> tables) {
-        this(tables, null);
-    }
-
-    // todo: must deduce keySet first
-    //protected PopMap(ListSet<Entry<PopCount, T>> entries) {
-    //    this(AbstractRandomList.transform(entries, Map.Entry::getValue), entries);
-    //}
-
-    @Override
-    public ListSet<Entry<PopCount,T>> entrySet() {
-        return entries;
-    }
-
-    @Override
-    public Set<PopCount> keySet() {
-        return keySet;
-    }
-
-    @Override
-    public List<T> values() {
-        return values;
-    }
-
-    @Override
     public T get(Object key) {
         return key instanceof PopCount ? get((PopCount) key) : null;
     }
 
-    public T get(int pop) {
-        return values.get(pop);
+    public T get(int index) {
+        return values.get(PopCount.get(index));
     }
 
     public T get(PopCount pop) {
-        return values.get(pop.getIndex());
+        return values.get(pop);
     }
 }

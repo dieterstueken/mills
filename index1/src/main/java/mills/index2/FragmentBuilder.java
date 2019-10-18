@@ -8,11 +8,12 @@ import mills.ring.EntryTable;
 import mills.ring.EntryTables;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
+import mills.util.ArraySet;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+
+import static mills.index2.Fragments.CLOPS;
+import static mills.index2.Fragments.RADS;
 
 /**
  * Created by IntelliJ IDEA.
@@ -27,7 +28,7 @@ public class FragmentBuilder {
     final List<List<RingEntry>> fragments = new ArrayList<>();
 
     final List<byte[]> backup = new ArrayList<>();
-    final byte[][] entries = new byte[Fragments.CLOPS][];
+    final byte[][] entries = new byte[CLOPS][];
 
     FragmentBuilder(EntryTables registry) {
         this.registry = registry;
@@ -53,7 +54,7 @@ public class FragmentBuilder {
     private void addEntry(RingEntry rad, RingEntry entry, int pix) {
 
         // actual clop count with external rad
-        PopCount clop = entry.clop().add(rad.pop);
+        PopCount clop = entry.clop().add(entry.and(rad).pop);
 
         // ain't no clop>4
         if(clop.max()>4)
@@ -137,7 +138,7 @@ public class FragmentBuilder {
         // create on demand
         if (radix == null) {
             if(backup.isEmpty())
-                radix = new byte[Fragments.RADS];
+                radix = new byte[RADS];
             else
                 radix = backup.remove(backup.size()-1);
 
@@ -154,6 +155,9 @@ public class FragmentBuilder {
             clear();
         }
     }
+
+    private static final Map<RingEntry, EntryTable> EMPTY_FRAGMENT
+            = ArraySet.of(Entries::of, AbstractRandomList.constant(RADS, EntryTable.EMPTY), EntryTable.EMPTY).asMap();
 
     Fragments _build(EntryTable root) {
 
@@ -173,19 +177,24 @@ public class FragmentBuilder {
 
         // convert all entry arrays into entry tables
 
-        List<List<EntryTable>> tables = AbstractRandomList.generate(Fragments.CLOPS, i-> generateTable(entries[i]));
         List<EntryTable> roots = registry.register(fragments);
 
-        return new Fragments(tables, roots);
+        List<Map<RingEntry, EntryTable>> tables = AbstractRandomList.generate(CLOPS, i-> generateTable(entries[i]));
+        Map<PopCount, Map<RingEntry, EntryTable>> map = ArraySet.of(PopCount.TABLE::get, tables, EMPTY_FRAGMENT).asMap();
+
+        return new Fragments(map, roots);
     }
 
-    private List<EntryTable> generateTable(byte[] entries) {
+    private Map<RingEntry, EntryTable> generateTable(byte[] entries) {
         if(entries==null)
             return null;
 
-        assert entries.length == Fragments.RADS;
+        assert entries.length == RADS;
 
-        return AbstractRandomList.virtual(Fragments.RADS, this::getTable);
+        List<EntryTable> table = AbstractRandomList.virtual(RADS, i -> getTable(entries[i]));
+        table = registry.register(table);
+
+        return ArraySet.of(Entries::of, table, EntryTable.EMPTY).asMap();
     }
 
     private EntryTable getTable(int i) {
