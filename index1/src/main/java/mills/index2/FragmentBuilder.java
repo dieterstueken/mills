@@ -29,7 +29,7 @@ public class FragmentBuilder {
 
     final EntryTables registry;
 
-    final Set<EntryTable> roots = new TreeSet<>(Entries.BY_SIZE);
+    Set<EntryTable> roots = null;
 
     final List<ListSet<RingEntry>> tables = AbstractRandomList.generate(CLOPS, i -> ListSet.mutable());
 
@@ -39,7 +39,7 @@ public class FragmentBuilder {
 
     private void clear() {
         tables.forEach(List::clear);
-        roots.clear();
+        roots = null;
     }
 
     static RingEntry rad(int index) {
@@ -54,20 +54,22 @@ public class FragmentBuilder {
 
     Fragments build(EntryTable root) {
 
+        if(roots!=null)
+            throw new IllegalStateException("concurrent build");
+
         try {
-            root.forEach(this::process);
+            roots = new TreeSet<>(Entries.BY_SIZE);
+
+            for (RingEntry e : root) {
+                process(e.radials(), e);
+            }
 
             Map<PopCount, Fragment> fragments = ArraySet.of(PopCount::get, fragments(), Fragment.EMPTY).asMap();
 
             return new Fragments(fragments, root, roots);
-
         } finally {
             clear();
         }
-    }
-
-    void process(RingEntry e) {
-        process(e.radials(), e);
     }
 
     void process(RingEntry rad, RingEntry e) {
@@ -94,6 +96,6 @@ public class FragmentBuilder {
         EntryTable table = registry.table(tables.get(i));
         roots.add(table);
 
-        return Fragment.of(clop, table);
+        return Fragment.of(clop, table, registry);
     }
 }

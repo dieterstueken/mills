@@ -29,7 +29,7 @@ public class EntryTables {
     }
 
     static final short OFFSET = RingEntry.MAX_INDEX+1;
-    static final int MAX_VALUE = Short.MAX_VALUE - OFFSET;
+    static final int MAX_VALUE = 0xfffe - OFFSET;
 
     private final List<KeyedEntry> tables = new ArrayList<>();
 
@@ -214,7 +214,7 @@ public class EntryTables {
                 throw new IllegalStateException("size does not match");
         }
         
-        return AbstractRandomList.virtual(indexes.length, index -> EntryTables.this.get(indexes[index]));
+        return AbstractRandomList.virtual(indexes.length, index -> EntryTables.this.get(0xffff&indexes[index]));
     }
 
     public int count() {

@@ -1,6 +1,5 @@
 package mills.index2;
 
-import mills.bits.Perms;
 import mills.bits.PopCount;
 import mills.bits.RClop;
 import mills.index.PosIndex;
@@ -11,7 +10,6 @@ import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.EntryTables;
 import mills.util.IntegerDigest;
-import mills.util.Stat;
 import org.junit.Test;
 
 import java.util.*;
@@ -114,56 +112,14 @@ public class IndexTest {
         assertArrayEquals(IntegerDigest.EXPECTED, result);
     }
 
-    @Test
-    public void testFragments() {
-        // find if fragments are unique for each PopCount
-
-        PosIndex[] indexes = new PosIndex[PopCount.TABLE.size()];
-
-        PopCount.TABLE.parallelStream().map(builder::build)
-                .forEach(index ->indexes[index.pop().index] = index);
-
-        System.out.println("start");
-
-        Set<Perms> perms = new TreeSet<>();
-
-        PopCount debug = PopCount.of(3,4);
-
-        long k =PopCount.TABLE.stream().filter(pop->pop.sum()<=8).mapToInt(pop -> {
-            EntryTable[] fragment = builder.fragments.get(pop.index);
-
-            Set<EntryTable> tset = new TreeSet<>(Entries.BY_SIZE);
-            int n=0;
-            if(pop.equals(debug))
-                n=0;
-
-            for (int m = 0; m < fragment.length; m++) {
-                EntryTable table = fragment[m];
-                if (table != null) {
-                    Perms perm = Perms.of(2*m);
-                    perms.add(perm);
-                    ++n;
-                    tset.add(table);
-                }
-            }
-
-            Stat stat = new Stat();
-
-            tset.forEach(et -> stat.accept(countClops(et)));
-            stat.forEach((i,j)-> System.out.format(" %d[%d]", i, j));
-            System.out.println();
-
-            System.out.format("%s: %d %d, ", pop, n, tset.size());
-            return tset.size();
-        }).sum();
-
-        System.out.format("\n tset: %d, total: %d\n", k, registry.count());
-
-        perms.forEach(System.out::println);
-
-        registry.stat(System.out);
+    public C2Table build(PopCount pop, PopCount clop) {
+        C2Table table = builder.build(pop, clop);
+        int range = table.range();
+        int n20 = table.n20();
+        System.out.format("l%d%d%,13d %4d +%d\n", pop.nb, pop.nw, range, n20, registry.count());
+        return table;
     }
-
+    
     private int countClops(EntryTable et) {
 
         Set<RClop> rset = new TreeSet<>();
@@ -206,12 +162,32 @@ public class IndexTest {
 
     @Test
     public void indexGroups1() {
+        double start = System.currentTimeMillis();
+
         for (int nb = 0; nb <= 9; ++nb) {
             PopCount pop = PopCount.get(nb, nb);
             indexGroup(pop);
         }
+        
+        double stop = System.currentTimeMillis();
+
+        System.out.format("\n%.3fs, mem: %,d\n", (stop - start) / 1000, Runtime.getRuntime().totalMemory());
     }
 
+    @Test
+    public void indexGroups0() {
+
+        double start = System.currentTimeMillis();
+
+        for (int nb = 0; nb <= 9; ++nb) {
+            PopCount pop = PopCount.get(nb, nb);
+            build(pop, PopCount.EMPTY);
+        }
+
+        double stop = System.currentTimeMillis();
+
+        System.out.format("\n%.3fs, mem: %,d\n", (stop - start) / 1000, Runtime.getRuntime().totalMemory());
+    }
     @Test
     public void testGroup() {
         PopCount pop = PopCount.get(5, 5);
@@ -234,15 +210,18 @@ public class IndexTest {
     }
 
     public Map<PopCount, C2Table> indexGroup(PopCount pop) {
-        var group = builder.buildGroup(pop);
+        return indexGroup(pop, builder.buildGroup(pop));
+    }
+
+    public Map<PopCount, C2Table> indexGroup(PopCount pop, Map<PopCount, C2Table> group) {
 
         PopCount max = group.keySet().stream().reduce(PopCount.EMPTY, PopCount::max);
 
         int count = group.values().stream().mapToInt(PosIndex::range).sum();
 
-        System.out.format("group (%d,%d) [%d,%d] +%d: %,d\n",
+        System.out.format("group (%d,%d) [%d,%d] +%d: %,d +%d\n",
                 pop.nb, pop.nw, max.nb, max.nw,
-                group.size(), count);
+                group.size(), count, registry.count());
 
         for (int mb = 0; mb <= max.nb; ++mb) {
             for (int mw = 0; mw <= max.nw; ++mw) {

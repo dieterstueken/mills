@@ -14,8 +14,7 @@ import mills.util.AbstractRandomList;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.concurrent.ForkJoinTask;
 import java.util.stream.Collectors;
 
 /**
@@ -33,8 +32,6 @@ public class IndexBuilder {
     final LePopTable minPopTable;
 
     final Map<PopCount, Partition> partitions;
-
-    final List<EntryTable[]> fragments = AbstractRandomList.generate(PopCount.SIZE, pop -> new EntryTable[128]);
 
     public IndexBuilder(LePopTable lePopTable, LePopTable minPopTable,
                         Map<PopCount, Partition> partitions, EntryTables registry) {
@@ -57,18 +54,20 @@ public class IndexBuilder {
     }
 
     public static IndexBuilder create(EntryTables registry) {
-        LePopTable lePopTable = LePopTable.build(Entries.TABLE, registry::table);
-        LePopTable minPopTable = LePopTable.build(Entries.MINIMIZED, registry::table);
+
+        ForkJoinTask<LePopTable> lePopTable = ForkJoinTask.adapt(() -> LePopTable.build(Entries.TABLE, registry::table)).fork();
+        ForkJoinTask<LePopTable> minPopTable = ForkJoinTask.adapt(() -> LePopTable.build(Entries.MINIMIZED, registry::table)).fork();
+
         Map<PopCount, Partition> partitions = Partition.partitions(Entries.TABLE, registry);
 
-        return new IndexBuilder(lePopTable, minPopTable, partitions, registry);
+        return new IndexBuilder(lePopTable.join(), minPopTable.join(), partitions, registry);
     }
 
     public Map<PopCount, C2Table> buildGroup(PopCount pop) {
 
         C2Table[] tables = new C2Table[PopCount.CLOSED.size()];
 
-        PopCount.CLOSED.stream().forEach(clop -> tables[clop.index] = build(pop, clop));
+        PopCount.CLOSED.parallelStream().forEach(clop -> tables[clop.index] = build(pop, clop));
 
         Map<PopCount, C2Table> group = new TreeMap<>();
 
@@ -95,34 +94,26 @@ public class IndexBuilder {
         if(table.isEmpty())
             return null;
 
-        List<RingEntry> t2 = AbstractRandomList.transform(table, R2Entry::r2);
         List<R0Table> r0t = AbstractRandomList.transform(table, R2Entry::t0).copyOf();
+        List<RingEntry> t2 = AbstractRandomList.transform(table, R2Entry::r2);
+        t2 = registry.table(t2);
 
-        // todo normalize t2
         return C2Table.of(pop, clop, t2, r0t);
     }
 
-    protected R2Entry r2t0(RingEntry e2, PopCount pop, PopCount clop) {
+    private R2Entry r2t0(RingEntry e2, PopCount pop, PopCount clop) {
         R0Table t0 = t0(e2, pop, clop);
         return t0.isEmpty()? null : new R2Entry(e2, t0);
     }
-
-    static final PopCount DEBUG = PopCount.of(2, 1);
 
     private R0Table t0(RingEntry e2, PopCount pop, PopCount clop) {
         PopCount pop2 = pop.sub(e2.pop);
         if(pop2==null)
             return R0Table.EMPTY;
-
-        Function<RingEntry, Predicate<RingEntry>> milf = null;
-
+        
         if(clop!=null) {
             // remaining closes
             PopCount clop2 = clop.sub(e2.clop());
-
-            boolean debug = clop.equals(DEBUG);
-            if(debug)
-                e2.singleton();
 
             // too many
             if(clop2==null)
@@ -131,35 +122,6 @@ public class IndexBuilder {
             // can be reached?
             if(pop2.mclop().add(e2.radials().pop).sub(clop2)==null)
                 return R0Table.EMPTY;
-
-            milf = e0 -> {
-                // remaining closes necessary
-                PopCount clop0 = clop2.sub(e0.clop());
-                if(clop0==null)
-                    return null;
-
-                // are those reachable?
-
-                RingEntry rad20 = e2.radials().and(e0.radials());
-
-                return e1 -> {
-                    if(debug)
-                        e2.singleton();
-
-                    // mills closed by e1
-                    PopCount clop1 = rad20.and(e1.radials()).pop().add(e1.clop());
-                    if(clop1.equals(clop0)) {
-                        if(debug)
-                            return true;
-                        else
-                            return true;
-                    } else
-                    if(debug)
-                        return false;
-                    else
-                        return false;
-                };
-            };
         }
 
         T0Builder builder = getBuilder();
@@ -207,23 +169,13 @@ public class IndexBuilder {
             if(meq==0)
                 continue;
 
-            EntryTable tf = fragment(pop1, t1,  meq);
+            Fragments fragments = partition.get(meq);
+            EntryTable tf = fragments.root();
 
             // apply possible clop filter
             if(clop1!=null) {
-                EntryTable tmp = tf;
-
                 RingEntry rad20 = e2.and(e0).radials();
-                tf = tf.filter(clpopf(clop1, rad20));
-
-                Fragments fragments = partition.get(meq);
-                EntryTable tx = fragments.get(clop1, rad20);
-
-                if(!tx.equals(tf)) {
-                    fragments = partition.get(meq);
-                    tx = fragments.get(clop1, rad20);
-                    throw new RuntimeException("mismatch");
-                }
+                tf = fragments.get(clop1, rad20);
             }
 
             if(tf.isEmpty())
@@ -233,32 +185,6 @@ public class IndexBuilder {
         }
 
         return builder.build();
-    }
-
-    private static Predicate<RingEntry> clpopf(PopCount clop, RingEntry rad20) {
-        if(clop==null)
-            return Entries.ALL;
-
-        //RingEntry rad20 = e2.radials().and(e0.radials());
-        return e1 -> e1.clop(rad20).equals(clop);
-    }
-
-    EntryTable fragment(PopCount p1, EntryTable t1, int msk) {
-        EntryTable[] ft = fragments.get(p1.index);
-
-        EntryTable tf = ft[msk/2];
-
-        if(tf==null) {
-            tf = t1.filter(anyMLT(msk));
-            tf = table(tf);
-            ft[msk/2] = tf;
-        }
-
-        return tf;
-    }
-
-    static Predicate<RingEntry> anyMLT(int msk) {
-        return e -> (e.mlt&msk)==0;
     }
 
     /**

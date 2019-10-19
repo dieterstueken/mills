@@ -79,6 +79,8 @@ public class Partition {
         if(root.isEmpty())
             return null;
 
+        root = registry.table(root);
+
         FragmentBuilder builder = new FragmentBuilder(registry);
 
         Map<EntryTable, Fragments> roots = new HashMap<>();
