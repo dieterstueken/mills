@@ -83,6 +83,15 @@ public class RingEntry extends BW {
         return index==radix ? this : Entries.RADIALS.get(radix());
     }
 
+    /**
+     * Calculate effective clop count with external radials.
+     * @param rad external radials.
+     * @return effective clop count
+     */
+    public PopCount clop(RingEntry rad) {
+        return and(rad).radials().pop.add(clop());
+    }
+
     // get radial index
     public final int radix() {
         return index%81;

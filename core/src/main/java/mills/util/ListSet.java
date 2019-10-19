@@ -23,7 +23,19 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
      *         otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.
      */
     default int findIndex(T key) {
-        return Collections.binarySearch(this, key, comparator());
+        if(isEmpty())
+            return -1;
+
+        Comparator<? super T> comparator = comparator();
+        int size = size();
+        T last = get(size-1);
+        int cmp = comparator.compare(key, last);
+
+        if(cmp<0) // within
+            return Collections.binarySearch(this, key, comparator());
+
+        // at end or beyond
+        return cmp==0 ? size-1 : -size-1;
     }
 
     /**
@@ -122,7 +134,8 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
     static <T extends Comparable<? super T>> ListSet<T> of(T ... values) {
         return AbstractListSet.of(values, Comparator.naturalOrder());
     }
-static <T extends Indexed> ListSet<T> of(T ... values) {
+
+    static <T extends Indexed> ListSet<T> of(T ... values) {
         return AbstractListSet.of(values, Indexer.INDEXED);
     }
 

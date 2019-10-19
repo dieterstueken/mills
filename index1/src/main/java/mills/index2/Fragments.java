@@ -1,7 +1,6 @@
 package mills.index2;
 
 import mills.bits.PopCount;
-import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 
@@ -24,29 +23,38 @@ public class Fragments {
         }
     };
 
-    static final int CLOPS = PopCount.CLOSED.size();
-    static final int RADS = Entries.RADIALS.size();
+    private final EntryTable root;
 
-    private final Map<PopCount, Map<RingEntry, EntryTable>> fragments;
+    private final Map<PopCount, Fragment> fragments;
 
     private final Set<EntryTable> roots;
 
     private Fragments() {
         this.fragments = Collections.emptyMap();
         this.roots = EntryTable.EMPTY.singleton();
+        this.root =  EntryTable.EMPTY;
     }
 
-    Fragments(Map<PopCount, Map<RingEntry, EntryTable>> fragments, Set<EntryTable> roots) {
+    Fragments(Map<PopCount, Fragment> fragments, EntryTable root, Set<EntryTable> roots) {
         this.fragments = fragments;
+        this.root = root;
         this.roots = roots;
     }
 
+    public EntryTable root() {
+        return root;
+    }
+
     public EntryTable get(PopCount clop, RingEntry rad) {
-        Map<RingEntry, EntryTable> fragment = fragments.get(clop);
-        return fragment==null ? EntryTable.EMPTY : fragment.get(rad);
+        Fragment fragment = fragments.get(clop);
+        
+        if (fragment == null)
+            return EntryTable.EMPTY;
+
+        return fragment.get(rad);
     }
 
     public String toString() {
-        return String.format("F[%d;%d]", fragments.size(), roots.size()-1);
+        return String.format("F[%d+%d]", fragments.size(), roots.size());
     }
 }

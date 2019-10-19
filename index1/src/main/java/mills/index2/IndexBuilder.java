@@ -86,7 +86,7 @@ public class IndexBuilder {
 
     public C2Table build(PopCount pop, PopCount clop) {
 
-        List<R2Entry> table = minPopTable.get(pop).stream()
+        List<R2Entry> table = minPopTable.get(pop).parallelStream()
                 .map(e2 -> r2t0(e2, pop, clop))
                 .filter(Objects::nonNull)
                 .sorted(R2Entry.R2)
@@ -211,14 +211,17 @@ public class IndexBuilder {
 
             // apply possible clop filter
             if(clop1!=null) {
-                tf = tf.filter(clpopf(e2, e0, clop1));
+                EntryTable tmp = tf;
 
-                RingEntry rad20 = e2.radials().and(e0.radials());
+                RingEntry rad20 = e2.and(e0).radials();
+                tf = tf.filter(clpopf(clop1, rad20));
+
                 Fragments fragments = partition.get(meq);
                 EntryTable tx = fragments.get(clop1, rad20);
+
                 if(!tx.equals(tf)) {
-                    partition.get(meq);
-                    fragments.get(clop1, rad20);
+                    fragments = partition.get(meq);
+                    tx = fragments.get(clop1, rad20);
                     throw new RuntimeException("mismatch");
                 }
             }
@@ -232,12 +235,12 @@ public class IndexBuilder {
         return builder.build();
     }
 
-    private static Predicate<RingEntry> clpopf(RingEntry e2, RingEntry e0, PopCount clop) {
+    private static Predicate<RingEntry> clpopf(PopCount clop, RingEntry rad20) {
         if(clop==null)
             return Entries.ALL;
 
-        RingEntry rad20 = e2.radials().and(e0.radials());
-        return e1 -> rad20.and(e1.radials()).pop().add(e1.clop()).equals(clop);
+        //RingEntry rad20 = e2.radials().and(e0.radials());
+        return e1 -> e1.clop(rad20).equals(clop);
     }
 
     EntryTable fragment(PopCount p1, EntryTable t1, int msk) {

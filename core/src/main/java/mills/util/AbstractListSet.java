@@ -115,17 +115,13 @@ abstract public class AbstractListSet<T> extends AbstractList<T> implements List
 
             @Override
             public boolean add(T t) {
-                if(isEmpty()) {
-                    values.add(t);
-                } else {
-                    int index = findIndex(t);
+                int index = findIndex(t);
 
-                    // already contained
-                    if (index >= 0)
-                        return false;
+                // already contained
+                if (index >= 0)
+                    return false;
 
-                    values.add(-index - 1, t);
-                }
+                values.add(-index - 1, t);
 
                 return true;
             }

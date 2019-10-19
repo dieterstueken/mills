@@ -20,9 +20,15 @@ import java.util.Map;
  */
 public class Partition {
 
-    public static final List<Perms> PERMS = Perms.listOf(0x01, 0x05, 0x0f, 0x11, 0x21, 0x41, 0x55, 0x81, 0xa5, 0xff);
+    private static final int[] PERMS = new int[]{0x01, 0x05, 0x0f, 0x11, 0x21, 0x41, 0x55, 0x81, 0xa5, 0xff};
+    private static final int[] INDEX = index();
 
-    public static final Partition EMPTY = new Partition();
+    public static final Partition EMPTY = new Partition() {
+        @Override
+        public String toString() {
+            return "()";
+        }
+    };
 
     final EntryTable root;
 
@@ -35,7 +41,7 @@ public class Partition {
 
     private Partition() {
         root = EntryTable.EMPTY;
-        fragments = AbstractRandomArray.constant(PERMS.size(), Fragments.EMPTY);
+        fragments = AbstractRandomArray.constant(PERMS.length, Fragments.EMPTY);
     }
 
     public EntryTable root() {
@@ -51,14 +57,16 @@ public class Partition {
         return fragments.get(index);
     }
 
-    private static final int[] INDEX = new int[Perms.VALUES.size()/2];
+    private static int[] index() {
+        int[] index = new int[Perms.VALUES.size()/2];
+        Arrays.fill(index, -1);
 
-    static {
-        Arrays.fill(INDEX, -1);
-        for(int i=0; i<PERMS.size(); ++i) {
-            Perms p = PERMS.get(i);
-            INDEX[p.getIndex()/2] = i;
+        for(int i=0; i<PERMS.length; ++i) {
+            int pi = PERMS[i];
+            index[pi/2] = i;
         }
+
+        return index;
     }
 
     public static Partition partition(PopCount pop, EntryTable root, EntryTables registry) {
@@ -74,24 +82,29 @@ public class Partition {
         FragmentBuilder builder = new FragmentBuilder(registry);
 
         Map<EntryTable, Fragments> roots = new HashMap<>();
-        Fragments[] fragments = new Fragments[PERMS.size()];
+        Fragments[] fragments = new Fragments[PERMS.length];
 
-        for (Perms perm : PERMS) {
-            int msk = perm.getIndex();
-            EntryTable filtered = msk==0 ? root : root.filter(e -> (e.mlt&msk)==0);
+        for (int i=0; i<PERMS.length; ++i) {
+            int msk = PERMS[i];
+            EntryTable filtered = i==0 ? root : root.filter(e -> (e.mlt&msk)==0);
             filtered = registry.table(filtered);
             Fragments fragment = roots.computeIfAbsent(filtered, builder::build);
-            fragments[perm.getIndex()] = fragment;
+            fragments[i] = fragment;
         }
 
-        return new Partition(root, List.of(fragments));
+        return new Partition(root, List.of(fragments)) {
+            @Override
+            public String toString() {
+                return pop.toString();
+            }
+        };
     }
 
     public static Map<PopCount, Partition> partitions(EntryTable root, EntryTables registry) {
 
         Partition[] partitions = new Partition[PopCount.TABLE.size()];
 
-        PopCount.TABLE.stream()
+        PopCount.TABLE.parallelStream()
                 .forEach(pop -> partitions[pop.index] = partition(pop, root, registry));
 
         return ArraySet.of(PopCount::get, partitions, EMPTY).asMap();

@@ -1,18 +1,20 @@
 package mills.index2;
 
+import mills.bits.Player;
 import mills.bits.PopCount;
+import mills.bits.Sector;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.EntryTables;
 import mills.ring.RingEntry;
-import mills.util.AbstractRandomArray;
 import mills.util.AbstractRandomList;
 import mills.util.ArraySet;
+import mills.util.ListSet;
 
-import java.util.*;
-
-import static mills.index2.Fragments.CLOPS;
-import static mills.index2.Fragments.RADS;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Created by IntelliJ IDEA.
@@ -22,82 +24,22 @@ import static mills.index2.Fragments.RADS;
  */
 public class FragmentBuilder {
 
+    static final int CLOPS = PopCount.CLOSED.size();
+    static final int RADS = Entries.RADIALS.size();
+
     final EntryTables registry;
 
     final Set<EntryTable> roots = new TreeSet<>(Entries.BY_SIZE);
 
-    static class Rads extends AbstractRandomList<EntryTable> {
+    final List<ListSet<RingEntry>> tables = AbstractRandomList.generate(CLOPS, i -> ListSet.mutable());
 
-        final List<RingEntry> list = new ArrayList<>();
-
-        final EntryTable[] tables = new EntryTable[RADS];
-
-        @Override
-        public int size() {
-            return RADS;
-        }
-
-        @Override
-        public EntryTable get(int index) {
-            EntryTable table = tables[index];
-            return table==null ? EntryTable.EMPTY : table;
-        }
-
-        public EntryTable register(RingEntry rad, EntryTables registry) {
-            EntryTable table = registry.table(list);
-            list.clear();
-            tables[rad.index] = table;
-            return table;
-        }
-
-        public void clear() {
-            list.clear();
-            Arrays.fill(tables, null);
-        }
-    }
-
-    final List<Rads> pool = new ArrayList<>();
-
-    final Rads[] radlist = new Rads[CLOPS];
-
-    FragmentBuilder(EntryTables registry) {
+    public FragmentBuilder(EntryTables registry) {
         this.registry = registry;
     }
 
-    public Fragments build(EntryTable root) {
-        try {
-            return _build(root);
-        } finally {
-            clear();
-        }
-    }
-
     private void clear() {
+        tables.forEach(List::clear);
         roots.clear();
-
-        for (Rads rad : radlist) {
-            if(rad!=null) {
-                rad.clear();
-                pool.add(rad);
-            }
-        }
-
-        Arrays.fill(radlist, null);
-    }
-
-    private Rads rads(PopCount clop) {
-        Rads rads = radlist[clop.index];
-
-        if(rads==null) {
-            if(pool.isEmpty())
-                rads = new Rads();
-            else
-                rads = pool.remove(pool.size()-1);
-
-            radlist[clop.index] = rads;
-        }
-
-        return rads;
     }
 
     static RingEntry rad(int index) {
@@ -110,45 +52,48 @@ public class FragmentBuilder {
 
     private static final Map<RingEntry, EntryTable> EMPTY = asMap(AbstractRandomList.constant(RADS, EntryTable.EMPTY));
 
-    private Map<RingEntry, EntryTable> fragment(int index) {
-        Rads rads = radlist[index];
-        if(rads==null)
-            return null;
+    Fragments build(EntryTable root) {
 
-        List<EntryTable> tables = registry.register(rads);
-        return asMap(tables);
+        try {
+            root.forEach(this::process);
+
+            Map<PopCount, Fragment> fragments = ArraySet.of(PopCount::get, fragments(), Fragment.EMPTY).asMap();
+
+            return new Fragments(fragments, root, roots);
+
+        } finally {
+            clear();
+        }
     }
 
-
-    Fragments _build(EntryTable root) {
-
-        Entries.RADIALS.forEach(rad -> process(rad, root));
-
-        List<Map<RingEntry, EntryTable>> tables = AbstractRandomArray.generate(CLOPS, this::fragment);
-        Map<PopCount, Map<RingEntry, EntryTable>> fragments = ArraySet.of(PopCount::get, tables, null).asMap();
-
-        return new Fragments(fragments, roots);
+    void process(RingEntry e) {
+        process(e.radials(), e);
     }
 
-    void process(RingEntry rad, EntryTable root) {
+    void process(RingEntry rad, RingEntry e) {
+        PopCount clop = e.clop(rad);
 
-        for (Rads rads : radlist) {
-            if(rads!=null)
-                rads.list.clear();
+        // ignore excessive closes
+        if(clop.max()<=4) {
+            tables.get(clop.index).add(e);
         }
 
-        for (RingEntry e : root) {
-            PopCount clop = e.clop().add(e.and(rad).pop);
-            if(clop.max()<4) {
-                rads(clop).list.add(e);
-            }
+        for (Sector sector : rad.sectors()) {
+            RingEntry next = rad.withPlayer(sector, Player.None);
+            process(next, e);
         }
+    }
 
-        for (Rads rads : radlist) {
-            if(rads!=null) {
-                EntryTable table = rads.register(rad, registry);
-                roots.add(table);
-            }
-        }
+    List<Fragment> fragments() {
+        return AbstractRandomList.generate(CLOPS, this::fragment);
+    }
+
+    Fragment fragment(int i) {
+
+        PopCount clop = PopCount.get(i);
+        EntryTable table = registry.table(tables.get(i));
+        roots.add(table);
+
+        return Fragment.of(clop, table);
     }
 }
