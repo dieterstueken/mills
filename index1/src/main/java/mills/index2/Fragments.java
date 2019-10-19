@@ -6,8 +6,8 @@ import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA.
@@ -29,14 +29,14 @@ public class Fragments {
 
     private final Map<PopCount, Map<RingEntry, EntryTable>> fragments;
 
-    private final List<EntryTable> roots;
+    private final Set<EntryTable> roots;
 
     private Fragments() {
         this.fragments = Collections.emptyMap();
         this.roots = EntryTable.EMPTY.singleton();
     }
 
-    Fragments(Map<PopCount, Map<RingEntry, EntryTable>> fragments, List<EntryTable> roots) {
+    Fragments(Map<PopCount, Map<RingEntry, EntryTable>> fragments, Set<EntryTable> roots) {
         this.fragments = fragments;
         this.roots = roots;
     }
@@ -48,9 +48,5 @@ public class Fragments {
 
     public String toString() {
         return String.format("F[%d;%d]", fragments.size(), roots.size()-1);
-    }
-
-    public EntryTable root() {
-        return roots.get(0);
     }
 }

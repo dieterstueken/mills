@@ -4,8 +4,12 @@ package mills.ring;
 import mills.util.AbstractListSet;
 import mills.util.Indexed;
 import mills.util.Indexer;
+import mills.util.ListSet;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.function.Predicate;
 
 /**
@@ -22,9 +26,9 @@ import java.util.function.Predicate;
  */
 abstract public class EntryTable extends AbstractListSet<RingEntry> {
 
-    public final List<EntryTable> singleton = List.of(this);
+    private final ListSet<EntryTable> singleton = AbstractListSet.singleton(this);
 
-    public List<EntryTable> singleton() {
+    public ListSet<EntryTable> singleton() {
         return singleton;
     }
 

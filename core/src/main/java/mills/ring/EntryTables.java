@@ -190,7 +190,7 @@ public class EntryTables {
 
         if(size==1) {
             EntryTable table = EntryTables.this.table(s1.iterator().next());
-            return table.singleton;
+            return table.singleton();
         }
 
         short[] indexes = new short[size];

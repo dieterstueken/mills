@@ -87,7 +87,7 @@ public enum Player {
     abstract public int stones(BW bw);
 
     Player(int nb, int nw) {
-        this.pop = PopCount.of(nb,nw);
+        this.pop = PopCount.get(nb,nw);
     }
 
     public final PopCount pop;

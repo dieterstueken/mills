@@ -24,18 +24,22 @@ public class Partition {
 
     public static final Partition EMPTY = new Partition();
 
+    final EntryTable root;
+
     final List<Fragments> fragments;
 
-    private Partition(List<Fragments> fragments) {
+    private Partition(EntryTable root, List<Fragments> fragments) {
+        this.root = root;
         this.fragments = fragments;
     }
 
     private Partition() {
+        root = EntryTable.EMPTY;
         fragments = AbstractRandomArray.constant(PERMS.size(), Fragments.EMPTY);
     }
 
     public EntryTable root() {
-        return fragments.get(0).root();
+        return root;
     }
 
     public Fragments get(int msk) {
@@ -80,15 +84,14 @@ public class Partition {
             fragments[perm.getIndex()] = fragment;
         }
 
-        return new Partition(List.of(fragments));
+        return new Partition(root, List.of(fragments));
     }
 
     public static Map<PopCount, Partition> partitions(EntryTable root, EntryTables registry) {
 
         Partition[] partitions = new Partition[PopCount.TABLE.size()];
 
-        PopCount.TABLE
-                .stream()
+        PopCount.TABLE.stream()
                 .forEach(pop -> partitions[pop.index] = partition(pop, root, registry));
 
         return ArraySet.of(PopCount::get, partitions, EMPTY).asMap();

@@ -67,7 +67,8 @@ public class ArraySet<K extends Indexed, V> extends AbstractSet<Map.Entry<K, V>>
 
     @Override
     public boolean contains(Object key) {
-        return get(key)!=defaultValue;
+        V value = get(key);
+        return value!=null && value != defaultValue;
     }
 
     @Override
