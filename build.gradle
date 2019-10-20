@@ -41,6 +41,6 @@ allprojects {
 
 dependencies {
     implementation project(':core')
-    implementation project(':index1')
+    implementation project(':index')
 }
 
