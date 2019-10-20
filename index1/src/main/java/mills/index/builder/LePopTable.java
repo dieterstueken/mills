@@ -1,4 +1,4 @@
-package mills.index1.partitions;
+package mills.index.builder;
 
 import mills.bits.Player;
 import mills.bits.PopCount;

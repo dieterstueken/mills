@@ -1,12 +1,7 @@
-package mills.index2;
+package mills.index.builder;
 
 import mills.bits.PopCount;
-import mills.index.IndexProvider;
-import mills.index1.C2Table;
-import mills.index1.R0Table;
-import mills.index1.R2Entry;
-import mills.index1.R2Table;
-import mills.index1.partitions.LePopTable;
+import mills.index.*;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.EntryTables;

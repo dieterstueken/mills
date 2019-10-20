@@ -1,4 +1,4 @@
-package mills.index2;
+package mills.index.builder;
 
 import mills.bits.PopCount;
 import mills.ring.EntryTable;

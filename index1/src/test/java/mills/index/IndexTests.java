@@ -1,11 +1,8 @@
-package mills.index2;
+package mills.index;
 
 import mills.bits.PopCount;
 import mills.bits.RClop;
-import mills.index.PosIndex;
-import mills.index1.C2Table;
-import mills.index1.IndexList;
-import mills.position.Position;
+import mills.index.builder.IndexBuilder;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.EntryTables;
@@ -14,7 +11,6 @@ import org.junit.Test;
 
 import java.util.*;
 import java.util.concurrent.ForkJoinTask;
-import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertArrayEquals;
 
@@ -24,59 +20,10 @@ import static org.junit.Assert.assertArrayEquals;
  * Date: 20.09.19
  * Time: 14:42
  */
-public class IndexTest {
+public class IndexTests {
 
     EntryTables registry = new EntryTables();
     IndexBuilder builder = IndexBuilder.create(registry);
-    IndexList refBuilder = IndexList.create();
-
-    @Test
-    public void testVerifyOld() {
-        testVerifyOld(PopCount.get(0,1));
-    }
-
-    public void testVerifyOld(PopCount pop) {
-        // compare positions of new and old builders
-
-        PosIndex pi = builder.build(pop);
-        PosIndex ri = refBuilder.build(pop);
-
-        System.out.format("l%d%d%10d, %4d : %10d,%4d\n\n",
-                pop.nb, pop.nw,
-                pi.range(), pi.n20(),
-                ri.range(), ri.n20());
-
-        Map<Integer, Long> missing = new TreeMap<>();
-        Map<Integer, Long> duplicates = new TreeMap<>();
-
-        ri.process(missing::put);
-
-        System.out.println("start");
-
-        pi.process((index, p201)-> {
-            Position pos = Position.of(p201);
-            int refIndex = ri.posIndex(p201);
-            //System.out.format("%s: %d %d\n", pos, index, refIndex);
-
-            if(missing.remove(refIndex)==null)
-                duplicates.put(refIndex, p201);
-        });
-
-        System.out.format("missing: %d\n", missing.size());
-
-        missing.entrySet().forEach(e->System.out.format("%s: %d\n", Position.of(e.getValue()), e.getKey()));
-
-        System.out.format("duplicates: %d\n", duplicates.size());
-
-        duplicates.entrySet().forEach(e->System.out.format("%s: %d\n", Position.of(e.getValue()), e.getKey()));
-
-        System.out.println();
-
-        List<Position> positions = missing.values().stream().map(Position::of).collect(Collectors.toList());
-
-        assert missing.size()==0;
-        assert duplicates.size()==0;
-    }
 
     @Test
     public void testDigest() {
@@ -147,24 +94,22 @@ public class IndexTest {
     public void indexGroups() {
         double start = System.currentTimeMillis();
 
-        ForkJoinTask<?> task = null;
+        ForkJoinTask<Runnable> task = null;
 
         for (int nb = 0; nb <= 9; ++nb) {
             for (int nw = 0; nw <= 9; ++nw) {
                 PopCount pop = PopCount.get(nb, nw);
 
-                ForkJoinTask<?> next = ForkJoinTask.adapt(() -> {
-                    indexGroup(pop);
-                }).fork();
+                ForkJoinTask<Runnable> next = groupTask(pop);
 
                 if(task!=null)
-                    task.join();
+                    task.join().run();
                 task = next;
             }
         }
 
         if(task!=null)
-            task.join();
+            task.join().run();
 
         double stop = System.currentTimeMillis();
 
@@ -201,25 +146,14 @@ public class IndexTest {
 
         System.out.format("\n%.3fs, mem: %,d\n", (stop - start) / 1000, Runtime.getRuntime().totalMemory());
     }
-    @Test
-    public void testGroup() {
-        PopCount pop = PopCount.get(5, 5);
-        Map<PopCount, C2Table> group = indexGroup(pop);
 
-        PosIndex ref = refBuilder.build(pop);
-        BitSet refSet = new BitSet(ref.range());
-        refSet.set(0, ref.range());
+    private ForkJoinTask<Runnable> groupTask(PopCount pop) {
+        return ForkJoinTask.adapt(()->groupAction(pop)).fork();
+    }
 
-        group.values().stream().forEach(pi->
-            pi.process((posIndex, i201)->{
-                int refIndex = ref.posIndex(i201);
-                refSet.set(refIndex, false);
-            })
-        );
-
-        var positions = refSet.stream().mapToLong(ref::i201).mapToObj(Position::of).collect(Collectors.toList());
-
-        System.out.format("missing: %d\n", positions.size());
+    private Runnable groupAction(PopCount pop) {
+        var group = builder.buildGroup(pop);
+        return () -> indexGroup(pop, group);
     }
 
     public Map<PopCount, C2Table> indexGroup(PopCount pop) {

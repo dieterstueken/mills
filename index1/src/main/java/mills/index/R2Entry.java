@@ -1,4 +1,4 @@
-package mills.index1;
+package mills.index;
 
 import mills.ring.RingEntry;
 import mills.util.Indexer;

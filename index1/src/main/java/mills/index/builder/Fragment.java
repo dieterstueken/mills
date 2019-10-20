@@ -1,4 +1,4 @@
-package mills.index2;
+package mills.index.builder;
 
 import mills.bits.PopCount;
 import mills.ring.Entries;
@@ -9,7 +9,7 @@ import mills.ring.RingEntry;
 import java.util.List;
 import java.util.Objects;
 
-import static mills.index2.FragmentBuilder.RADS;
+import static mills.index.builder.FragmentBuilder.RADS;
 
 /**
  * Created by IntelliJ IDEA.

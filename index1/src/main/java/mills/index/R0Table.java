@@ -1,6 +1,5 @@
-package mills.index1;
+package mills.index;
 
-import mills.index.IndexProcessor;
 import mills.position.Positions;
 import mills.ring.EntryTable;
 import mills.ring.IndexedMap;
