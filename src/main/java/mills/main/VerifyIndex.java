@@ -78,7 +78,7 @@ public class VerifyIndex {
             @Override
             protected void compute() {
 
-                final PosIndex index = indexes.get(pop);
+                final PosIndex index = indexes.build(pop);
 
                 final IndexProcessor processor = processor(pop);
 

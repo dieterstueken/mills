@@ -79,12 +79,12 @@ public class ProcessIndex implements IndexProcessor {
         System.out.println();
     }
 
-    public static void main(String ... args) throws InterruptedException {
+    public static void main(String ... args) {
 
         IndexProvider indexes = IndexProvider.load();
 
-        for(PosIndex index:indexes) {
-            new ProcessIndex(index).run().show();
+        for (PopCount pop : PopCount.TABLE) {
+            new ProcessIndex(indexes.build(pop)).run().show();
         }
 
         System.out.println("ready");

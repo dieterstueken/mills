@@ -33,7 +33,7 @@ public class IndexDigest {
 
     ForkJoinTask<PosIndex> start(int nb, int nw) {
         PopCount pop = PopCount.of(nb, nw);
-        return ForkJoinTask.adapt(() -> indexes.get(pop)).fork();
+        return ForkJoinTask.adapt(() -> indexes.build(pop)).fork();
     }
 
     int analyze(ForkJoinTask<PosIndex> task) {

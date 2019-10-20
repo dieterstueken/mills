@@ -81,7 +81,7 @@ public class CountOpen {
             @Override
             protected Boolean compute() {
 
-                PosIndex index = indexes.get(s.pop);
+                PosIndex index = indexes.build(s.pop);
 
                 List<RecursiveAction> slices = slices(index);
                 invokeAll(slices);

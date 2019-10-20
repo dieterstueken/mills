@@ -39,7 +39,7 @@ public class IndexTest {
         // compare positions of new and old builders
 
         PosIndex pi = builder.build(pop);
-        PosIndex ri = refBuilder.get(pop);
+        PosIndex ri = refBuilder.build(pop);
 
         System.out.format("l%d%d%10d, %4d : %10d,%4d\n\n",
                 pop.nb, pop.nw,
@@ -206,7 +206,7 @@ public class IndexTest {
         PopCount pop = PopCount.get(5, 5);
         Map<PopCount, C2Table> group = indexGroup(pop);
 
-        PosIndex ref = refBuilder.get(pop);
+        PosIndex ref = refBuilder.build(pop);
         BitSet refSet = new BitSet(ref.range());
         refSet.set(0, ref.range());
 

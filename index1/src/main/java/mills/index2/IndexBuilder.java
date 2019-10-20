@@ -1,6 +1,7 @@
 package mills.index2;
 
 import mills.bits.PopCount;
+import mills.index.IndexProvider;
 import mills.index1.C2Table;
 import mills.index1.R0Table;
 import mills.index1.R2Entry;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
  * modified by: $
  * modified on: $
  */
-public class IndexBuilder {
+public class IndexBuilder implements IndexProvider {
 
     final EntryTables registry;
 

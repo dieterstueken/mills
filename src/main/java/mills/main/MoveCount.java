@@ -33,7 +33,7 @@ public class MoveCount extends RecursiveAction {
             m0 = 0;
             m1 = 0;
 
-            PosIndex pi = indexes.get(PopCount.of(3, i));
+            PosIndex pi = indexes.build(PopCount.of(3, i));
 
             pi.process(processor);
 

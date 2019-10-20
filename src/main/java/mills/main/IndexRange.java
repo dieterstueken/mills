@@ -25,7 +25,7 @@ public class IndexRange extends RecursiveAction {
     public void compute() {
 
         for (PopCount pop : PopCount.TABLE) {
-            PosIndex pi = indexes.get(pop);
+            PosIndex pi = indexes.build(pop);
             verify(pi);
         }
     }

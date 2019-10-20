@@ -2,8 +2,6 @@ package mills.index1;
 
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
-import mills.index.PosIndex;
-import mills.util.AbstractRandomList;
 import mills.util.FutureReference;
 
 import java.util.List;
@@ -15,7 +13,7 @@ import java.util.List;
  * modified by: $Author$
  * modified on: $Date$
  */
-public class IndexList extends AbstractRandomList<PosIndex> implements IndexProvider {
+public class IndexList implements IndexProvider {
 
     final List<FutureReference<R2Index>> tables;
 
@@ -36,20 +34,10 @@ public class IndexList extends AbstractRandomList<PosIndex> implements IndexProv
         return new IndexList();
     }
 
-    @Override
-    public R2Index get(int index) {
-        return tables.get(index).get();
+    public R2Index build(PopCount pop) {
+        return tables.get(pop.index).get();
     }
-
-    public R2Index get(PopCount pop) {
-        return get(pop.index);
-    }
-
-    @Override
-    public int size() {
-        return PopCount.TABLE.size();
-    }
-
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static void main(String... args) {
@@ -60,9 +48,9 @@ public class IndexList extends AbstractRandomList<PosIndex> implements IndexProv
             int p = PopCount.SIZE;
             p *= Math.random();
 
-            R2Index t = indexes.get(p);
-
             PopCount pop = PopCount.get(p);
+
+            R2Index t = indexes.build(pop);
 
             System.out.format("%d:%d %9d\n", pop.nb, pop.nw, t.range());
         }

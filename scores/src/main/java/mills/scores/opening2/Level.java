@@ -50,7 +50,7 @@ public class Level extends RecursiveTask<Level> {
     static Level start(ScoreFiles files) {
 
         Situation start = Situation.start();
-        PosIndex index = files.indexes.get(start.pop);
+        PosIndex index = files.indexes.build(start.pop);
         HitMap empty = HitMap.full(start, index);
 
         return new Level(files, 0, Collections.singletonList(empty));
@@ -124,7 +124,7 @@ public class Level extends RecursiveTask<Level> {
             };
         */
 
-        PosIndex index = files.indexes.get(s.pop);
+        PosIndex index = files.indexes.build(s.pop);
 
         MoveProcessor puts = processor(s, false);
         MoveProcessor hits = processor(s, true);

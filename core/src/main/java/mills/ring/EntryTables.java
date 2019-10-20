@@ -271,7 +271,7 @@ public class EntryTables {
     }
 
     public void stat(PrintStream out) {
-        out.format("total: %d\n", metamap.size());
+        out.format("total: %d/%d\n", metamap.size(), tables.size());
         metamap.forEach((key, value) -> out.format("%2d %3d\n", key + 2, value.size()));
     }
 }

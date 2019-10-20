@@ -2,20 +2,11 @@ package mills.index;
 
 import mills.bits.PopCount;
 
-import java.util.List;
 import java.util.ServiceLoader;
 
-public interface IndexProvider extends List<PosIndex> {
+public interface IndexProvider {
 
-    PosIndex get(int index);
-
-    default int size() {
-        return 0;
-    }
-
-    default PosIndex get(PopCount pop) {
-        return get(pop.index);
-    }
+    PosIndex build(PopCount pop);
 
     static IndexProvider load() {
         ServiceLoader<IndexProvider> services = ServiceLoader.load(IndexProvider.class);

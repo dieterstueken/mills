@@ -37,7 +37,7 @@ public class MillCount extends RecursiveAction implements IndexProcessor {
 
         for(int i=3; i<10; ++i) {
             final PopCount pop = PopCount.of(i, 0);
-            final PosIndex pi = indexes.get(pop);
+            final PosIndex pi = indexes.build(pop);
             final MillCount mc = new MillCount();
 
             pi.process(mc);
