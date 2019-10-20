@@ -11,6 +11,8 @@ import org.junit.Test;
 
 import java.util.*;
 import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.Assert.assertArrayEquals;
 
@@ -32,26 +34,42 @@ public class IndexTests {
         System.out.format("start %d\n", Entries.TABLE.size());
         double start = System.currentTimeMillis();
 
-        PosIndex[] indexes = new PosIndex[PopCount.SIZE];
-        Arrays.parallelSetAll(indexes, i -> builder.build(PopCount.TABLE.get(i)));
+        AtomicLong count20 = new AtomicLong();
 
-        double stop = System.currentTimeMillis();
-        
-        long count20 = 0;
+        ForkJoinTask<Runnable> task = null;
 
         for (int nb = 0; nb < 10; ++nb) {
             for (int nw = 0; nw < 10; ++nw) {
-                PopCount pop = PopCount.of(nb, nw);
-                PosIndex posIndex = indexes[pop.index];
-                int range = posIndex.range();
-                int n20 = posIndex.n20();
-                count20 += n20;
-                System.out.format("l%d%d%,13d %4d\n", pop.nb, pop.nw, range, n20);
-                digest.update(range);
+                PopCount pop = PopCount.get(nb, nw);
+
+                ForkJoinTask<Runnable> next = new RecursiveTask<>() {
+                    @Override
+                    protected Runnable compute() {
+                        PosIndex posIndex = builder.build(pop);
+                        return () -> {
+                            int range = posIndex.range();
+                            int n20 = posIndex.n20();
+                            count20.addAndGet(n20);
+                            System.out.format("l%d%d%,13d %4d\n", pop.nb, pop.nw, range, n20);
+                            digest.update(range);
+                        };
+                    }
+                };
+
+                next.fork();
+
+                if(task!=null)
+                    task.join().run();
+
+                task = next;
             }
         }
-            
-        System.out.format("\n%.3fs, n20: %d, %,d\n", (stop - start) / 1000, count20, Runtime.getRuntime().totalMemory());
+
+        task.join().run();
+
+        double stop = System.currentTimeMillis();
+
+        System.out.format("\n%.3fs, n20: %d, %,d\n", (stop - start) / 1000, count20.get(), Runtime.getRuntime().totalMemory());
 
         byte[] result = digest.digest();
 
@@ -108,8 +126,7 @@ public class IndexTests {
             }
         }
 
-        if(task!=null)
-            task.join().run();
+        task.join().run();
 
         double stop = System.currentTimeMillis();
 
