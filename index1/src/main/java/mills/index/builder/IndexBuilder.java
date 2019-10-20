@@ -24,12 +24,12 @@ public class IndexBuilder implements IndexProvider {
 
     final EntryTables registry;
 
-    final LePopTable lePopTable;
-    final LePopTable minPopTable;
+    final PopTable lePopTable;
+    final PopTable minPopTable;
 
     final Map<PopCount, Partition> partitions;
 
-    public IndexBuilder(LePopTable lePopTable, LePopTable minPopTable,
+    public IndexBuilder(PopTable lePopTable, PopTable minPopTable,
                         Map<PopCount, Partition> partitions, EntryTables registry) {
         this.lePopTable = lePopTable;
         this.minPopTable = minPopTable;
@@ -51,8 +51,8 @@ public class IndexBuilder implements IndexProvider {
 
     public static IndexBuilder create(EntryTables registry) {
 
-        ForkJoinTask<LePopTable> lePopTable = ForkJoinTask.adapt(() -> LePopTable.build(Entries.TABLE, registry::table)).fork();
-        ForkJoinTask<LePopTable> minPopTable = ForkJoinTask.adapt(() -> LePopTable.build(Entries.MINIMIZED, registry::table)).fork();
+        ForkJoinTask<PopTable> lePopTable = PopTable.fork(Entries.TABLE, registry::table);
+        ForkJoinTask<PopTable> minPopTable = PopTable.fork(Entries.MINIMIZED, registry::table);
 
         Map<PopCount, Partition> partitions = Partition.partitions(Entries.TABLE, registry);
 

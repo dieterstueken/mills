@@ -17,8 +17,8 @@ public class ArraySet<K extends Indexed, V> extends AbstractSet<Map.Entry<K, V>>
         return new ArraySet<>(keys, values, defaultValue);
     }
 
-    public static <K extends Indexed, V> ArraySet<K,V> of(IntFunction<K> keys, V[] values, V defaultValue) {
-        return of(keys, Arrays.asList(values), defaultValue);
+    public static <K extends Indexed, V> Map<K,V> mapOf(IntFunction<K> keys, List<V> values, V defaultValue) {
+        return of(keys, values, defaultValue).asMap();
     }
 
     public Map<K,V> asMap() {

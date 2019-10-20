@@ -5,10 +5,12 @@ import mills.bits.PopCount;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.util.AbstractRandomArray;
-import mills.util.PopMap;
+import mills.util.ArraySet;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
 import java.util.function.UnaryOperator;
 
@@ -26,28 +28,39 @@ import static mills.bits.PopCount.P88;
  * Each entry provides a filtered table of entries with equal or lesser population.
  * Since population is limited to 8 the tables are repeated for n>8.
  */
-public class LePopTable extends PopMap<EntryTable> {
+public class PopTable {
 
     /**
      * Build from a subset root.
      * @param root of entries distribute
      * @return LePopTable of distributed entries.
      */
-    public static LePopTable build(EntryTable root, UnaryOperator<EntryTable> normalize) {
+    public static PopTable build(EntryTable root, UnaryOperator<EntryTable> normalize) {
         final List<EntryTable> table = createTable(root, normalize);
-        return new LePopTable(table);
+        return new PopTable(table);
     }
 
-    public static LePopTable build(EntryTable root) {
+    public static ForkJoinTask<PopTable> fork(EntryTable root, UnaryOperator<EntryTable> normalize) {
+        return ForkJoinTask.adapt(() -> PopTable.build(root, normalize)).fork();
+    }
+
+    // specialisation shortcut
+    public static <T> Map<PopCount, T> mapOf(List<T> values, T defaultValue) {
+        return ArraySet.mapOf(PopCount::get, values, defaultValue);
+    }
+
+    public static PopTable build(EntryTable root) {
         return build(root, UnaryOperator.identity());
     }
 
-    public static LePopTable build() {
+    public static PopTable build() {
         return build(Entries.TABLE);
     }
 
-    private LePopTable(List<EntryTable> table) {
-        super(table);
+    private final Map<PopCount, EntryTable> tables;
+
+    private PopTable(List<EntryTable> table) {
+        this.tables = mapOf(table, EntryTable.EMPTY);
     }
 
     public int size() {
@@ -55,7 +68,7 @@ public class LePopTable extends PopMap<EntryTable> {
     }
 
     public EntryTable get(PopCount pop) {
-        return pop==null ? null : get(pop.index);
+        return pop==null ? null : tables.get(pop);
     }
 
     private static List<EntryTable> createTable(EntryTable root, UnaryOperator<EntryTable> normalize) {
@@ -114,7 +127,7 @@ public class LePopTable extends PopMap<EntryTable> {
         for (int nb = 0; nb < 10; nb++) {
             for (int nw = 0; nw < 10; nw++) {
                 final PopCount pop = PopCount.of(nb, nw);
-                final EntryTable t = get(pop.getIndex());
+                final EntryTable t = get(pop);
                 System.out.format("%5d", t.size());
             }
 

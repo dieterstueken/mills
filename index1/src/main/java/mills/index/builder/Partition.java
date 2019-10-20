@@ -5,7 +5,6 @@ import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.EntryTables;
 import mills.util.AbstractRandomArray;
-import mills.util.ArraySet;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -109,6 +108,6 @@ public class Partition {
         PopCount.TABLE.parallelStream()
                 .forEach(pop -> partitions[pop.index] = partition(pop, root, registry));
 
-        return ArraySet.of(PopCount::get, partitions, EMPTY).asMap();
+        return PopTable.mapOf(Arrays.asList(partitions), EMPTY);
     }
 }

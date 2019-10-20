@@ -47,7 +47,7 @@ public class FragmentBuilder {
     }
 
     private static Map<RingEntry, EntryTable> asMap(List<EntryTable> tables) {
-        return ArraySet.of(FragmentBuilder::rad, tables, EntryTable.EMPTY).asMap();
+        return ArraySet.mapOf(FragmentBuilder::rad, tables, EntryTable.EMPTY);
     }
 
     private static final Map<RingEntry, EntryTable> EMPTY = asMap(AbstractRandomList.constant(RADS, EntryTable.EMPTY));
@@ -64,7 +64,7 @@ public class FragmentBuilder {
                 process(e.radials(), e);
             }
 
-            Map<PopCount, Fragment> fragments = ArraySet.of(PopCount::get, fragments(), Fragment.EMPTY).asMap();
+            Map<PopCount, Fragment> fragments = PopTable.mapOf(fragments(), Fragment.EMPTY);
 
             return new Fragments(fragments, root, roots);
         } finally {
