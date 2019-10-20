@@ -90,27 +90,19 @@ abstract public class Fragment {
 
         Fragment fragment = new VirtualFragment(clop, table);
 
-        // only pop(0:0) are cached
         if(registry==null)
             return fragment;
 
-        //List<EntryTable> tables = AbstractRandomList.virtual(RADS, fragment::get);
-
-        //registry.register(tables);
-
-        //assert equals(fragment, tables);
-
         return new Fragment(table) {
 
-            EntryTable[] fragments = new EntryTable[RADS];
+            List<EntryTable> fragments = registry.allocate(RADS);
 
             @Override
             public EntryTable get(RingEntry rad) {
-                EntryTable fragment = fragments[rad.index];
+                EntryTable fragment = fragments.get(rad.index);
                 if(fragment==null) {
                     fragment = table.filter(e -> e.clop(rad).equals(clop));
-                    fragment = registry.table(fragment);
-                    fragments[rad.index] = fragment;
+                    fragments.set(rad.index, fragment);
                 }
                 return fragment;
             }
@@ -120,15 +112,6 @@ abstract public class Fragment {
                 return String.format("F[%d]", table.size());
             }
         };
-    }
-
-    private static boolean equals(Fragment fragment, List<EntryTable> tables) {
-        for (RingEntry rad : Entries.RADIALS) {
-            EntryTable t0 = fragment.get(rad);
-            EntryTable t1 = tables.get(rad.index);
-            assert t1.equals(t0);
-        }
-        return true;
     }
 
     public boolean equals(Object o) {

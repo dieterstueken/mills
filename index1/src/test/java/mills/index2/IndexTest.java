@@ -13,6 +13,7 @@ import mills.util.IntegerDigest;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.concurrent.ForkJoinTask;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -146,12 +147,24 @@ public class IndexTest {
     public void indexGroups() {
         double start = System.currentTimeMillis();
 
+        ForkJoinTask<?> task = null;
+
         for (int nb = 0; nb <= 9; ++nb) {
             for (int nw = 0; nw <= 9; ++nw) {
                 PopCount pop = PopCount.get(nb, nw);
-                indexGroup(pop);
+
+                ForkJoinTask<?> next = ForkJoinTask.adapt(() -> {
+                    indexGroup(pop);
+                }).fork();
+
+                if(task!=null)
+                    task.join();
+                task = next;
             }
         }
+
+        if(task!=null)
+            task.join();
 
         double stop = System.currentTimeMillis();
 

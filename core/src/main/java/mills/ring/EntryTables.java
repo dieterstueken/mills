@@ -29,7 +29,7 @@ public class EntryTables {
     }
 
     static final short OFFSET = RingEntry.MAX_INDEX+1;
-    static final int MAX_VALUE = 0xfffe - OFFSET;
+    static final int MAX_VALUE = 0xffff - OFFSET - 2;
 
     private final List<KeyedEntry> tables = new ArrayList<>();
 
@@ -45,6 +45,9 @@ public class EntryTables {
      * @return a normalized list.
      */
     public EntryTable table(List<RingEntry> list) {
+
+        if(list==null)
+            return null;
 
         int size = list.size();
         if(size==0)
@@ -75,6 +78,9 @@ public class EntryTables {
     }
 
     private KeyedEntry getEntry(List<RingEntry> list) {
+
+        if(list==null)
+            return null;
 
         if(list instanceof KeyedEntry) {
             KeyedEntry entry = (KeyedEntry) list;
@@ -148,6 +154,10 @@ public class EntryTables {
     }
 
     public short key(List<RingEntry> list) {
+
+        if(list==null)
+            return -2;
+
         int size = list.size();
         if(size==0)
             return -1;
@@ -170,8 +180,14 @@ public class EntryTables {
      */
     public EntryTable get(int index) {
 
+        if(index==-2)
+            return null;
+
         if(index == -1)
             return EntryTable.EMPTY;
+
+        // turn every thing else into a positive key.
+        index &= 0xffff;
 
         if(index < RingEntry.MAX_INDEX)
             return Entries.of(index).singleton;
@@ -183,6 +199,9 @@ public class EntryTables {
     }
 
     public List<EntryTable> register(Collection<? extends List<RingEntry>> s1) {
+        if(s1==null)
+            return null;
+
         int size = s1.size();
 
         if(size==0)
@@ -193,28 +212,58 @@ public class EntryTables {
             return table.singleton();
         }
 
-        short[] indexes = new short[size];
+        List<EntryTable> table = allocate(size);
 
         if(s1 instanceof List) {
             List<? extends List<RingEntry>> l1 = (List)s1;
             for (int i = 0; i < size; ++i) {
                 List<RingEntry> list = l1.get(i);
-                short key = key(list);
-                indexes[i] = key;
+                table.set(i, table(list));
             }
         } else {
             int i = 0;
             for (List<RingEntry> list : s1) {
-                short key = key(list);
-                indexes[i] = key;
+                table.set(i, table(list));
                 ++i;
             }
 
-            if (i != indexes.length)
+            if (i != size)
                 throw new IllegalStateException("size does not match");
         }
         
-        return AbstractRandomList.virtual(indexes.length, index -> EntryTables.this.get(0xffff&indexes[index]));
+        return table;
+    }
+
+    public List<EntryTable> allocate(int size) {
+        return allocate(size, null);
+    }
+
+    public List<EntryTable> allocate(int size, EntryTable defaultValue) {
+
+        short[] indexes = new short[size];
+        Arrays.fill(indexes, key(defaultValue));
+
+        return new AbstractRandomList<>() {
+
+            @Override
+            public int size() {
+                return indexes.length;
+            }
+
+            @Override
+            public EntryTable get(int index) {
+                int key = indexes[index];
+                return EntryTables.this.get(key);
+            }
+
+            @Override
+            public EntryTable set(int index, EntryTable table) {
+                EntryTable prev = get(index);
+                short key = key(table);
+                indexes[index] = key;
+                return prev;
+            }
+        };
     }
 
     public int count() {
