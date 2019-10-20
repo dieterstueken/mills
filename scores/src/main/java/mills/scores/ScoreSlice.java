@@ -3,10 +3,10 @@ package mills.scores;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
 import mills.util.AbstractRandomArray;
-import mills.util.Action;
 import mills.util.QueueActor;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -70,7 +70,7 @@ public class ScoreSlice extends MapSlice {
         return value;
     }
 
-    public void submit(Action<ScoreSlice> action) {
+    public void submit(Consumer<ScoreSlice> action) {
         work.submit(action);
     }
 

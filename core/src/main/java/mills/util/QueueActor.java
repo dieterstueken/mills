@@ -3,6 +3,7 @@ package mills.util;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 /**
  * version:     $Revision$
@@ -21,7 +22,7 @@ public class QueueActor<T> {
 
     final T actor;
 
-    final ConcurrentLinkedQueue<Action<? super T>> mbox = new ConcurrentLinkedQueue<>();
+    final ConcurrentLinkedQueue<Consumer<? super T>> mbox = new ConcurrentLinkedQueue<>();
 
     final AtomicBoolean idle = new AtomicBoolean(true);
 
@@ -42,7 +43,7 @@ public class QueueActor<T> {
      * @param action to be executed.
      * @return # of executed tasks
      */
-    public int submit(Action<? super T> action) {
+    public int submit(Consumer<? super T> action) {
         mbox.offer(action);
         return work();
     }
@@ -59,8 +60,8 @@ public class QueueActor<T> {
         while(!mbox.isEmpty() && idle.compareAndSet(true, false)) {
 
             // execute all actions queued
-            for(Action<? super T> action = mbox.poll(); action!=null; action=mbox.poll()) {
-                action.act(actor);
+            for(Consumer<? super T> action = mbox.poll(); action!=null; action=mbox.poll()) {
+                action.accept(actor);
                 ++done;
             }
 
