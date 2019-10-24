@@ -4,9 +4,7 @@ import mills.bits.PopCount;
 import mills.position.Positions;
 import mills.ring.EntryTable;
 import mills.ring.IndexedMap;
-import mills.ring.RingEntry;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -16,10 +14,16 @@ import java.util.List;
  * modified by: $Author$
  * modified on: $Date$
  */
-public class R2Table extends IndexedMap<R0Table> implements PosIndex {
+public abstract class R2Table extends IndexedMap<R0Table> implements PosIndex {
+
+    public abstract long normalize(long i201);
 
     public int posIndex(long i201) {
-        assert Positions.normalized(i201);
+
+        if(!Positions.normalized(i201))
+            i201 = normalize(i201);
+        else
+            assert i201 == normalize(i201);
 
         final short i2 = Positions.i2(i201);
 
@@ -80,14 +84,9 @@ public class R2Table extends IndexedMap<R0Table> implements PosIndex {
         return pop;
     }
 
-
     R2Table(final PopCount pop, EntryTable t2, List<R0Table> t0) {
         super(t2, t0, R0Table::range);
 
         this.pop = pop;
-    }
-
-    public static R2Table of(final PopCount pop, Collection<? extends RingEntry> t2, List<R0Table> t0) {
-        return new R2Table(pop, EntryTable.of(t2), t0);
     }
 }

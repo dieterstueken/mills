@@ -63,6 +63,8 @@ public interface Positions {
 
     // bits 48,49,50,51: permutations/swap applied
 
+    long PERM = 1L<<SP;
+
     // bits 52:53 SWP3: swapped rings if jumping
     long SWPX = 1L<<(SP+4);
     long SWPY = 1L<<(SP+5);
@@ -159,6 +161,10 @@ public interface Positions {
     static boolean equals(long p1, long p2) {
         long diff = (p1 ^ p2) & M201;
         return diff == 0;
+    }
+
+    static long i201(RingEntry r2, RingEntry r0, RingEntry r1) {
+        return i201(r2.index, r0.index, r1.index);
     }
 
     static long i201(int i2, int i0, int i1) {

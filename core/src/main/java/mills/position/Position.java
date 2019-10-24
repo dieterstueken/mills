@@ -7,6 +7,7 @@ package mills.position;
  * Time: 13:36
  */
 
+import mills.bits.Perm;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.ring.RingEntry;
@@ -43,12 +44,16 @@ public class Position implements Comparable<Position> {
 
     public final List<Position> permuted = AbstractRandomList.virtual(16, Position.this::permute);
 
-    private Position permute(int perm) {
+    public Position permute(int perm) {
         if(perm==0)
             return this;
 
         long p201 = Positions.permute(i201, perm);
         return of(p201);
+    }
+
+    public Position permute(Perm perm) {
+        return permute(perm.ordinal());
     }
 
     public static Position of(int i2, int i0, int i1) {

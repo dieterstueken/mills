@@ -1,8 +1,11 @@
 package mills.index;
 
+import mills.bits.Perm;
+import mills.bits.Perms;
 import mills.bits.PopCount;
 import mills.bits.RClop;
 import mills.index.builder.IndexBuilder;
+import mills.position.Position;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.EntryTables;
@@ -13,6 +16,7 @@ import java.util.*;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
 
 import static org.junit.Assert.assertArrayEquals;
 
@@ -109,7 +113,11 @@ public class IndexTests {
     }
 
     @Test
-    public void indexGroups() {
+    public void testIndexGroups() {
+        indexGroups(this::indexGroup);
+    }
+
+    public void indexGroups(BiConsumer<PopCount, Map<PopCount, C2Table>> tables) {
         double start = System.currentTimeMillis();
 
         ForkJoinTask<Runnable> task = null;
@@ -118,7 +126,7 @@ public class IndexTests {
             for (int nw = 0; nw <= 9; ++nw) {
                 PopCount pop = PopCount.get(nb, nw);
 
-                ForkJoinTask<Runnable> next = groupTask(pop);
+                ForkJoinTask<Runnable> next = groupTask(pop, tables);
 
                 if(task!=null)
                     task.join().run();
@@ -164,13 +172,13 @@ public class IndexTests {
         System.out.format("\n%.3fs, mem: %,d\n", (stop - start) / 1000, Runtime.getRuntime().totalMemory());
     }
 
-    private ForkJoinTask<Runnable> groupTask(PopCount pop) {
-        return ForkJoinTask.adapt(()->groupAction(pop)).fork();
+    private ForkJoinTask<Runnable> groupTask(PopCount pop, BiConsumer<PopCount, Map<PopCount, C2Table>> test) {
+        return ForkJoinTask.adapt(()->groupAction(pop, test)).fork();
     }
 
-    private Runnable groupAction(PopCount pop) {
+    private Runnable groupAction(PopCount pop, BiConsumer<PopCount, Map<PopCount, C2Table>> test) {
         var group = builder.buildGroup(pop);
-        return () -> indexGroup(pop, group);
+        return () -> test.accept(pop, group);
     }
 
     public Map<PopCount, C2Table> indexGroup(PopCount pop) {
@@ -202,5 +210,19 @@ public class IndexTests {
         System.out.println();
 
         return group;
+    }
+
+    @Test
+    public void testNormalized() {
+        indexGroups((pop, tables) -> {
+            tables.values().parallelStream().forEach(index->index.process((idx, i201) ->{
+                Position pos = Position.of(i201);
+                for (Perm perm : Perms.OTHER) {
+                    Position ppos = pos.permute(perm);
+                    if(ppos.i201 < pos.i201)
+                        assert ppos.i201 >= pos.i201;
+                }
+            }));
+        });
     }
 }

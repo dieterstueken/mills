@@ -94,7 +94,7 @@ public class IndexBuilder implements IndexProvider {
         List<RingEntry> t2 = AbstractRandomList.transform(table, R2Entry::r2);
         t2 = registry.table(t2);
 
-        return C2Table.of(pop, clop, t2, r0t);
+        return C2Table.of(pop, clop, t2, r0t, N201::normalize);
     }
 
     private R2Entry r2t0(RingEntry e2, PopCount pop, PopCount clop) {
@@ -191,9 +191,9 @@ public class IndexBuilder implements IndexProvider {
      * @param e0 entry on ring 2.
      * @return a perm mask of all stable permutations or 0.
      */
-    static int meq(RingEntry e2, RingEntry e0) {
+    public static int meq(RingEntry e2, RingEntry e0) {
 
-        int meq = e2.meq & 0xff;
+        int meq = e2.pmeq();
 
         // no further analysis necessary.
         if(e2==e0)

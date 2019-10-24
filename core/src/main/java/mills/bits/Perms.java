@@ -122,6 +122,8 @@ public class Perms extends AbstractSet<Perm> implements Indexed {
 
     public static final Perms EMPTY = VALUES.get(0);
 
+    public static Perms OTHER = of(0xfe);
+
     public static Perms of(int perms) {
         return VALUES.get(perms);
     }
