@@ -1,9 +1,12 @@
 package mills.index1;
 
+import mills.bits.Perm;
 import mills.bits.Perms;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
+import mills.position.Position;
+import mills.position.Positions;
 import mills.ring.Entries;
 import mills.ring.RingEntry;
 import mills.util.IntegerDigest;
@@ -139,5 +142,34 @@ public class PosIndexTest {
         System.out.format("perms: %d\n", total.size());
 
         total.forEach(System.out::println);
+    }
+
+    @Test
+    public void testMinimized() {
+        PopCount pop = PopCount.get(8,8);
+        R2Index index = indexes.get(pop);
+
+        Perm.VALUES.parallelStream().forEach(perm -> {
+            index.process((idx, i201) -> {
+                Position pos = Position.of(i201);
+                i201 &= Positions.MASK;
+                Position pix = pos.permute(perm);
+                long p201 = pix.i201&Positions.MASK;
+                if(p201<i201) {
+                    assert i201>p201;
+                }
+            });
+        });
+
+        index.process((idx, i201) -> {
+            Position pos = Position.of(i201);
+            i201 &= Positions.MASK;
+            for(Position pm:pos.permuted) {
+                long p201 = pm.i201&Positions.MASK;
+                if(p201<i201) {
+                    assert i201>p201;
+                }
+            }
+        });
     }
 }
