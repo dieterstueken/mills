@@ -1,5 +1,6 @@
 package mills.scores.opening;
 
+import mills.position.N120;
 import mills.position.Position;
 import mills.position.Positions;
 import mills.stones.Stones;
@@ -37,7 +38,7 @@ public class PutStone<Target extends Position.Factory> {
 
         this.insert = (black, white) -> {
             long i201 = builder.i201(black, white);
-            i201 = Positions.normalize(i201);
+            i201 = N120.normalize(i201);
 
             if (size >= positions.length)
                 positions = Arrays.copyOf(positions, 2 * size);

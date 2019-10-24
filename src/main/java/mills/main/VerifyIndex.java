@@ -5,6 +5,7 @@ import mills.bits.PopCount;
 import mills.index.IndexProcessor;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
+import mills.position.N120;
 import mills.position.Positions;
 import mills.stones.Stones;
 import mills.util.AbstractRandomList;
@@ -49,7 +50,7 @@ public class VerifyIndex {
 
                 for (int i = 0; i < 16; i++) {
                     long p201 = Positions.permute(i201, i);
-                    long n201 = Positions.normalize(p201);
+                    long n201 = N120.normalize(p201);
 
                     int black = Stones.stones(p201, Player.Black);
                     int white = Stones.stones(p201, Player.White);
@@ -62,7 +63,7 @@ public class VerifyIndex {
                         System.err.println(Positions.position(n201));
                         System.err.println(Positions.position(m201));
 
-                        n201 = Positions.normalize(p201);
+                        n201 = N120.normalize(p201);
 
                         throw new RuntimeException();
                     }

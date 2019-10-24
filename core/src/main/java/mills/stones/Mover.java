@@ -1,7 +1,7 @@
 package mills.stones;
 
 import mills.bits.Player;
-import mills.position.Positions;
+import mills.position.N120;
 
 import java.util.Arrays;
 
@@ -90,7 +90,7 @@ public class Mover implements MoveProcessor {
 
     public boolean process(int stay, int move) {
         long i201 = i201(stay, move);
-        i201 = Positions.normalize(i201);
+        i201 = N120.normalize(i201);
         positions[size] = i201;
         ++size;
         return true;
