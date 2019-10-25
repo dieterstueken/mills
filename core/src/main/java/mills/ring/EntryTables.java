@@ -39,6 +39,12 @@ public class EntryTables {
     // generated maps so far
     private Map<Short, Map<List<RingEntry>, KeyedEntry>> metamap = new ConcurrentSkipListMap<>();
 
+    public EntryTables() {
+        // prefetch some maps needed anyway
+        for(int i=2; i<128; ++i)
+            map(i);
+    }
+
     /**
      * Public normalisation.
      * @param list to normalize.

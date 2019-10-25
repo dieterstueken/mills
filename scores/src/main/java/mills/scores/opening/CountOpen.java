@@ -4,6 +4,8 @@ import mills.bits.Player;
 import mills.index.IndexProcessor;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
+import mills.position.Normalizer;
+import mills.position.Position;
 import mills.position.Situation;
 import mills.scores.ScoreSlice;
 import mills.stones.Stones;
@@ -107,7 +109,7 @@ public class CountOpen {
                         int start = i * Slice.SIZE;
                         int size = posIndex.range();
                         int end = Math.min(start + Slice.SIZE, size);
-                        Count count = new Count(s);
+                        Count count = new Count(s, posIndex.normalizer());
                         posIndex.process(count, start, end);
 
                         putMax.accumulateAndGet(count.putMax, Math::max);
@@ -122,19 +124,21 @@ public class CountOpen {
         };
     }
 
-    static class Count implements IndexProcessor {
+    static class Count implements IndexProcessor, Position.Factory {
 
         int putMax = 0;
         int hitMax = 0;
 
         final Situation situation;
+        final Normalizer normalizer;
         final PutStone<?> put;
         final PutStone<?> hit;
 
-        Count(Situation situation) {
+        Count(Situation situation, Normalizer normalizer) {
             this.situation = situation;
-            put = PutStone.put(situation, false);
-            hit = PutStone.hit(situation, false);
+            this.normalizer = normalizer;
+            put = PutStone.put(this, false);
+            hit = PutStone.hit(this, false);
         }
 
         @Override
@@ -155,6 +159,16 @@ public class CountOpen {
                 hit.move(black, white, closes);
             if (hit.size() > hitMax)
                 hitMax = hit.size();
+        }
+
+        @Override
+        public Position position(long i201) {
+            return situation.position(i201);
+        }
+
+        @Override
+        public long normalize(long i201) {
+            return normalizer.normalize(i201);
         }
     }
 }

@@ -3,7 +3,6 @@ package mills.ring;
 import mills.bits.*;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * Created by IntelliJ IDEA.
@@ -55,13 +54,6 @@ public class RingEntry extends BW {
         return sisters;
     }
 
-    // permutation group fingerprint
-    public final PGroup grp;
-
-    public final PGroup grp() {
-        return grp;
-    }
-
     public Player player(Sector sector) {
         int p = index/sector.pow3();
         return Player.of(p%3);
@@ -99,7 +91,7 @@ public class RingEntry extends BW {
 
     // get permutation #i
     public final short perm(int i) {
-        return perm[i& Perm.MSK];
+        return perm[i& Perms.MSK];
     }
 
     public final RingEntry permute(Perm p) {
@@ -114,10 +106,6 @@ public class RingEntry extends BW {
     // return stable permutation mask
     public int pmlt() {
         return 0xff & mlt;  // convert to positive int [0, 256[
-    }
-
-    public boolean anyMlt(int msk) {
-        return (mlt&msk)==0;
     }
 
     // return minimum permutation mask
@@ -165,18 +153,6 @@ public class RingEntry extends BW {
         }
 
         return Pattern.NONE;
-    }
-
-    /**
-     * Iterate all positions with fewer stones.
-     * @param action to be taken on each minor position.
-     */
-    public void forEachMinor(Consumer<? super RingEntry> action) {
-        sectors().forEach(sector->{
-            RingEntry minor = withPlayer(sector, Player.None);
-            action.accept(minor);
-            //minor.forEachMinor(action);
-        });
     }
 
     /**
@@ -250,8 +226,6 @@ public class RingEntry extends BW {
         this.min = min;
         this.mix = mix;
 
-        this.grp = PGroup.group(pmeq());
-
         // precalculate sisters
         if(mix==0) {
             short[] s = Arrays.copyOf(perm, 8);
@@ -295,74 +269,6 @@ public class RingEntry extends BW {
 
     // return short instead of byte to avoid any negative values
 
-    /**
-     * Return mask of reduction bits.
-     * Since bit 0 is always zero, return 7 bits only: [0, 127]
-     * @param r0 entry to obey
-     * @return mask of permutations which will reduce this i20 combination.
-     */
-
-    public short mlt20s(final RingEntry r0) {
-        return (short) (mlt20(r0)/2);
-    }
-
-    // utility function to speed up comparison by mapping to an integer.
-    static int i20(int i2, int i0) {
-        return i2 | (i0<<16);
-    }
-
-    // return a permutation mask of all reducing operations.
-    // Bit#0 is set to 1 if an initial swap reduces the rank.
-    public int mlt20(final RingEntry r0) {
-
-        // r0 must be <= r2, else swap and tag
-        if(index<r0.index)
-            return r0.mlt20(this) | 1;
-
-        // any reduction needs at least one lesser index
-        int candidates = (mlt|r0.mlt)&0xff;
-        if(candidates==0)
-            return 0;
-
-        short i2 = index;
-        short i0 = r0.index;
-
-        // current index value
-        final int i20 = i20(i2, i0);
-
-        // identity transformation won't reduce ever.
-        int result = 0;
-        int pi = 1;
-
-        while(candidates!=0) {
-
-            candidates >>>= 1;
-
-            if(candidates%16==0) {
-                candidates >>>= 4;
-                pi += 4;
-            }
-
-            if(candidates%4==0) {
-                candidates >>>= 2;
-                pi += 2;
-            }
-
-            if(candidates%2!=0) {
-                i2 = perm[pi];
-                i0 = r0.perm[pi];
-
-                // check swapped combinations too (swaps are not tagged here)
-                if(i20(i2, i0)<i20 || i20(i0, i2)<i20)
-                    result |= (1<<pi);
-            }
-
-            ++pi;
-        }
-
-        return result;
-    }
-
     public String toString() {
         return toString(new StringBuilder()).toString();
     }
@@ -396,30 +302,5 @@ public class RingEntry extends BW {
 
         return Short.compare(o1.index, o2.index);
     };
-
-    ////////////////////////////////////////////////////////////////////////
-
-    public static void main(String ... args) {
-
-        int stat1[] = new int[9];
-        int stat2[] = new int[9];
-
-        for(RingEntry e: Entries.TABLE) {
-            System.out.println(e.toString());
-            ++stat1[e.grp.ordinal()];
-
-            if(e.isMin())
-                ++stat2[e.grp.ordinal()];
-        }
-
-        for(PGroup p:PGroup.values()) {
-
-            final int count1 = stat1[p.ordinal()];
-            final int count2 = stat2[p.ordinal()];
-            final int meq = p.meq();
-
-            System.out.format("%02x %d %4d %4d\n", meq, Integer.bitCount(meq), count1, count2);
-        }
-    }
 
 }

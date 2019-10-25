@@ -38,6 +38,10 @@ public enum Sector {
         this.pow3 = (short) pow3(ordinal());
     }
 
+    public int index() {
+        return ordinal();
+    }
+
     public int x() {
         return x;
     }
@@ -49,6 +53,14 @@ public enum Sector {
     // mask to apply on an int to extract Sector bits
     public int mask() {
         return 1<<ordinal();
+    }
+
+    public int orientation() {
+        return ordinal()%4;
+    }
+
+    public int edge() {
+        return ordinal()&4;
     }
 
     // masks to apply on an int(24) to extract Sector bits
@@ -67,25 +79,22 @@ public enum Sector {
 
     /**
      * Rotate right.
-     * @param i rotation count.
+     * @param nrt rotation count.
      * @return rotated sector.
      */
-    public Sector rotate(int i) {
-        i += ordinal();
-        i &= 3;
+    public Sector rotate(int nrt) {
+        // noop?
+        if(nrt==0)
+            return this;
 
-        // keep characteristics
-        i |= (ordinal()&4);
+        nrt = (orientation() + nrt) & 3;
 
-        return SECTORS.get(i);
+        // keep current edge info
+        return SECTORS.get(edge() | nrt);
     }
 
-    public Sector rotation() {
+    public Sector rotate() {
         return rotate(1);
-    }
-
-    public Sector inversion() {
-        return rotate(2);
     }
 
     /**

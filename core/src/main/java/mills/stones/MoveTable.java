@@ -9,6 +9,7 @@ package mills.stones;
 
 import mills.bits.Player;
 import mills.bits.Sector;
+import mills.position.Normalizer;
 
 /**
  * Class Moves executes move operations based on a move table.
@@ -74,9 +75,9 @@ abstract public class MoveTable {
         return jumps ? MoveTable.JUMP : MoveTable.MOVE;
     }
 
-    public Mover mover(boolean swap) {
+    public Mover mover(Normalizer normalizer, boolean swap) {
         if(swap)
-            return new Mover(this) {
+            return new Mover(normalizer, this) {
                 public long i201(int black, int white) {
                     return Stones.i201(white, black);
                 }
@@ -90,15 +91,15 @@ abstract public class MoveTable {
                 }
             };
         else
-            return new Mover(this) {
+            return new Mover(normalizer, this) {
                 public String toString() {
                     return MoveTable.this.toString() + "=";
                 }
             };
     }
 
-    public Mover mover() {
-        return mover(false);
+    public Mover mover(Normalizer normalizer) {
+        return mover(normalizer, false);
     }
 
     private final int moves[];

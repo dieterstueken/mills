@@ -35,18 +35,6 @@ public class Perms extends AbstractSet<Perm> implements Indexed {
         return perms==0;
     }
 
-    public Perms and(Perms perm) {
-        return of(perms & perm.perms);
-    }
-
-    public Perms or(Perms perm) {
-        return of(perms | perm.perms);
-    }
-
-    public Perms not() {
-        return of(perms^0xff);
-    }
-
     @Override
     public boolean contains(Object o) {
         return o instanceof Perm && this.contains((Perm)o);
@@ -122,7 +110,9 @@ public class Perms extends AbstractSet<Perm> implements Indexed {
 
     public static final Perms EMPTY = VALUES.get(0);
 
-    public static Perms OTHER = of(0xfe);
+    public static final Perms OTHER = of(0xfe);
+
+    public static final int MSK = 7;
 
     public static Perms of(int perms) {
         return VALUES.get(perms);

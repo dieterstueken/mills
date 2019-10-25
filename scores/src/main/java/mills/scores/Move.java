@@ -89,7 +89,7 @@ abstract public class Move {
         this.i201 = map.i201(0);
         this.player = player;
         reverse ^= other.player() != Player.Black;
-        this.mover = moves.mover(reverse);
+        this.mover = moves.mover(map.index().normalizer(), reverse);
     }
 
     public String toString() {

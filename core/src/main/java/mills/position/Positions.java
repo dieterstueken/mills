@@ -51,6 +51,9 @@ public interface Positions {
     int MASK = (1<<16)-1;
     long M201 = (1L<<48)-1;
 
+    // 4 bit mask
+    int PERM = 0x0f;
+
     //int S2 = 0;
     //int S0 = 16;
     //int S1 = 32;
@@ -62,8 +65,6 @@ public interface Positions {
     int SP = 48; // base of additional bits
 
     // bits 48,49,50,51: permutations/swap applied
-
-    long PERM = 1L<<SP;
 
     // bits 52:53 SWP3: swapped rings if jumping
     long SWPX = 1L<<(SP+4);
@@ -87,7 +88,7 @@ public interface Positions {
     static short i2(long i201) {return (short) (MASK&(i201>>>S2));}
     static short i0(long i201) {return (short) (MASK&(i201>>>S0));}
     static short i1(long i201) {return (short) (MASK&(i201>>>S1));}
-    static byte perm(long i201) {return (byte) (Perm.PERM&(i201>>>SP));}
+    static byte perm(long i201) {return (byte) (PERM&(i201>>>SP));}
 
     static RingEntry r2(long i201) {return Entries.of(i2(i201));}
     static RingEntry r0(long i201) {return Entries.of(i0(i201));}
@@ -188,14 +189,6 @@ public interface Positions {
         return i201;
     }
 
-    // for a given i1: build a normalized i201 index with possibly swapped 2:0 whichever is smaller.
-    static long m201(short i2, short i0, short i1, int perm) {
-        if(i2<i0)
-            return NORMALIZED | i201(i0, i2, i1, perm^Perm.SWP);
-        else // i2 >= i0
-            return NORMALIZED | i201(i2, i0, i1, perm);
-    }
-
     // decompose, permute and compose an i201 index
     static long permute(final long i201, int perm) {
 
@@ -212,7 +205,7 @@ public interface Positions {
         pm = Perm.compose(perm, pm);
 
         // compose
-        if((perm&Perm.SWP)==0)
+        if((perm& Perm.SWP)==0)
             return i201(i2, i0, i1, pm);
         else
             return i201(i0, i2, i1, pm);

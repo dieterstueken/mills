@@ -13,7 +13,7 @@ import mills.util.Indexed;
  * Class BW holds a pair of patterns occupied by black and white stones on a single 8 bit ringTable.
  * All combinations are kept by RING_TABLE.table, so no further instances are needed.
  */
-public class BW extends Patterns implements Indexed {
+abstract public class BW extends Patterns implements Indexed {
 
     /**
      * The central index function to map a pair of patterns [0,256[

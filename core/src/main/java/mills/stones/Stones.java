@@ -88,7 +88,7 @@ public class Stones {
         int i0 = p0(stones).perm(perm).stones();
         int i1 = p1(stones).perm(perm).stones();
 
-        if((perm&Perm.SWP)==0)
+        if((perm& Perm.SWP)==0)
             return stones(i2, i0, i1);
         else
             return stones(i0, i2, i1);

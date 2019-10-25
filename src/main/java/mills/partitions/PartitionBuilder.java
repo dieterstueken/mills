@@ -1,6 +1,5 @@
 package mills.partitions;
 
-import mills.bits.PGroup;
 import mills.bits.PopCount;
 import mills.ring.Entries;
 import mills.ring.EntryTable;

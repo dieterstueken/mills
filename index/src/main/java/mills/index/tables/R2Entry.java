@@ -1,4 +1,4 @@
-package mills.index;
+package mills.index.tables;
 
 import mills.ring.RingEntry;
 import mills.util.Indexer;

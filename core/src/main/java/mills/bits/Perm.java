@@ -2,6 +2,8 @@ package mills.bits;
 
 import mills.util.ListSet;
 
+import java.util.function.UnaryOperator;
+
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -43,7 +45,7 @@ import mills.util.ListSet;
     The permutation can be applied to a pattern of stones.
 */
 
-public enum Perm implements Operation {
+public enum Perm implements UnaryOperator<Sector>, Operation {
 
     /**
      * Enum ordinates select operations applied:
@@ -54,7 +56,10 @@ public enum Perm implements Operation {
     R0, R1, R2, R3,
     M0, M1, M2, M3;
 
-    private final SectMap map = map(ordinal());
+    public static final int ROT = 1;
+    public static final int INV = 2;
+    public static final int MIR = 4;
+    public static final int SWP = 8;
 
     // pre calculated permutations
     private final int composed = composed(ordinal());
@@ -67,6 +72,20 @@ public enum Perm implements Operation {
     }
 
     /**
+     * @return number of right rotations performed.
+     */
+    public int rotates() {
+        return ordinal()%4;
+    }
+
+    /**
+     * @return if mirroring takes place.
+     */
+    public boolean mirrors() {
+        return (ordinal()&MIR)!=0;
+    }
+
+    /**
      * Apply permutation to a given position mask.
      * The mask may be composed of three 8-bit patterns to represent a full 24-bit position.
      * @param pattern of stones.
@@ -74,16 +93,28 @@ public enum Perm implements Operation {
      */
     @Override
     public int apply(int pattern) {
-        int id = ordinal();
 
-        int result = rotate(pattern, id%4);
+        int result = rotate(pattern, rotates());
 
-        if(id>=4)
+        if(mirrors())
             result = mirror(result);
 
-        assert result == map.apply(pattern);
-
         return result;
+    }
+
+    /**
+     * Implement the Sector -> Sector mapping.
+     * @param sector to map.
+     * @return mapped sector.
+     */
+    @Override
+    public Sector apply(Sector sector) {
+        sector = sector.rotate(rotates());
+
+        if(mirrors())
+            sector = sector.mirror();
+
+        return sector;
     }
 
     // return inverse operation
@@ -118,21 +149,6 @@ public enum Perm implements Operation {
     }
 
     /////////////////////// static utilities ///////////////////////
-
-    static SectMap map(int m) {
-        SectMap map = SectMap.IDENTITY;
-
-        if((m&1)!=0)
-            map = map.andThen(SectMap.ROTATION);
-
-        if((m&2)!=0)
-            map = map.andThen(SectMap.INVERSION);
-
-        if((m&4)!=0)
-            map = map.andThen(SectMap.MIRRORING);
-
-        return map;
-    }
 
     static int composed(int m) {
         m &= 7;
@@ -195,14 +211,6 @@ public enum Perm implements Operation {
 
     public static final ListSet<Perm> VALUES = ListSet.of(values());
 
-    public static final int MSK = 7;
-
     // get by index [0,8[
-    public static Perm get(int i) { return VALUES.get(i & MSK);}
-
-    // take 4th bit into account to reflect 2:0 swaps
-    public static final int SWP = 8;
-
-    // 4 bit mask
-    public static final int PERM = 0x0f;
+    public static Perm get(int i) { return VALUES.get(i & Perms.MSK);}
 }

@@ -1,6 +1,8 @@
-package mills.index;
+package mills.index.tables;
 
 import mills.bits.PopCount;
+import mills.index.IndexProcessor;
+import mills.index.PosIndex;
 import mills.position.Positions;
 import mills.ring.EntryTable;
 import mills.ring.IndexedMap;
@@ -16,7 +18,9 @@ import java.util.List;
  */
 public abstract class R2Table extends IndexedMap<R0Table> implements PosIndex {
 
-    public abstract long normalize(long i201);
+    public long normalize(long i201) {
+        return normalizer().normalize(i201);
+    }
 
     public int posIndex(long i201) {
 

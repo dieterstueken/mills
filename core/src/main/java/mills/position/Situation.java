@@ -13,7 +13,7 @@ import java.util.Objects;
  * Date: 22.12.12
  * Time: 14:43
  */
-public class Situation implements Position.Factory {
+public class Situation {
 
     public final PopCount pop;
 
@@ -170,7 +170,6 @@ public class Situation implements Position.Factory {
         return result;
     }
 
-    @Override
     public Position position(long i201) {
 
         return new Position(i201) {

@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 
@@ -71,5 +72,39 @@ public class PermTest {
         for (Perms perm : perms) {
             System.out.println(perm);
         }
+    }
+
+    @Test
+    public void testMapping() {
+        Perm.VALUES.forEach(this::testPerm);
+    }
+
+    private void testPerm(Perm perm) {
+        SectMap m0 = SectMap.of(perm);
+        SectMap mp = sectMap(perm);
+        assertEquals(m0, mp);
+
+        SectMap mi = m0.invert();
+        mp = sectMap(perm.invert());
+        assertEquals(mi, mp);
+
+        for (Perm px : Perm.VALUES) {
+            SectMap mc = m0.composed(px);
+            mp = sectMap(perm.compose(px));
+            assertEquals(mc, mp);
+        }
+    }
+
+    static SectMap sectMap(Perm perm) {
+        Function<Sector, Sector> map = Function.identity();
+
+        int rot = perm.rotates();
+        for(int i=0; i<rot; ++i)
+            map = map.andThen(Sector::rotate);
+
+        if(perm.mirrors())
+            map = map.andThen(Sector::mirror);
+
+        return SectMap.of(map);
     }
 }

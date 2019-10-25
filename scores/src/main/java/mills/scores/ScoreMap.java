@@ -149,6 +149,11 @@ public class ScoreMap implements Position.Factory, Closeable {
         return new Position(i201);
     }
 
+    @Override
+    public long normalize(long i201) {
+        return index.normalizer().normalize(i201);
+    }
+
     public Position indexPosition(int posIndex) {
         long i201 = i201(posIndex);
         return new Position(i201);

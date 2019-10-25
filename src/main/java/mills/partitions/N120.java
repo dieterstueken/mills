@@ -1,6 +1,8 @@
-package mills.position;
+package mills.partitions;
 
 import mills.bits.Perm;
+import mills.position.Normalizer;
+import mills.position.Positions;
 import mills.ring.Entries;
 import mills.ring.RingEntry;
 
@@ -9,38 +11,9 @@ import mills.ring.RingEntry;
  * Then R20 are minimized. R1 is restricted to positions which must not reduce R20 further.
  * ? does any position exist with smaller R1 but other R20?
  */
-public interface N120 {
+public class N120 implements Normalizer {
 
-    // without perm bits
-    static long normalize(long i201) {
-
-        if(!Positions.normalized(i201)) {
-
-            RingEntry r2 = Positions.r2(i201);
-            RingEntry r0 = Positions.r0(i201);
-            RingEntry r1 = Positions.r1(i201);
-
-            i201 =  normalize(r2, r0, r1);
-        }
-
-        // drop permutations
-        return i201 & (Positions.M201| Positions.NORMALIZED);
-    }
-
-    // including perm bits
-    static long normalizepm(final long i201) {
-        if(Positions.normalized(i201))
-            return i201;
-
-        RingEntry r2 = Positions.r2(i201);
-        RingEntry r0 = Positions.r0(i201);
-        RingEntry r1 = Positions.r1(i201);
-        int pm = Positions.perm(i201);
-
-        return normalize(r2, r0, r1, pm);
-    }
-
-    static long normalize3(final long i201) {
+    public long normalize3(final long i201) {
         if(Positions.normalized(i201))
             return i201;
 
@@ -60,15 +33,7 @@ public interface N120 {
         }
     }
 
-    static long normalize(RingEntry r2, RingEntry r0, RingEntry r1, int pm) {
-        long m201 = normalize(r2, r0, r1);
-        int px = Positions.perm(m201);
-        px ^= Perm.compose(pm, px); // get changed bits
-        m201 ^= (long) px << Positions.SP;    // assume px is unsigned
-        return m201;
-    }
-
-    static long normalize(RingEntry r2, RingEntry r0, RingEntry r1) {
+    public long normalize(RingEntry r2, RingEntry r0, RingEntry r1) {
 
         // minimize middle ring (1)
         int perm = r1.mix;
@@ -86,7 +51,7 @@ public interface N120 {
         final short i1 = r1.index;  // will stay stable
 
         // first possible candidate
-        long m201 = Positions.m201(i2, i0, i1, 0);
+        long m201 = m201(i2, i0, i1, 0);
         int m02 = Positions.m02(m201);
 
         // mask of permutations under which r1 remains normalized and any of r2 or r0 reduces
@@ -114,7 +79,7 @@ public interface N120 {
                 i2 = r2.perm(perm);
                 i0 = r0.perm(perm);
 
-                long l201 = Positions.m201(i2, i0, i1, perm);
+                long l201 = m201(i2, i0, i1, perm);
                 int l02 = Positions.m02(l201);
                 //if((l201& M201) < (m201& M201))
                 if(l02 < m02) {
@@ -127,5 +92,71 @@ public interface N120 {
         }
 
         return m201;
+    }
+
+    // for a given i1: build a normalized i201 index with possibly swapped 2:0 whichever is smaller.
+    static long m201(short i2, short i0, short i1, int perm) {
+        if(i2<i0)
+            return Positions.NORMALIZED | Positions.i201(i0, i2, i1, perm^ Perm.SWP);
+        else // i2 >= i0
+            return Positions.NORMALIZED | Positions.i201(i2, i0, i1, perm);
+    }
+
+
+    // return a permutation mask of all reducing operations.
+    // Bit#0 is set to 1 if an initial swap reduces the rank.
+    static int mlt20(RingEntry r2, RingEntry r0) {
+
+        // r0 must be <= r2, else swap and tag
+        if(r2.index<r0.index)
+            return mlt20(r0, r2) | 1;
+
+        // any reduction needs at least one lesser index
+        int candidates = (r2.mlt|r0.mlt)&0xff;
+        if(candidates==0)
+            return 0;
+
+        short i2 = r2.index;
+        short i0 = r0.index;
+
+        // current index value
+        final int i20 = i20(i2, i0);
+
+        // identity transformation won't reduce ever.
+        int result = 0;
+        int pi = 1;
+
+        while(candidates!=0) {
+
+            candidates >>>= 1;
+
+            if(candidates%16==0) {
+                candidates >>>= 4;
+                pi += 4;
+            }
+
+            if(candidates%4==0) {
+                candidates >>>= 2;
+                pi += 2;
+            }
+
+            if(candidates%2!=0) {
+                i2 = r2.perm(pi);
+                i0 = r0.perm(pi);
+
+                // check swapped combinations too (swaps are not tagged here)
+                if(i20(i2, i0)<i20 || i20(i0, i2)<i20)
+                    result |= (1<<pi);
+            }
+
+            ++pi;
+        }
+
+        return result;
+    }
+
+    // utility function to speed up comparison by mapping to an integer.
+    static int i20(int i2, int i0) {
+        return i2 | (i0<<16);
     }
 }

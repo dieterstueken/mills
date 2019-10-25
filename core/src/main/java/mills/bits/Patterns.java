@@ -6,7 +6,7 @@ package mills.bits;
  * Date: 12/29/15
  * Time: 12:56 PM
  */
-public class Patterns {
+abstract public class Patterns {
 
     public final Pattern b;
     public final Pattern w;
@@ -33,17 +33,5 @@ public class Patterns {
 
         this.b = Pattern.of(b);
         this.w = Pattern.of(w);
-    }
-
-    public Patterns and(Patterns other) {
-        return new Patterns(b.and(other.b), w.and(other.w));
-    }
-
-    public Patterns or(Patterns other) {
-        return new Patterns(b.or(other.b), w.or(other.w));
-    }
-
-    public Patterns not() {
-        return new Patterns(b.not(), w.not());
     }
 }

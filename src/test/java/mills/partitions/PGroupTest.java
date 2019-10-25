@@ -1,4 +1,4 @@
-package mills.bits;
+package mills.partitions;
 
 import org.junit.Test;
 

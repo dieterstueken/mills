@@ -55,8 +55,13 @@ public abstract class SliceWorker implements IndexProcessor, Runnable {
 
     abstract SliceTarget newTarget(Situation situation);
 
-    public static SliceTarget lost(Situation situation) {
+    public SliceTarget lost(Situation situation) {
         return new SliceTarget(situation) {
+            @Override
+            public long normalize(long i201) {
+                return slice.map.normalize(i201);
+            }
+
             @Override
             public int apply(long i201) {
                 return Score.LOST;
@@ -116,6 +121,11 @@ public abstract class SliceWorker implements IndexProcessor, Runnable {
                 Slices slices = next.slices(situation);
                 return slices==null ? lost(situation) : new SliceTarget(situation) {
                     @Override
+                    public long normalize(long i201) {
+                        return slice.map.normalize(i201);
+                    }
+
+                    @Override
                     public int apply(long i201) {
                         return slices.push(i201);
                     }
@@ -145,6 +155,11 @@ public abstract class SliceWorker implements IndexProcessor, Runnable {
             SliceTarget newTarget(Situation situation) {
                 Slices slices = next.slices(situation);
                 return slices==null ? lost(situation) : new SliceTarget(situation) {
+                    @Override
+                    public long normalize(long i201) {
+                        return slice.map.normalize(i201);
+                    }
+
                     @Override
                     public int apply(long i201) {
                         return slices.pull(i201);

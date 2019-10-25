@@ -1,4 +1,4 @@
-package mills.bits;
+package mills.partitions;
 
 /**
  * Created by IntelliJ IDEA.
@@ -7,6 +7,7 @@ package mills.bits;
  * Time: 22:32
  */
 
+import mills.bits.Perm;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
@@ -120,11 +121,15 @@ public enum PGroup {
         return pg;
     }
 
+    public static PGroup group(RingEntry entry) {
+        return group(entry.pmeq());
+    }
+
     public static EnumSet<PGroup> groups(final Iterable<RingEntry> entries) {
 
         EnumSet<PGroup> groups = EnumSet.noneOf(PGroup.class);
         for(final RingEntry e : entries) {
-            groups.add(e.grp);
+            groups.add(group(e));
         }
 
         return groups;
@@ -188,7 +193,7 @@ public enum PGroup {
 
         VALUES.forEach(
                 pg->{
-                    EntryTable t = Entries.TABLE.filter(e->e.grp==pg);
+                    EntryTable t = Entries.TABLE.filter(e->group(e)==pg);
                     System.out.format("%s: %2d\n", pg.toString(), t.size());
                 }
         );

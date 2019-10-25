@@ -35,7 +35,7 @@ public class MoveCount extends RecursiveAction {
 
             PosIndex pi = indexes.build(PopCount.of(3, i));
 
-            pi.process(processor);
+            pi.process(processor(pi));
 
             System.out.format("%d %9d %9d %3d\n", i, pi.range(), m0, m1);
         }
@@ -44,15 +44,17 @@ public class MoveCount extends RecursiveAction {
     int m0 = 0;
     int m1 = 0;
 
-    final Mover mover = MoveTable.JUMP.mover();
+    final
 
-    IndexProcessor processor = new IndexProcessor() {
-        @Override
-        public void process(int posIndex, long i201) {
+    IndexProcessor processor(PosIndex pi) {
+
+        Mover mover = MoveTable.JUMP.mover(pi.normalizer());
+
+        return (posIndex, i201) -> {
 
             int white = Stones.stones(i201, Player.White);
             int closed = Stones.closed(white);
-            if(closed==0)
+            if (closed == 0)
                 return;
 
             int black = Stones.stones(i201, Player.Black);
@@ -61,10 +63,10 @@ public class MoveCount extends RecursiveAction {
 
             int n = mover.size();
 
-            if(n>m1)
+            if (n > m1)
                 m1 = n;
 
             m0++;
-        }
-    };
+        };
+    }
 }

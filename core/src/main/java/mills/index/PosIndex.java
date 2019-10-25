@@ -1,6 +1,7 @@
 package mills.index;
 
 import mills.bits.PopCount;
+import mills.position.Normalizer;
 import mills.position.Position;
 import mills.position.Positions;
 import mills.util.AbstractRandomArray;
@@ -19,6 +20,12 @@ public interface PosIndex {
     PopCount pop();
 
     int range();
+
+    Normalizer normalizer();
+
+    default long normalize(long p201) {
+        return normalizer().normalize(p201);
+    }
 
     int posIndex(long i201);
 

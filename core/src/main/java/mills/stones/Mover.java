@@ -1,7 +1,7 @@
 package mills.stones;
 
 import mills.bits.Player;
-import mills.position.N120;
+import mills.position.Normalizer;
 
 import java.util.Arrays;
 
@@ -13,23 +13,17 @@ import java.util.Arrays;
  */
 public class Mover implements MoveProcessor {
 
-    /*
-    final AtomicReference<Thread> who = new AtomicReference<>();
-
-    void verify() {
-        Thread t = who.getAndSet(Thread.currentThread());
-        assert t==null || t==Thread.currentThread();
-    }
-    */
-
     public final MoveTable moves;
+
+    public final Normalizer normalizer;
 
     private final long positions[];
     private int size = 0;
 
-    Mover(MoveTable moves) {
+    Mover(Normalizer normalizer, MoveTable moves) {
         this.positions = new long[moves.size()];
         this.moves = moves;
+        this.normalizer = normalizer;
     }
 
     /**
@@ -37,8 +31,8 @@ public class Mover implements MoveProcessor {
      * @param swap if the new mover should swap output.
      * @return a new mover instance.
      */
-    public Mover mover(boolean swap) {
-        return moves.mover(swap);
+    public Mover mover(Normalizer normalizer, boolean swap) {
+        return moves.mover(normalizer, swap);
     }
 
     public int size() {
@@ -90,7 +84,7 @@ public class Mover implements MoveProcessor {
 
     public boolean process(int stay, int move) {
         long i201 = i201(stay, move);
-        i201 = N120.normalize(i201);
+        i201 = normalizer.normalize(i201);
         positions[size] = i201;
         ++size;
         return true;

@@ -12,7 +12,7 @@ import static java.util.Spliterator.*;
  * modified by: $
  * modified on: $
  */
-public class Sectors extends AbstractSet<Sector> {
+abstract public class Sectors extends AbstractSet<Sector> {
 
     final int pattern;
 

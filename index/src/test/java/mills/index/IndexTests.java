@@ -3,16 +3,15 @@ package mills.index;
 import mills.bits.Perm;
 import mills.bits.Perms;
 import mills.bits.PopCount;
-import mills.bits.RClop;
 import mills.index.builder.IndexBuilder;
+import mills.index.tables.C2Table;
 import mills.position.Position;
 import mills.ring.Entries;
-import mills.ring.EntryTable;
 import mills.ring.EntryTables;
 import mills.util.IntegerDigest;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.atomic.AtomicLong;
@@ -88,28 +87,6 @@ public class IndexTests {
         int n20 = table.n20();
         System.out.format("l%d%d%,13d %4d +%d\n", pop.nb, pop.nw, range, n20, registry.count());
         return table;
-    }
-    
-    private int countClops(EntryTable et) {
-
-        Set<RClop> rset = new TreeSet<>();
-        et.forEach(e->rset.add(RClop.of(e)));
-
-        Map<RClop, Set<RClop>> rmap = new TreeMap<>();
-
-        rset.forEach(rc -> {
-            rc.rad.forEachMinor(rx->{
-                PopCount cx = rc.clop.add(rx.pop);
-                if(cx.max()<=4) {
-                    RClop rcx = RClop.of(rx, rc.clop.add(rx.pop));
-                    rmap.computeIfAbsent(rcx, x -> new TreeSet<>()).add(rc);
-                }
-            });
-        });
-
-        Set<Set<RClop>> xset = new HashSet<>(rmap.values());
-
-        return xset.size();
     }
 
     @Test
