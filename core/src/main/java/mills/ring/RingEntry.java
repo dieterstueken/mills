@@ -119,8 +119,8 @@ public class RingEntry extends BW {
     }
 
     // return first permutation index which minimizes this entry
-    public byte pmix() {
-        return mix;
+    public Perm pmix() {
+        return Perm.get(mix);
     }
 
     // return if this entry is normalized
@@ -280,7 +280,7 @@ public class RingEntry extends BW {
         pattern(sb);
 
         // add permutation info
-        sb.append(String.format(" ix%d m:%02x e:%02x l:%02x ", pmix(), pmin(), pmeq(), pmlt()));
+        sb.append(String.format(" ix%d m:%02x e:%02x l:%02x ", mix, pmin(), pmeq(), pmlt()));
 
         // add permutation group (reversed)
         for(int i=0; i<8; i++)

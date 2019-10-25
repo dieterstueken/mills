@@ -88,6 +88,7 @@ public interface Positions {
     static short i2(long i201) {return (short) (MASK&(i201>>>S2));}
     static short i0(long i201) {return (short) (MASK&(i201>>>S0));}
     static short i1(long i201) {return (short) (MASK&(i201>>>S1));}
+    static long i201(long i201) {return i201&M201;}
     static byte perm(long i201) {return (byte) (PERM&(i201>>>SP));}
 
     static RingEntry r2(long i201) {return Entries.of(i2(i201));}
@@ -209,6 +210,10 @@ public interface Positions {
             return i201(i2, i0, i1, pm);
         else
             return i201(i0, i2, i1, pm);
+    }
+
+    static long permute(final long i201, Perm perm) {
+        return permute(i201, perm.ordinal());
     }
 
     static int m02(long i201) {

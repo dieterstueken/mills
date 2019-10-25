@@ -242,28 +242,43 @@ public class IndexBuilder implements IndexProvider {
         return meq;
     }
 
+    private static long lperm(Perm perm) {
+        return lperm(perm.ordinal());
+    }
+
+    private static long lperm(long perm) {
+        return (perm&0x0f) << Positions.SP;
+    }
+
     public static long normalize(RingEntry r2, RingEntry r0, RingEntry r1) {
 
         // find minimum of r2 or r1
 
-        if(r2.min() < r1.min())
-            return normalize(r0, r2, r1) | (Perm.SWP * Normalizer.SPERM);
+        if(r2.min() < r0.min())
+            return normalize(r0, r2, r1) | lperm(Perm.SWP);
 
-        // permutations to minimize r20
-        int mlt = r2.pmin() & r0.pmlt();
+        // apply initial normalisation on r2
+        Perm mix = r2.pmix();
+        if(mix!=Perm.R0) {
+            r2 = r2.permute(mix);
+            r0 = r0.permute(mix);
+            r1 = r1.permute(mix);
+        }
 
-        long m201 = Positions.i201(r2, r0, r1);
         Perm pmin = Perm.R0;
+        long m201 = Positions.i201(r2, r0, r1);
 
+        // possible permutations to minimize r20
+        int mlt = r2.meq & (r0.mlt | r0.meq & r1.mlt);
         for (Perm perm : Perms.of(mlt & 0xfe)) {
-            long j201 = Positions.i201(r2, r0, r1);
-            if(j201<m201) {
-                m201 = j201;
+            long i201 = Positions.i201(r2.permute(perm), r0.permute(perm), r1.permute(perm));
+            if(i201<m201) {
+                m201 = i201;
                 pmin = perm;
             }
         }
 
-        return m201 | pmin.ordinal() * Normalizer.SPERM;
+        return m201 | lperm(mix.compose(pmin)) | Positions.NORMALIZED;
     }
 
     class T0Builder {

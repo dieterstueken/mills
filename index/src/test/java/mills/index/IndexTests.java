@@ -6,6 +6,7 @@ import mills.bits.PopCount;
 import mills.index.builder.IndexBuilder;
 import mills.index.tables.C2Table;
 import mills.position.Position;
+import mills.position.Positions;
 import mills.ring.Entries;
 import mills.ring.EntryTables;
 import mills.util.IntegerDigest;
@@ -16,8 +17,12 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
+import static mills.position.Positions.i201;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by IntelliJ IDEA.
@@ -30,6 +35,42 @@ public class IndexTests {
     EntryTables registry = new EntryTables();
     IndexBuilder builder = IndexBuilder.create(registry);
 
+    /**
+     * Iterate popcounts and execute a task on each.
+     * @param tasks generator of tasks to execute.
+     */
+    void runTests(Function<PopCount, ForkJoinTask<Runnable>> tasks) {
+
+        ForkJoinTask<Runnable> task = null;
+
+        for (int nb = 0; nb < 10; ++nb) {
+            for (int nw = 0; nw < 10; ++nw) {
+                PopCount pop = PopCount.get(nb, nw);
+                ForkJoinTask<Runnable> next = tasks.apply(pop).fork();
+
+                if(task!=null)
+                    task.join().run();
+                task = next;
+            }
+        }
+
+        task.join().run();
+    }
+
+    void indexTests(Consumer<PosIndex> test) {
+        runTests(pop->indexTask(pop, test));
+    }
+
+    ForkJoinTask<Runnable> indexTask(PopCount pop, Consumer<PosIndex> test) {
+        return new RecursiveTask<>() {
+            @Override
+            protected Runnable compute() {
+                PosIndex posIndex = builder.build(pop);
+                return () -> test.accept(posIndex);
+            }
+        };
+    }
+
     @Test
     public void testDigest() {
         IntegerDigest digest = new IntegerDigest("MD5");
@@ -39,36 +80,14 @@ public class IndexTests {
 
         AtomicLong count20 = new AtomicLong();
 
-        ForkJoinTask<Runnable> task = null;
-
-        for (int nb = 0; nb < 10; ++nb) {
-            for (int nw = 0; nw < 10; ++nw) {
-                PopCount pop = PopCount.get(nb, nw);
-
-                ForkJoinTask<Runnable> next = new RecursiveTask<>() {
-                    @Override
-                    protected Runnable compute() {
-                        PosIndex posIndex = builder.build(pop);
-                        return () -> {
-                            int range = posIndex.range();
-                            int n20 = posIndex.n20();
-                            count20.addAndGet(n20);
-                            System.out.format("l%d%d%,13d %4d\n", pop.nb, pop.nw, range, n20);
-                            digest.update(range);
-                        };
-                    }
-                };
-
-                next.fork();
-
-                if(task!=null)
-                    task.join().run();
-
-                task = next;
-            }
-        }
-
-        task.join().run();
+        indexTests(posIndex->{
+            PopCount pop = posIndex.pop();
+            int range = posIndex.range();
+            int n20 = posIndex.n20();
+            count20.addAndGet(n20);
+            System.out.format("l%d%d%,13d %4d\n", pop.nb, pop.nw, range, n20);
+            digest.update(range);
+        });
 
         double stop = System.currentTimeMillis();
 
@@ -81,6 +100,35 @@ public class IndexTests {
         assertArrayEquals(IntegerDigest.EXPECTED, result);
     }
 
+    @Test
+    public void testPerms() {
+        double start = System.currentTimeMillis();
+        indexTests(this::testPerms);
+        double stop = System.currentTimeMillis();
+        System.out.format("\n%.3fs\n", (stop - start) / 1000);
+    }
+
+    private void testPerms(PosIndex index) {
+
+        PopCount pop = index.pop();
+
+        Perm.VALUES.parallelStream().forEach(perm->{
+            index.process((idx, i201)->{
+                long p201 = Positions.permute(i201, perm);
+                long n201 = index.normalize(p201);
+                if(i201(n201) != i201(i201)) {
+                    Position p0 = Position.of(i201);
+                    Position pm = Position.of(n201);
+                    Position pn = Position.of(n201);
+                    n201 = index.normalize(p201);
+                }
+                assertEquals(i201(n201), i201(i201));
+            });
+        });
+
+        System.out.format("p(%d,%d) %,13d\n", pop.nb, pop.nw, index.range());
+    }
+
     public C2Table build(PopCount pop, PopCount clop) {
         C2Table table = builder.build(pop, clop);
         int range = table.range();
@@ -91,27 +139,13 @@ public class IndexTests {
 
     @Test
     public void testIndexGroups() {
-        indexGroups(this::indexGroup);
+        runGroupTests(this::indexGroup);
     }
 
-    public void indexGroups(BiConsumer<PopCount, Map<PopCount, C2Table>> tables) {
+    public void runGroupTests(BiConsumer<PopCount, Map<PopCount, C2Table>> test) {
         double start = System.currentTimeMillis();
 
-        ForkJoinTask<Runnable> task = null;
-
-        for (int nb = 0; nb <= 9; ++nb) {
-            for (int nw = 0; nw <= 9; ++nw) {
-                PopCount pop = PopCount.get(nb, nw);
-
-                ForkJoinTask<Runnable> next = groupTask(pop, tables);
-
-                if(task!=null)
-                    task.join().run();
-                task = next;
-            }
-        }
-
-        task.join().run();
+        runTests(pop->groupTask(pop, test));
 
         double stop = System.currentTimeMillis();
 
@@ -191,7 +225,7 @@ public class IndexTests {
 
     @Test
     public void testNormalized() {
-        indexGroups((pop, tables) -> {
+        runGroupTests((pop, tables) -> {
             tables.values().parallelStream().forEach(index->index.process((idx, i201) ->{
                 Position pos = Position.of(i201);
                 for (Perm perm : Perms.OTHER) {

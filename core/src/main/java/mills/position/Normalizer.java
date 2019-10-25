@@ -12,8 +12,6 @@ import mills.ring.RingEntry;
  */
 public interface Normalizer {
 
-    long SPERM = 1L<<Positions.SP;
-
     long normalize(RingEntry r2, RingEntry r0, RingEntry r1);
 
     default long normalize(long i201) {
