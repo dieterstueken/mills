@@ -64,7 +64,7 @@ public class Position implements Comparable<Position> {
         return new Position(i201);
     }
 
-    public Position swap() {
+    public Position inverted() {
         long x201 = Positions.inverted(i201);
         return new Position(x201);
     }

@@ -138,7 +138,7 @@ abstract public class Move {
         if(!closed)
             mask ^= move;
 
-        mover.move(stay, move, mask).unique();
+        mover.move(stay, move, mask).normalize();
 
         return this;
     }
@@ -150,7 +150,7 @@ abstract public class Move {
         final int move = Stones.stones(i201, player);
 
         // move all
-        mover.move(stay, move, move).unique();
+        mover.move(stay, move, move).normalize();
 
         return this;
     }
@@ -190,7 +190,7 @@ abstract public class Move {
                 mask ^= move;
 
 
-            mover.move(stay, move, mask).unique();
+            mover.move(stay, move, mask).normalize();
 
             return this;
         }
@@ -226,7 +226,7 @@ abstract public class Move {
                 }
             }
 
-            mover.move(stay, move, mask).unique();
+            mover.move(stay, move, mask).normalize();
 
             return this;
         }

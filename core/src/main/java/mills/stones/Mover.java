@@ -4,6 +4,7 @@ import mills.bits.Player;
 import mills.position.Positions;
 
 import java.util.Arrays;
+import java.util.function.LongUnaryOperator;
 
 /**
  * Created by IntelliJ IDEA.
@@ -42,23 +43,11 @@ public class Mover implements Moves.Process {
         return positions[index];
     }
 
-    public int white(long i201) {
-        return Stones.stones(i201, player());
-    }
-
-    public int black(long i201) {
-        return Stones.stones(i201, player().other());
-    }
-
-    public Mover move(int stay, int move) {
-        return move(stay, move, move);
-    }
-
     public Mover move(int stay, int move, int mask) {
         clear();
         if(mask!=0) {
             moves.move(stay, move, mask, this);
-            unique();
+            normalize();
         }
 
         return this;
@@ -78,14 +67,28 @@ public class Mover implements Moves.Process {
 
     public boolean process(int stay, int move) {
         long i201 = i201(stay, move);
-        i201 = Positions.normalize(i201);
+        //i201 = Positions.normalize(i201);
         positions[size] = i201;
         ++size;
         return true;
     }
 
-    public Mover unique() {
+    public Mover normalize() {
+        return normalize(Positions::normalize);        
+    }
+
+    public Mover normalize(boolean inverted) {
+        if(inverted)
+            return normalize(Positions::normalinv);
+        else
+            return normalize(Positions::normalize);
+    }
+
+    public Mover normalize(LongUnaryOperator normalizer) {
         if (size > 0) {
+
+            for(int i=0; i<size; ++i)
+                positions[i] = normalizer.applyAsLong(positions[i]);
 
             Arrays.sort(positions, 0, size);
 
@@ -93,7 +96,7 @@ public class Mover implements Moves.Process {
             int k = 1;
             for (int i = 1; i < size; ++i) {
                 long m = positions[i];
-                if (m != p) {
+                if (!Positions.equals(m,p)) {
                     p = m;
                     if (i != k)
                         positions[k] = m;

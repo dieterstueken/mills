@@ -59,7 +59,7 @@ public class MoveCount extends RecursiveAction {
 
             int black = Stones.stones(i201, Player.Black);
 
-            mover.move(black, white, closed).unique();
+            mover.move(black, white, closed).normalize();
 
             int n = mover.size();
 

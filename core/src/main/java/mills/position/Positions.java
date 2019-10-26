@@ -214,6 +214,14 @@ public interface Positions {
     }
 
     static long normalize(long i201) {
+        return normalize(i201, false);
+    }
+
+    static long normalinv(long i201) {
+        return normalize(i201, true);
+    }
+
+    static long normalize(long i201, boolean invert) {
 
         if(Positions.normalized(i201))
             return i201;
@@ -223,6 +231,13 @@ public interface Positions {
         RingEntry r1 = Positions.r1(i201);
 
         int perm = perms(i201);
+
+        if(invert) {
+            r2 = r2.inverted();
+            r0 = r0.inverted();
+            r1 = r1.inverted();
+            perm ^= INV;
+        }
 
         i201 = normalize(r2, r0, r1);
 
