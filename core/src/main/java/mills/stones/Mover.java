@@ -1,7 +1,7 @@
 package mills.stones;
 
 import mills.bits.Player;
-import mills.position.Normalizer;
+import mills.position.Positions;
 
 import java.util.Arrays;
 
@@ -15,15 +15,12 @@ public class Mover implements MoveProcessor {
 
     public final MoveTable moves;
 
-    public final Normalizer normalizer;
-
-    private final long positions[];
+    private final long[] positions;
     private int size = 0;
 
-    Mover(Normalizer normalizer, MoveTable moves) {
+    Mover(MoveTable moves) {
         this.positions = new long[moves.size()];
         this.moves = moves;
-        this.normalizer = normalizer;
     }
 
     /**
@@ -31,8 +28,8 @@ public class Mover implements MoveProcessor {
      * @param swap if the new mover should swap output.
      * @return a new mover instance.
      */
-    public Mover mover(Normalizer normalizer, boolean swap) {
-        return moves.mover(normalizer, swap);
+    public Mover mover(boolean swap) {
+        return moves.mover(swap);
     }
 
     public int size() {
@@ -78,13 +75,9 @@ public class Mover implements MoveProcessor {
         return Player.White;
     }
 
-    public boolean any(int stay, int move, int mask) {
-        return moves.any(stay, move, mask);
-    }
-
     public boolean process(int stay, int move) {
         long i201 = i201(stay, move);
-        i201 = normalizer.normalize(i201);
+        i201 = Positions.normalize(i201);
         positions[size] = i201;
         ++size;
         return true;

@@ -139,8 +139,16 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
         return get(compose(before.ordinal()));
     }
 
-    public static int compose(int then, int first) {
-        return get(then).compose(first);
+    /**
+     * Compose two operations including swap bit.
+     * @param pm1
+     * @param pm2
+     * @return
+     */
+    public static int compose(int pm1, int pm2) {
+        int result = Perm.get(pm1).compose(pm2);
+        result |= (pm1 ^ pm2) & SWP;
+        return result;
     }
 
     @Override
@@ -150,7 +158,7 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
 
     /////////////////////// static utilities ///////////////////////
 
-    static int composed(int m) {
+    private static int composed(int m) {
         m &= 7;
 
         // # of rotations
@@ -176,7 +184,7 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
         return m;
     }
 
-    static int rotate(int pattern, int count) {
+    private static int rotate(int pattern, int count) {
         count &= 3;
 
         if(count!=0) {
@@ -194,7 +202,7 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
     private static final int MEDGES = Sector.E.masks();
     private static final int MCORNERS = Sector.NW.masks() | Sector.SE.masks();
 
-    static int mirror(int pattern) {
+    private static int mirror(int pattern) {
 
         int mask = pattern ^ (pattern>>>2);
         mask &= MEDGES;
@@ -213,4 +221,5 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
 
     // get by index [0,8[
     public static Perm get(int i) { return VALUES.get(i & Perms.MSK);}
+
 }

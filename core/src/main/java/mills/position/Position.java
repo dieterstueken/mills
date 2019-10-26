@@ -26,7 +26,6 @@ public class Position implements Comparable<Position> {
 
     public interface Factory {
         Position position(long i201);
-        long normalize(long i201);
     }
 
     // ordering: i1:i0:i2

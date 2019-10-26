@@ -57,27 +57,6 @@ abstract public class Move {
         return this;
     }
 
-    /////////////////////////////////////////////////////////////////////
-
-    /*
-    MovedPosition position(long i201) {
-        return new MovedPosition(i201);
-    }
-
-    public class MovedPosition extends ScoreMap.Position {
-
-        public MovedPosition(long i201) {
-            map.super(i201);
-        }
-
-        public MovedPosition position(long i201) {
-            return Move.this.position(i201);
-        }
-    }
-    */
-
-    /////////////////////////////////////////////////////////////////////
-
     final ScoreMap map;
     final ScoreMap other;
     final Player player;
@@ -89,7 +68,7 @@ abstract public class Move {
         this.i201 = map.i201(0);
         this.player = player;
         reverse ^= other.player() != Player.Black;
-        this.mover = moves.mover(map.index().normalizer(), reverse);
+        this.mover = moves.mover(reverse);
     }
 
     public String toString() {
@@ -171,15 +150,6 @@ abstract public class Move {
         mover.move(stay, move, move);
 
         return this;
-    }
-
-    public boolean any(long i201) {
-        this.i201 = i201;
-        mover.clear();
-
-        final int stay = Stones.stones(i201, player.other());
-        final int move = Stones.stones(i201, player);
-        return mover.moves.any(stay, move, move);
     }
 
     static class Take extends Move {

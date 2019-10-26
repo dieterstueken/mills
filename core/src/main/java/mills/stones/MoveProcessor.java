@@ -20,16 +20,4 @@ public interface MoveProcessor {
             return "ANY";
         }
     };
-
-    MoveProcessor NONE = new MoveProcessor() {
-            @Override
-            public boolean process(int stay, int move) {
-                return false;
-            }
-
-            public String toString() {
-                return "NONE";
-            }
-        };
-
 }

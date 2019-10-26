@@ -1,6 +1,7 @@
 package mills.position;
 
 import mills.bits.Perm;
+import mills.bits.Perms;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.ring.Entries;
@@ -20,33 +21,22 @@ import mills.stones.Stones;
  *
  * A single ring fits into a short. Since MAX_INDEX < 1<<13 bits 13-15 are void.
  *
- * The pair of inner and outer rings fits into an int i20.
- *
  * A complete triple of three rings is packed into a long i201.
- *
- * The middle ring (1) prepends the i20 bits (<<32).
  *
  * Since a long value keeps 64 bits the uppermost 16 bit my carry some additional information.
  * Bits 48,49,50 carry the applied permutations, bit 51 shows if the i20 part was swapped.
  * Bit 52 is used to indicate closed positions after elevation.
  * Bit 53 indicates if the position has been normalized already.
  *
- * A i201 position is normalized if r1 is minimized and r0 <= r2.
+ * A i201 position is normalized with r2 minimized and r0 <= r2.
  *
  * ........ ........ #### #### ####
- *            CMSPPP  r1   r0   r2
+ *            CMSPPP  r2   r0   r1
  *
  * Bits 54-63 are currently unused
  */
 
 public interface Positions {
-
-    /**
-     * An i201 index takes 3*16 = 48 bits to represent three ringTable entries.
-     * For a normalized index p1 is normalized and p0<=p2.
-     * Thus a normalized i201 index is the smallest value of all its permutations.
-     * Thus 16 bits are available to carry additional status information.
-     */
 
     int MASK = (1<<16)-1;
     long M201 = (1L<<48)-1;
@@ -64,12 +54,16 @@ public interface Positions {
 
     int SP = 48; // base of additional bits
 
+    // shift out to status
+    static long setStat(long stat) {
+        return stat << SP;
+    }
+
+    static int getStat(long i201) {
+        return (int) (i201 >>> SP);
+    }
+
     // bits 48,49,50,51: permutations/swap applied
-
-    // bits 52:53 SWP3: swapped rings if jumping
-    long SWPX = 1L<<(SP+4);
-    long SWPY = 1L<<(SP+5);
-
 
      // if the entry was already normalized
     long NORMALIZED = 1L<<(SP+8);
@@ -216,7 +210,53 @@ public interface Positions {
         return permute(i201, perm.ordinal());
     }
 
-    static int m02(long i201) {
-        return i0(i201)*(1<<16) + i2(i201);
+    static long normalize(RingEntry r2, RingEntry r0, RingEntry r1) {
+
+        // find minimum of r2 or r1
+
+        if (r2.min() < r0.min())
+            return normalize(r0, r2, r1) | setStat(Perm.SWP);
+
+        // apply initial normalisation on r2
+        Perm mix = r2.pmix();
+        if (mix != Perm.R0) {
+            r2 = r2.permute(mix);
+            r0 = r0.permute(mix);
+            r1 = r1.permute(mix);
+        }
+
+        Perm pmin = Perm.R0;
+        long m201 = Positions.i201(r2, r0, r1);
+
+        // possible permutations to minimize r20
+        int mlt = r2.meq & (r0.mlt | r0.meq & r1.mlt);
+        for (Perm perm : Perms.of(mlt & 0xfe)) {
+            long i201 = Positions.i201(r2.permute(perm), r0.permute(perm), r1.permute(perm));
+            if (i201 < m201) {
+                m201 = i201;
+                pmin = perm;
+            }
+        }
+
+        return m201 | setStat(mix.compose(pmin).ordinal()) | Positions.NORMALIZED;
+    }
+
+    static long normalize(long i201) {
+
+        if(Positions.normalized(i201))
+            return i201;
+
+        RingEntry r2 = Positions.r2(i201);
+        RingEntry r0 = Positions.r0(i201);
+        RingEntry r1 = Positions.r1(i201);
+
+        int stat = getStat(i201) & 0x0f;
+
+        i201 = normalize(r2, r0, r1);
+
+        stat ^= Perm.compose(stat, getStat(i201));
+        i201 ^= setStat(stat);
+
+        return i201 & Positions.NORMALIZED;
     }
 }

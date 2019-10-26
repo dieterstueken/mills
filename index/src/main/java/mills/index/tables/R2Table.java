@@ -16,10 +16,10 @@ import java.util.List;
  * modified by: $Author$
  * modified on: $Date$
  */
-public abstract class R2Table extends IndexedMap<R0Table> implements PosIndex {
+public class R2Table extends IndexedMap<R0Table> implements PosIndex {
 
     public long normalize(long i201) {
-        return normalizer().normalize(i201);
+        return Positions.normalize(i201);
     }
 
     public int posIndex(long i201) {

@@ -16,6 +16,7 @@ import mills.position.Positions;
 
 /**
  * Class Stones manages a bit mask of 24 stones.
+ * Ring order is 102, as with Positions
  *
  *
  *  bit numbers of position (middle ring occupies highest bits)

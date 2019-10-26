@@ -48,7 +48,7 @@ public class MoveCount extends RecursiveAction {
 
     IndexProcessor processor(PosIndex pi) {
 
-        Mover mover = MoveTable.JUMP.mover(pi.normalizer());
+        Mover mover = MoveTable.JUMP.mover();
 
         return (posIndex, i201) -> {
 
