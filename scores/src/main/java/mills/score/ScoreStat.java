@@ -1,4 +1,4 @@
-package mills.scores;
+package mills.score;
 
 import mills.util.AbstractRandomArray;
 

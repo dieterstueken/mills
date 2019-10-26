@@ -1,4 +1,4 @@
-package mills.scores;
+package mills.score;
 
 import java.util.Objects;
 import java.util.concurrent.ForkJoinTask;

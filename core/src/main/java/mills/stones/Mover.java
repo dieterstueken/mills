@@ -54,11 +54,13 @@ public class Mover implements Moves.Process {
     }
 
     private long i201(int stay, int move) {
-        return switch(player) {
-            case White -> Stones.i201(stay, move);
-            case Black -> Stones.i201(move, stay);
-            case None ->  0;
-        };
+
+        switch(player) {
+            case White: return Stones.i201(stay, move);
+            case Black: return Stones.i201(move, stay);
+        }
+
+        return 0;
     }
 
     public Player player() {

@@ -1,4 +1,4 @@
-package mills.scores;
+package mills.score;
 
 import java.io.Closeable;
 import java.io.IOException;

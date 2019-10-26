@@ -1,4 +1,4 @@
-package mills.scores;
+package mills.score;
 
 import mills.bits.Player;
 import mills.index.IndexProcessor;
