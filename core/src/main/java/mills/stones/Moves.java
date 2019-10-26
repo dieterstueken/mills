@@ -181,7 +181,6 @@ abstract public class Moves {
     }
 
     static int[] jumps() {
-        //final List<Move> moves = new ArrayList<>(23*24/2);
 
         final int[] moves = new int[23*24/2];
         int n = 0;

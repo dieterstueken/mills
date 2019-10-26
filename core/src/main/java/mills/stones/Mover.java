@@ -84,7 +84,7 @@ public class Mover implements Moves.Process {
         return true;
     }
 
-    private void unique() {
+    public Mover unique() {
         if (size > 0) {
 
             Arrays.sort(positions, 0, size);
@@ -104,5 +104,7 @@ public class Mover implements Moves.Process {
 
             size = k;
         }
+
+        return this;
     }
 }
