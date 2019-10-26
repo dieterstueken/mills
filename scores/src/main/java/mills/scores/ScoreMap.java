@@ -6,7 +6,7 @@ import mills.index.IndexProcessor;
 import mills.index.PosIndex;
 import mills.position.Position;
 import mills.position.Situation;
-import mills.stones.MoveTable;
+import mills.stones.Moves;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -97,9 +97,9 @@ public class ScoreMap implements Position.Factory, Closeable {
         return index.posIndex(i201);
     }
 
-    public MoveTable moves(Player player) {
+    public Moves moves(Player player) {
         boolean jumps = player.count(pop())<=3;
-        return MoveTable.moves(jumps);
+        return Moves.moves(jumps);
     }
 
     public static Integer posIndex(Position pos) {

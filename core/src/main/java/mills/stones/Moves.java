@@ -15,26 +15,30 @@ import mills.bits.Sector;
  * each move is propagated to a Move.Processor.
  * This class is not thread safe.
  */
-abstract public class MoveTable {
+abstract public class Moves {
 
-    public static final MoveTable JUMP = new MoveTable(jumps()) {
+    public interface Process {
+        boolean process(int stay, int move);
+    }
+
+    public static final Moves JUMP = new Moves(jumps()) {
         public String toString() {
             return "JUMP";
         }
     };
 
-    public static final MoveTable MOVE = new MoveTable(moves()) {
+    public static final Moves MOVE = new Moves(moves()) {
         public String toString() {
             return "MOVE";
         }
     };
 
-    public static final MoveTable TAKE = new MoveTable(takes()) {
+    public static final Moves TAKE = new Moves(takes()) {
         public String toString() {
             return "TAKE";
         }
 
-        public int move(int stay, int move, int mask, MoveProcessor target) {
+        public int move(int stay, int move, int mask, Process target) {
 
             if(mask==0)
                 return 0;
@@ -70,40 +74,21 @@ abstract public class MoveTable {
         }
     };
 
-    public static MoveTable moves(boolean jumps) {
-        return jumps ? MoveTable.JUMP : MoveTable.MOVE;
+    public static Moves moves(boolean jumps) {
+        return jumps ? Moves.JUMP : Moves.MOVE;
     }
 
-    public Mover mover(boolean swap) {
-        if(swap)
-            return new Mover(this) {
-                public long i201(int black, int white) {
-                    return Stones.i201(white, black);
-                }
-
-                public Player moved() {
-                    return Player.Black;
-                }
-
-                public String toString() {
-                    return MoveTable.this.toString() + "X";
-                }
-            };
-        else
-            return new Mover(this) {
-                public String toString() {
-                    return MoveTable.this.toString() + "=";
-                }
-            };
+    public Mover mover(Player player) {
+        return new Mover(this, player);
     }
 
     public Mover mover() {
-        return mover(false);
+        return mover(Player.White);
     }
 
     private final int[] moves;
 
-    private MoveTable(final int[] moves) {
+    private Moves(final int[] moves) {
         this.moves = moves;
     }
 
@@ -118,7 +103,7 @@ abstract public class MoveTable {
      * @param mask stones to be moved
      * @return # of different mv or -n-1 if aborted
      */
-    public int move(final int stay, final int move, final int mask, MoveProcessor target) {
+    public int move(final int stay, final int move, final int mask, Process target) {
 
         if(mask==0)
             return 0;
@@ -144,16 +129,27 @@ abstract public class MoveTable {
 
             ++n;
 
-            // target may abort further processing by returning true
-            if(target.process(stay, move^m))
+            // target may abort further processing by returning false
+            if(!target.process(stay, move^m))
                 return -n-1;
         }
 
         return n;
     }
 
+    private static final Process ANY = new Process() {
+        @Override
+        public boolean process(int stay, int move) {
+            return false;
+        }
+
+        public String toString() {
+            return "ANY";
+        }
+    };
+
     public boolean any(int stay, int move, int mask) {
-        return move(stay, move, mask, MoveProcessor.ANY) != 0;
+        return move(stay, move, mask, ANY) != 0;
     }
 
     //////////////////////////////////////////////////////////////////
@@ -207,4 +203,7 @@ abstract public class MoveTable {
 
         return takes;
     }
+
+
+
 }

@@ -15,29 +15,16 @@ import mills.position.Positions;
 
 /**
  * Class Stones manages a bit mask of 24 stones.
- * Ring order is 102, as with Positions
- *
- *
- *  bit numbers of position (middle ring occupies highest bits)
- *
- *   8-----12------9
- *   | 16--20--17  |
- *   |  | 0-4-1 |  |
- *  15-23-7   5-21-13
- *   |  | 3-6-2 |  |
- *   | 19--22--18  |
- *  11-----14-----10
-
- *  bit patterns
- *
- *      01 10 02
- *      80    20
- *      08 40 04
+ * Ring order is 201, as with Positions
  *
 */
 public class Stones {
 
     public static final int STONES = 0xffffff;
+
+    static final int P2 = 16;
+    static final int P1 = 8;
+    static final int P0 = 0;
 
     public Stones(int stones) {
         this.stones = stones;
@@ -52,11 +39,11 @@ public class Stones {
 
     // build stones, assume all values are in range [0,256[
     public static int stones(int i2, int i0, int i1) {
-        assert (i1&0xff)==i1;
-        assert (i2&0xff)==i2;
-        assert (i0&0xff)==i0;
+        assert (i1|0xff)==0xff;
+        assert (i2|0xff)==0xff;
+        assert (i0|0xff)==0xff;
 
-        return (i1<<16) | (i0<<8) | i2;
+        return (i2<<P2) | (i0<<P0) | (i1<<P1);
     }
 
     public static int stones(long i201, Player player) {
@@ -66,9 +53,9 @@ public class Stones {
         return stones(i2, i0, i1);
     }
 
-    static Pattern p2(int stones) {return Pattern.of(stones);}
-    static Pattern p0(int stones) {return Pattern.of(stones>>>8);}
-    static Pattern p1(int stones) {return Pattern.of(stones>>>16);}
+    static Pattern p2(int stones) {return Pattern.of(stones>>>P2);}
+    static Pattern p0(int stones) {return Pattern.of(stones>>>P0);}
+    static Pattern p1(int stones) {return Pattern.of(stones>>>P1);}
 
     public static short i2(int black, int white) {return BW.index(p2(black), p2(white));}
     public static short i0(int black, int white) {return BW.index(p0(black), p0(white));}

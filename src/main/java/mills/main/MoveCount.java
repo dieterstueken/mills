@@ -5,8 +5,8 @@ import mills.bits.PopCount;
 import mills.index.IndexProcessor;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
-import mills.stones.MoveTable;
 import mills.stones.Mover;
+import mills.stones.Moves;
 import mills.stones.Stones;
 
 import java.util.concurrent.RecursiveAction;
@@ -48,7 +48,7 @@ public class MoveCount extends RecursiveAction {
 
     IndexProcessor processor(PosIndex pi) {
 
-        Mover mover = MoveTable.JUMP.mover();
+        Mover mover = Moves.JUMP.mover();
 
         return (posIndex, i201) -> {
 

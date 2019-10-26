@@ -11,25 +11,22 @@ import java.util.Arrays;
  * Date: 18.11.12
  * Time: 12:11
  */
-public class Mover implements MoveProcessor {
+public class Mover implements Moves.Process {
 
-    public final MoveTable moves;
+    public final Moves moves;
+    public final Player player;
 
     private final long[] positions;
     private int size = 0;
 
-    Mover(MoveTable moves) {
+    Mover(Moves moves, Player player) {
         this.positions = new long[moves.size()];
         this.moves = moves;
+        this.player = player;
     }
 
-    /**
-     * Create a new mover instance.
-     * @param swap if the new mover should swap output.
-     * @return a new mover instance.
-     */
-    public Mover mover(boolean swap) {
-        return moves.mover(swap);
+    public String toString() {
+        return moves.toString() + ":" + player.name().substring(0,1);
     }
 
     public int size() {
@@ -46,11 +43,11 @@ public class Mover implements MoveProcessor {
     }
 
     public int white(long i201) {
-        return Stones.stones(i201, moved());
+        return Stones.stones(i201, player());
     }
 
     public int black(long i201) {
-        return Stones.stones(i201, moved().other());
+        return Stones.stones(i201, player().other());
     }
 
     public Mover move(int stay, int move) {
@@ -67,12 +64,16 @@ public class Mover implements MoveProcessor {
         return this;
     }
 
-    public long i201(int black, int white) {
-        return Stones.i201(black, white);
+    private long i201(int stay, int move) {
+        return switch(player) {
+            case White -> Stones.i201(stay, move);
+            case Black -> Stones.i201(move, stay);
+            case None ->  0;
+        };
     }
 
-    public Player moved() {
-        return Player.White;
+    public Player player() {
+        return player;
     }
 
     public boolean process(int stay, int move) {

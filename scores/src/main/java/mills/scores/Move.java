@@ -2,8 +2,8 @@ package mills.scores;
 
 import mills.bits.Player;
 import mills.position.Position;
-import mills.stones.MoveTable;
 import mills.stones.Mover;
+import mills.stones.Moves;
 import mills.stones.Stones;
 import mills.util.AbstractRandomArray;
 import mills.util.AbstractRandomList;
@@ -29,7 +29,7 @@ abstract public class Move {
     public static Move moves(ScoreMap from, ScoreMap to, boolean reverse) {
 
         Player player = from.player().other(reverse);
-        MoveTable moves = from.moves(player);
+        Moves moves = from.moves(player);
 
         return new Move(from, to, player, moves, reverse) {
             public Move reverse() {
@@ -62,13 +62,16 @@ abstract public class Move {
     final Player player;
     final Mover mover;
 
-    private Move(ScoreMap map, ScoreMap other, Player player, MoveTable moves, boolean reverse) {
+    private Move(ScoreMap map, ScoreMap other, Player player, Moves moves, boolean reverse) {
         this.map = map;
         this.other = other;
         this.i201 = map.i201(0);
         this.player = player;
-        reverse ^= other.player() != Player.Black;
-        this.mover = moves.mover(reverse);
+
+        //reverse ^= other.player() != Player.Black;
+        //this.mover = moves.mover(reverse);
+
+        this.mover = moves.mover(reverse ? other.player() : other.player().other());
     }
 
     public String toString() {
@@ -155,7 +158,7 @@ abstract public class Move {
     static class Take extends Move {
 
         Take(ScoreMap map, ScoreMap other, boolean reverse) {
-            super(map, other, map.player(), MoveTable.TAKE, reverse);
+            super(map, other, map.player(), Moves.TAKE, reverse);
         }
 
         Take(ScoreMap map, ScoreMap other) {
