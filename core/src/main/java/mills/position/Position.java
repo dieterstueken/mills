@@ -56,7 +56,7 @@ public class Position implements Comparable<Position> {
         return permute(perm.ordinal());
     }
 
-    public static Position of(int i2, int i0, int i1) {
+    public static Position of(short i2, short i0, short i1) {
         return of(i201(i2, i0, i1));
     }
 
@@ -65,7 +65,7 @@ public class Position implements Comparable<Position> {
     }
 
     public Position swap() {
-        long x201 = Positions.swapped(i201);
+        long x201 = Positions.inverted(i201);
         return new Position(x201);
     }
 
@@ -75,7 +75,7 @@ public class Position implements Comparable<Position> {
 
         pop = pop(i201);
         normalized = normalized(i201);
-        perm = perm(i201);
+        perm = perms(i201);
 
         r2 = r2(i201);
         r0 = r0(i201);

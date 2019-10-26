@@ -61,12 +61,12 @@ public class R0Table extends IndexedMap<EntryTable> {
 
         int pos = indexOf(idx01);
 
-        int i0 = keys.ringIndex(pos);
+        short i0 = keys.ringIndex(pos);
         idx01 -= baseIndex(pos);
 
-        int i1 = values.get(pos).ringIndex(idx01);
+        short i1 = values.get(pos).ringIndex(idx01);
 
-        return Positions.n201(i2, i0, i1);
+        return Positions.i201(i2, i0, i1, Positions.NORMALIZED);
     }
 
     boolean process(final int base, final short i2, final IndexProcessor processor, final int start, final int end) {
@@ -94,7 +94,7 @@ public class R0Table extends IndexedMap<EntryTable> {
 
         for(; i<l; ++i) {
             short i1 = t1.ringIndex(i);
-            long i201 = Positions.n201(i2, i0, i1);
+            long i201 = Positions.i201(i2, i0, i1, Positions.NORMALIZED);
             processor.process(base + i, i201);
         }
 

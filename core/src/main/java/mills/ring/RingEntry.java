@@ -26,7 +26,7 @@ public class RingEntry extends BW {
     // The byte values/masks may save some space, but become negative if expanding to int.
     // Using access functions will clip the sign bit.
 
-    public final short swapped;
+    public final short inverted;
 
     // bit mask of stable permutations (==min for minimized tables)
     public final byte meq;
@@ -65,8 +65,8 @@ public class RingEntry extends BW {
         return singleton;
     }
 
-    public final RingEntry swapped() {
-        return Entries.TABLE.get(swapped);
+    public final RingEntry inverted() {
+        return Entries.TABLE.get(inverted);
     }
 
     // return entry with only radials set.
@@ -94,8 +94,12 @@ public class RingEntry extends BW {
         return perm[i& Perms.MSK];
     }
 
+    public final RingEntry permute(int i) {
+        return Entries.of(perm(i));
+    }
+
     public final RingEntry permute(Perm p) {
-        return Entries.of(perm(p.ordinal()));
+        return permute(p.ordinal());
     }
 
     // return stable permutation mask
@@ -187,7 +191,7 @@ public class RingEntry extends BW {
     private RingEntry(short index) {
         super(index);
 
-        this.swapped = BW.index(w, b);
+        this.inverted = BW.index(w, b);
 
         perm[0] = index;
 

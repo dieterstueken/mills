@@ -20,9 +20,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static mills.position.Positions.i201;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -116,13 +114,13 @@ public class IndexTests {
             index.process((idx, i201)->{
                 long p201 = Positions.permute(i201, perm);
                 long n201 = index.normalize(p201);
-                if(i201(n201) != i201(i201)) {
+                if(!Positions.equals(n201, i201)) {
                     Position p0 = Position.of(i201);
                     Position pm = Position.of(n201);
                     Position pn = Position.of(n201);
                     n201 = index.normalize(p201);
                 }
-                assertEquals(i201(n201), i201(i201));
+                assertTrue(Positions.equals(n201, i201));
             });
         });
 
@@ -235,5 +233,19 @@ public class IndexTests {
                 }
             }));
         });
+    }
+
+    public void testIndex(PosIndex posIndex) {
+        posIndex.process((idx, i201) ->{
+            int kdx = posIndex.posIndex(i201);
+            assertEquals(kdx, idx);
+        });
+    }
+
+    @Test
+    public void testIndex() {
+        PopCount pop = PopCount.of(0,2);
+        PosIndex posIndex = builder.build(pop);
+        testIndex(posIndex);
     }
 }

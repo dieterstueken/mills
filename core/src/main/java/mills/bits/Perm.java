@@ -59,7 +59,6 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
     public static final int ROT = 1;
     public static final int INV = 2;
     public static final int MIR = 4;
-    public static final int SWP = 8;
 
     // pre calculated permutations
     private final int composed = composed(ordinal());
@@ -139,17 +138,6 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
         return get(compose(before.ordinal()));
     }
 
-    /**
-     * Compose two operations including swap bit.
-     * @param pm1
-     * @param pm2
-     * @return
-     */
-    public static int compose(int pm1, int pm2) {
-        int result = Perm.get(pm1).compose(pm2);
-        result |= (pm1 ^ pm2) & SWP;
-        return result;
-    }
 
     @Override
     public String toString() {

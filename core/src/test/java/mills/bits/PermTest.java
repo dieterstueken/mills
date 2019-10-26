@@ -1,5 +1,6 @@
 package mills.bits;
 
+import mills.position.Positions;
 import mills.ring.Entries;
 import mills.ring.RingEntry;
 import org.junit.Test;
@@ -40,7 +41,7 @@ public class PermTest {
                 Perm pc = then.compose(first);
 
                 assertEquals("Perm.compose", pc.ordinal(), then.compose(first.ordinal()));
-                assertEquals("Perm.compose", pc.ordinal(), Perm.compose(then.ordinal(), first.ordinal()));
+                assertEquals("Perm.compose", pc.ordinal(), Positions.compose(then.ordinal(), first.ordinal()));
 
                 System.out.format(" %s", pc);
 

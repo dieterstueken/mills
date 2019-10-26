@@ -55,7 +55,7 @@ public class IndexRange extends RecursiveAction {
                             throw new IndexOutOfBoundsException();
 
                         long k201 = pi.i201(posIndex);
-                        if ((k201 & Positions.M201) != (i201 & Positions.M201))
+                        if (!Positions.equals(k201, i201))
                             throw new RuntimeException();
                     }
                 };

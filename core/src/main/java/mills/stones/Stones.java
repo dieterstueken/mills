@@ -10,7 +10,6 @@ package mills.stones;
 
 import mills.bits.BW;
 import mills.bits.Pattern;
-import mills.bits.Perm;
 import mills.bits.Player;
 import mills.position.Positions;
 
@@ -77,9 +76,9 @@ public class Stones {
 
     public static long i201(int black, int white) {
 
-        int i2 = i2(black, white);
-        int i0 = i0(black, white);
-        int i1 = i1(black, white);
+        short i2 = i2(black, white);
+        short i0 = i0(black, white);
+        short i1 = i1(black, white);
 
         return Positions.i201(i2, i0, i1);
     }
@@ -89,7 +88,7 @@ public class Stones {
         int i0 = p0(stones).perm(perm).stones();
         int i1 = p1(stones).perm(perm).stones();
 
-        if((perm& Perm.SWP)==0)
+        if((perm& Positions.SWP)==0)
             return stones(i2, i0, i1);
         else
             return stones(i0, i2, i1);

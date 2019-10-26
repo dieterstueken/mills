@@ -23,71 +23,49 @@ import mills.stones.Stones;
  *
  * A complete triple of three rings is packed into a long i201.
  *
- * Since a long value keeps 64 bits the uppermost 16 bit my carry some additional information.
- * Bits 48,49,50 carry the applied permutations, bit 51 shows if the i20 part was swapped.
- * Bit 52 is used to indicate closed positions after elevation.
- * Bit 53 indicates if the position has been normalized already.
+ * Since a long value keeps 64 bits 16 bit are free to carry some additional status information.
+ * Those are kept in the lower short to simplify sorting of i201 values.
+ * This also simplifies status modifications.
  *
- * A i201 position is normalized with r2 minimized and r0 <= r2.
+ * The status helps tracking operations on an i201 value.
+ * Bits 0,1,2 carry the applied permutations, bit 3 indicates if the i20 part was swapped.
+ * Bit 4 indicates if colors have been inverted.
+ * Bit 5 indicates if the position has been normalized already.
+ * Other bits a re currently unused and may be used to indicate closed mills or moved sector index.
  *
- * ........ ........ #### #### ####
- *            CMSPPP  r2   r0   r1
+ * #### #### #### .... .... .... ....
+ *  r2   r0   r1              NI SPPP
  *
- * Bits 54-63 are currently unused
  */
 
 public interface Positions {
 
-    int MASK = (1<<16)-1;
-    long M201 = (1L<<48)-1;
+    int WORD = (1<<16)-1;
 
-    // 4 bit mask
-    int PERM = 0x0f;
+    int S1 = 16;
+    int S0 = 32;
+    int S2 = 48;
 
-    //int S2 = 0;
-    //int S0 = 16;
-    //int S1 = 32;
+    int SWP = 1<<3;
+    int INV = 1<<4;
+    int PERMS = (1<<5)-1;
+    int NORMALIZED = 1<<5;
 
-    int S1 = 0;
-    int S0 = 16;
-    int S2 = 32;
+    static short i2(long i201) {return (short) ((i201>>>S2) & WORD);}
+    static short i0(long i201) {return (short) ((i201>>>S0) & WORD);}
+    static short i1(long i201) {return (short) ((i201>>>S1) & WORD);}
 
-    int SP = 48; // base of additional bits
-
-    // shift out to status
-    static long setStat(long stat) {
-        return stat << SP;
-    }
-
-    static int getStat(long i201) {
-        return (int) (i201 >>> SP);
-    }
-
-    // bits 48,49,50,51: permutations/swap applied
-
-     // if the entry was already normalized
-    long NORMALIZED = 1L<<(SP+8);
-
+    static int stat(long i201) {return (int) (i201 & WORD);}
+    static int perms(long i201) {return (int) (i201 & PERMS);}
+    static Perm perm(long i201) {return Perm.get(stat(i201));}
     static boolean normalized(long i201) {
         return (i201&NORMALIZED) != 0;
     }
 
-    // the entry results of an elevated close
-    long CLOSED = 1L<<(SP+7);
-
-    static boolean closed(long i201) {
-        return (i201&CLOSED) != 0;
-    }
-
-    static short i2(long i201) {return (short) (MASK&(i201>>>S2));}
-    static short i0(long i201) {return (short) (MASK&(i201>>>S0));}
-    static short i1(long i201) {return (short) (MASK&(i201>>>S1));}
-    static long i201(long i201) {return i201&M201;}
-    static byte perm(long i201) {return (byte) (PERM&(i201>>>SP));}
-
     static RingEntry r2(long i201) {return Entries.of(i2(i201));}
     static RingEntry r0(long i201) {return Entries.of(i0(i201));}
     static RingEntry r1(long i201) {return Entries.of(i1(i201));}
+
 
     static long stones(int black, int white) {
         short i2 = Stones.i2(black, white);
@@ -96,39 +74,13 @@ public interface Positions {
         return i201(i2, i0, i1);
     }
 
-    interface Builder {
-        long i201(int black, int white);
-    }
+    static long inverted(long i201) {
+        RingEntry r2 = r2(i201).inverted();
+        RingEntry r0 = r0(i201).inverted();
+        RingEntry r1 = r1(i201).inverted();
+        int stat = stat(i201);
 
-    Builder BW = new Builder() {
-        @Override
-        public long i201(int black, int white) {
-            return stones(black, white);
-        }
-
-        public String toString() {
-            return "BW";
-        }
-    };
-
-    Builder WB = new Builder() {
-        @Override
-        public long i201(int black, int white) {
-            return stones(white, black);
-        }
-
-        public String toString() {
-            return "WB";
-        }
-    };
-
-    static long swapped(long i201) {
-        RingEntry r2 = r2(i201).swapped();
-        RingEntry r0 = r0(i201).swapped();
-        RingEntry r1 = r1(i201).swapped();
-        int pm = perm(i201);
-
-        return i201(r2.index, r0.index, r1.index, pm);
+        return i201(r2, r0, r1, stat^INV);
     }
 
     static PopCount pop(long i201) {
@@ -155,55 +107,68 @@ public interface Positions {
     }
 
     static boolean equals(long p1, long p2) {
-        long diff = (p1 ^ p2) & M201;
-        return diff == 0;
+        long diff = (p1 ^ p2) | WORD; // mask all status bits
+        return diff == WORD;
     }
 
-    static long i201(RingEntry r2, RingEntry r0, RingEntry r1) {
-        return i201(r2.index, r0.index, r1.index);
+    static long i201(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
+        return i201(r2.index, r0.index, r1.index, stat);
     }
 
-    static long i201(int i2, int i0, int i1) {
-        long i201;
-        i201  = ((long) i2) << S2;
+    static long i201(short i2, short i0, short i1, int stat) {
+        long i201 = stat&WORD;
+        i201 |= ((long) i2) << S2;
         i201 |= ((long) i0) << S0;
         i201 |= ((long) i1) << S1;
         return i201;
     }
 
-    static long n201(int i2, int i0, int i1) {
-        long n201 = i201(i2, i0, i1);
-        //assert n201 == (normalize(n201) & M201);
-        return n201;
+    static long i201(short i2, short i0, short i1) {
+        return i201(i2, i0, i1, 0);
     }
 
+    /**
+     * Compose two operations including swap bit.
+     * @param pm1
+     * @param pm2
+     * @return
+     */
+    static int compose(int pm1, int pm2) {
+        int result = Perm.get(pm1).compose(pm2);
 
-    static long i201(int i2, int i0, int i1, int perm) {
-        long i201 = i201(i2, i0, i1);
-        i201 |= ((long) perm) << SP;
-        return i201;
+        // compose possible swap and inv flags
+        result |= (pm1 ^ pm2) & (SWP|INV);
+
+        return result;
     }
 
     // decompose, permute and compose an i201 index
-    static long permute(final long i201, int perm) {
+    static long permute(long i201, int perm) {
 
         // decompose
         RingEntry r2 = r2(i201);
         RingEntry r0 = r0(i201);
         RingEntry r1 = r1(i201);
-        int pm = perm(i201);
+        int pm = perms(i201);
 
         // permute each
-        int i2 = r2.perm(perm);
-        int i0 = r0.perm(perm);
-        int i1 = r1.perm(perm);
-        pm = Perm.compose(perm, pm);
+        r2 = r2.permute(perm);
+        r0 = r0.permute(perm);
+        r1 = r1.permute(perm);
 
-        // compose
-        if((perm& Perm.SWP)==0)
-            return i201(i2, i0, i1, pm);
+        if((perm&INV)!=0) {
+            r2 = r2.inverted();
+            r0 = r0.inverted();
+            r1 = r1.inverted();
+        }
+
+        pm = compose(perm, pm);
+
+        // apply swap
+        if((perm&SWP)!=0)
+            return i201(r0, r1, r1, pm);
         else
-            return i201(i0, i2, i1, pm);
+            return i201(r2, r0, r1, pm);
     }
 
     static long permute(final long i201, Perm perm) {
@@ -212,33 +177,40 @@ public interface Positions {
 
     static long normalize(RingEntry r2, RingEntry r0, RingEntry r1) {
 
+        int perm = 0;
+
         // find minimum of r2 or r1
-
-        if (r2.min() < r0.min())
-            return normalize(r0, r2, r1) | setStat(Perm.SWP);
-
-        // apply initial normalisation on r2
-        Perm mix = r2.pmix();
-        if (mix != Perm.R0) {
-            r2 = r2.permute(mix);
-            r0 = r0.permute(mix);
-            r1 = r1.permute(mix);
+        if (r2.min() < r0.min()) {
+            RingEntry tmp = r0;
+            r2 = r0;
+            r0 = tmp;
+            perm = SWP;
         }
 
-        Perm pmin = Perm.R0;
-        long m201 = Positions.i201(r2, r0, r1);
+        // apply initial normalisation on r2
+        int pmin = r2.mix;
+        if (pmin != 0) {
+            r2 = r2.permute(pmin);
+            r0 = r0.permute(pmin);
+            r1 = r1.permute(pmin);
+            perm |= pmin;
+        }
+
+        long m201 = Positions.i201(r2, r0, r1, 0);
 
         // possible permutations to minimize r20
         int mlt = r2.meq & (r0.mlt | r0.meq & r1.mlt);
-        for (Perm perm : Perms.of(mlt & 0xfe)) {
-            long i201 = Positions.i201(r2.permute(perm), r0.permute(perm), r1.permute(perm));
+        for (Perm p : Perms.of(mlt & 0xfe)) {
+            long i201 = i201(r2.permute(p), r0.permute(p), r1.permute(p), 0);
             if (i201 < m201) {
                 m201 = i201;
-                pmin = perm;
+                pmin = p.ordinal();
             }
         }
 
-        return m201 | setStat(mix.compose(pmin).ordinal()) | Positions.NORMALIZED;
+        perm = compose(perm, pmin) | Positions.NORMALIZED;
+
+        return m201 | perm;
     }
 
     static long normalize(long i201) {
@@ -250,13 +222,16 @@ public interface Positions {
         RingEntry r0 = Positions.r0(i201);
         RingEntry r1 = Positions.r1(i201);
 
-        int stat = getStat(i201) & 0x0f;
+        int perm = perms(i201);
 
         i201 = normalize(r2, r0, r1);
 
-        stat ^= Perm.compose(stat, getStat(i201));
-        i201 ^= setStat(stat);
+        // changed permutations
+        perm ^= compose(perm, perms(i201));
 
-        return i201 & Positions.NORMALIZED;
+        // apply change
+        i201 ^= perm;
+
+        return i201;
     }
 }
