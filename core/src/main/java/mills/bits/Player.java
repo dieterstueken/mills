@@ -72,6 +72,10 @@ public enum Player {
         return ordinal();
     }
 
+    public char key() {
+        return Character.toLowerCase(name().charAt(0));
+    }
+
     abstract public int count(PopCount pop);
 
     abstract public Player other();

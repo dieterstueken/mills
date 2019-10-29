@@ -53,11 +53,11 @@ abstract public class BW extends Patterns implements Indexed {
     }
 
     public byte nb() {
-        return pop.nb();
+        return b.count;
     }
 
     public byte nw() {
-        return pop.nw();
+        return w.count;
     }
 
     protected BW(short index) {

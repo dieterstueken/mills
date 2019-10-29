@@ -73,11 +73,11 @@ public class PopCount implements Indexed {
     }
 
     public PopCount remains() {
-        return of(9 - nb, 9 - nw);
+        return _of(9 - nb, 9 - nw);
     }
 
     public PopCount truncate(int max) {
-        return of(Math.min(nb, max), Math.min(nw, max));
+        return _of(Math.min(nb, max), Math.min(nw, max));
     }
 
     public static int mclop(int count) {
@@ -92,7 +92,11 @@ public class PopCount implements Indexed {
 
     // maximum possible closed population
     public PopCount mclop() {
-        return PopCount.of(mclop(nb), mclop(nw));
+        // limit by given stones
+        PopCount mclop = PopCount.get(mclop(nb), mclop(nw));
+        // limit by missing stones.
+        PopCount nclop = P99.sub(this).swap();
+        return mclop.min(nclop);
     }
 
     /**
@@ -117,26 +121,32 @@ public class PopCount implements Indexed {
     public PopCount sub(final PopCount other) {
         final int nb = this.nb - other.nb;
         final int nw = this.nw - other.nw;
-        return of(nb, nw);
+        return _of(nb, nw);
     }
 
     public PopCount add(final PopCount other) {
         final int nb = this.nb + other.nb;
         final int nw = this.nw + other.nw;
-        return of(nb, nw);
+        return _of(nb, nw);
     }
 
     public PopCount max(final PopCount other) {
         final int nb = Math.max(this.nb, other.nb);
         final int nw = Math.max(this.nw, other.nw);
-        return of(nb, nw);
+        return _of(nb, nw);
+    }
+
+    public PopCount min(PopCount other) {
+        final int nb = Math.min(this.nb, other.nb);
+        final int nw = Math.min(this.nw, other.nw);
+        return _of(nb, nw);
     }
 
     public void forEach(Consumer<? super PopCount> action) {
         Objects.requireNonNull(action);
         for(int rb = 0; rb<=nb; ++rb)
             for(int rw = 0; rw<=nw; ++rw) {
-                action.accept(of(rb, rw));
+                action.accept(_of(rb, rw));
             }
     }
 
@@ -149,7 +159,7 @@ public class PopCount implements Indexed {
     }
 
     public PopCount swap() {
-        return of(nw, nb);
+        return _of(nw, nb);
     }
 
     public PopCount swapIf(boolean swap) {
@@ -158,10 +168,6 @@ public class PopCount implements Indexed {
 
     public int min() {
         return Math.min(nb, nw);
-    }
-
-    public PopCount min(PopCount other) {
-        return of(Math.min(nb, other.nb), Math.min(nw, other.nw));
     }
 
     public int max() {
@@ -213,6 +219,13 @@ public class PopCount implements Indexed {
         return string;
     }
 
+    private PopCount _of(int nb, int nw) {
+        if(nb==this.nb && nw==this.nw)
+            return this;
+
+        return of(nb, nw);
+    }
+
     /**
      * Return a PopCount, either from the predefined table or create some new one.
      * Return null if either count is negative.
@@ -257,6 +270,7 @@ public class PopCount implements Indexed {
     public static final PopCount EMPTY = get(0,0);
     public static final PopCount P44 = get(4,4);
     public static final PopCount P88 = get(8,8);
+    public static final PopCount P99 = get(9,9);
 
     // # of closed mills (0-4)
     public static final ListSet<PopCount> CLOSED = TABLE.subList(P44.index+1);

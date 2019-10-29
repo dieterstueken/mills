@@ -6,7 +6,11 @@ import java.util.ServiceLoader;
 
 public interface IndexProvider {
 
-    PosIndex build(PopCount pop);
+    default PosIndex build(PopCount pop) {
+        return build(pop, null);
+    }
+
+    PosIndex build(PopCount pop, PopCount clop);
 
     static IndexProvider load() {
         ServiceLoader<IndexProvider> services = ServiceLoader.load(IndexProvider.class);

@@ -2,11 +2,9 @@ package mills.position;
 
 import mills.bits.Perm;
 import mills.bits.Perms;
-import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.ring.Entries;
 import mills.ring.RingEntry;
-import mills.stones.Mills;
 import mills.stones.Stones;
 
 /**
@@ -96,10 +94,14 @@ public interface Positions {
      * @return population count of closed mills.
      */
     static PopCount clop(long i201) {
-        return PopCount.of(
-                Mills.count(i201, Player.Black),
-                Mills.count(i201, Player.White)
-        );
+        RingEntry r2 = r2(i201).inverted();
+        RingEntry r0 = r0(i201).inverted();
+        RingEntry r1 = r1(i201).inverted();
+
+        PopCount clop = r2.clop().add(r0.clop().add(r0.clop()));
+        PopCount rad = clop.add(r2.radials().and(r0).and(r1).pop);
+
+        return clop.add(rad);
     }
 
     static Position position(long i201) {
