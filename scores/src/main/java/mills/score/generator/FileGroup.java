@@ -55,7 +55,7 @@ public class FileGroup {
 
         Map<PopCount, File> group = new HashMap<>();
 
-        for (PopCount clop : PopCount.CLOSED) {
+        for (PopCount clop : PopCount.CLOPS) {
             if(clops.test(clop))
                 group.put(clop, file(clop));
         }

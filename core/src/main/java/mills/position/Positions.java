@@ -94,9 +94,9 @@ public interface Positions {
      * @return population count of closed mills.
      */
     static PopCount clop(long i201) {
-        RingEntry r2 = r2(i201).inverted();
-        RingEntry r0 = r0(i201).inverted();
-        RingEntry r1 = r1(i201).inverted();
+        RingEntry r2 = r2(i201);
+        RingEntry r0 = r0(i201);
+        RingEntry r1 = r1(i201);
 
         PopCount clop = r2.clop().add(r0.clop().add(r0.clop()));
         PopCount rad = clop.add(r2.radials().and(r0).and(r1).pop);
@@ -216,14 +216,6 @@ public interface Positions {
     }
 
     static long normalize(long i201) {
-        return normalize(i201, false);
-    }
-
-    static long normalinv(long i201) {
-        return normalize(i201, true);
-    }
-
-    static long normalize(long i201, boolean invert) {
 
         if(Positions.normalized(i201))
             return i201;
@@ -233,13 +225,6 @@ public interface Positions {
         RingEntry r1 = Positions.r1(i201);
 
         int perm = perms(i201);
-
-        if(invert) {
-            r2 = r2.inverted();
-            r0 = r0.inverted();
-            r1 = r1.inverted();
-            perm ^= INV;
-        }
 
         i201 = normalize(r2, r0, r1);
 

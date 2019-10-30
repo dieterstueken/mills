@@ -1,10 +1,8 @@
 package mills.stones;
 
-import mills.bits.Player;
 import mills.position.Positions;
 
 import java.util.Arrays;
-import java.util.function.LongUnaryOperator;
 
 /**
  * Created by IntelliJ IDEA.
@@ -15,19 +13,19 @@ import java.util.function.LongUnaryOperator;
 public class Mover implements Moves.Process {
 
     public final Moves moves;
-    public final Player player;
+    public final boolean swap;
 
     private final long[] positions;
     private int size = 0;
 
-    Mover(Moves moves, Player player) {
+    Mover(Moves moves, boolean swap) {
         this.positions = new long[moves.size()];
         this.moves = moves;
-        this.player = player;
+        this.swap = swap;
     }
 
     public String toString() {
-        return moves.toString() + ":" + player.name().substring(0,1);
+        return moves.toString() + ":" + (swap ? "X" : "=");
     }
 
     public int size() {
@@ -54,17 +52,7 @@ public class Mover implements Moves.Process {
     }
 
     private long i201(int stay, int move) {
-
-        switch(player) {
-            case White: return Stones.i201(stay, move);
-            case Black: return Stones.i201(move, stay);
-        }
-
-        return 0;
-    }
-
-    public Player player() {
-        return player;
+        return swap ? Stones.i201(move, stay) | Positions.INV : Stones.i201(stay, move);
     }
 
     public boolean process(int stay, int move) {
@@ -76,21 +64,10 @@ public class Mover implements Moves.Process {
     }
 
     public Mover normalize() {
-        return normalize(Positions::normalize);        
-    }
-
-    public Mover normalize(boolean inverted) {
-        if(inverted)
-            return normalize(Positions::normalinv);
-        else
-            return normalize(Positions::normalize);
-    }
-
-    public Mover normalize(LongUnaryOperator normalizer) {
         if (size > 0) {
 
             for(int i=0; i<size; ++i)
-                positions[i] = normalizer.applyAsLong(positions[i]);
+                positions[i] = Positions.normalize(positions[i]);
 
             Arrays.sort(positions, 0, size);
 

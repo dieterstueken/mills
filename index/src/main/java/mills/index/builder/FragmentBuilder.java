@@ -24,7 +24,7 @@ import java.util.TreeSet;
  */
 public class FragmentBuilder {
 
-    static final int CLOPS = PopCount.CLOSED.size();
+    static final int CLOPS = PopCount.CLOPS.size();
     static final int RADS = Entries.RADIALS.size();
 
     final EntryTables registry;

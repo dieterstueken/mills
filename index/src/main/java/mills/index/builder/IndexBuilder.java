@@ -65,9 +65,9 @@ public class IndexBuilder implements IndexProvider {
 
     public Map<PopCount, C2Table> buildGroup(PopCount pop) {
 
-        C2Table[] tables = new C2Table[PopCount.CLOSED.size()];
+        C2Table[] tables = new C2Table[PopCount.CLOPS.size()];
 
-        PopCount.CLOSED.parallelStream().forEach(clop -> tables[clop.index] = build(pop, clop));
+        PopCount.CLOPS.parallelStream().forEach(clop -> tables[clop.index] = build(pop, clop));
 
         Map<PopCount, C2Table> group = new TreeMap<>();
 

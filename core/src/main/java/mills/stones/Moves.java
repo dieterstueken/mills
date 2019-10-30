@@ -7,7 +7,6 @@ package mills.stones;
  * Time: 14:30
  */
 
-import mills.bits.Player;
 import mills.bits.Sector;
 
 /**
@@ -78,12 +77,12 @@ abstract public class Moves {
         return jumps ? Moves.JUMP : Moves.MOVE;
     }
 
-    public Mover mover(Player player) {
-        return new Mover(this, player);
+    public Mover mover(boolean swap) {
+        return new Mover(this, swap);
     }
 
     public Mover mover() {
-        return mover(Player.White);
+        return mover(false);
     }
 
     private final int[] moves;

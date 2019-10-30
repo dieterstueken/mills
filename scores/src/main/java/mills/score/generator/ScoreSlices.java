@@ -12,9 +12,9 @@ public class ScoreSlices {
 
     public final ScoreSet scores;
 
-    public final List<ScoreSlice> slices;
+    public final List<MapSlice> slices;
 
-    private ScoreSlices(ScoreSet scores, List<ScoreSlice> slices) {
+    private ScoreSlices(ScoreSet scores, List<MapSlice> slices) {
         this.scores = scores;
         this.slices = slices;
     }
@@ -23,8 +23,8 @@ public class ScoreSlices {
         return String.format("ScoreSlices %s (%d)", scores, max());
     }
 
-    public static ScoreSlices of(ScoreSet scores) {
-        return new ScoreSlices(scores, ScoreSlice.slices(scores));
+    public static ScoreSlices of(ScoreMap scores) {
+        return new ScoreSlices(scores, MapSlice.slices(scores));
     }
 
     /**
@@ -35,13 +35,13 @@ public class ScoreSlices {
      */
     public int getScore201(long i201) {
         int index = scores.posIndex(i201);
-        final ScoreSlice slice = slices.get(index >>> 15);
+        final MapSlice slice = slices.get(index >>> 15);
         final short offset = (short) (index & Short.MAX_VALUE);
         return slice.getScore(offset);
     }
 
-    public ScoreSlice getSlice(int posIndex) {
-        return slices.get(posIndex / ScoreSlice.SIZE);
+    public MapSlice getSlice(int posIndex) {
+        return slices.get(posIndex / MapSlice.SIZE);
     }
 
     /**
@@ -54,7 +54,7 @@ public class ScoreSlices {
      */
     public int max() {
         int max = 0;
-        for (ScoreSlice slice : slices) {
+        for (MapSlice slice : slices) {
             int m = slice.max();
             if(m>max)
                 max = m;
@@ -64,7 +64,7 @@ public class ScoreSlices {
     }
 
     public void close() {
-        slices.forEach(ScoreSlice::close);
+        slices.forEach(MapSlice::close);
         scores.close();
     }
 }

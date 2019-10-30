@@ -30,7 +30,7 @@ public class SliceGroup {
         this.group = group;
     }
 
-    public void processAll(Consumer<? super ScoreSlice> process) {
+    public void processAll(Consumer<? super MapSlice> process) {
         group.values().stream().flatMap(slices->slices.slices.stream()).parallel().forEach(process);
     }
 
@@ -38,16 +38,12 @@ public class SliceGroup {
         group.values().forEach(ScoreSlices::close);
     }
 
-    void elevate(SliceGroup source) {
-        todo:
-    }
-
     //////////////////////////////////////////
 
     static SliceGroup open(FileGroup files, IndexProvider indexes, boolean create) {
         PopCount mclop = files.pop.mclop();
 
-        List<ScoreSlices> maps = AbstractRandomList.preset(PopCount.CLOSED.size(), null);
+        List<ScoreSlices> maps = AbstractRandomList.preset(PopCount.CLOPS.size(), null);
 
         files.group(mclop::le).entrySet().parallelStream()
                 .map(e->{
