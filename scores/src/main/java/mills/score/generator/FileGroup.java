@@ -7,9 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.NotDirectoryException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Predicate;
+import java.util.function.Function;
 
 /**
  * Created by IntelliJ IDEA.
@@ -17,67 +15,101 @@ import java.util.function.Predicate;
  * Date: 28.10.19
  * Time: 15:57
  */
-public class FileGroup {
+public class FileGroup extends Group<Function<String, File>> implements Layer {
 
-    final String prefix;
+    final File dir;
 
     final PopCount pop;
 
     final Player player;
 
-    final File dir;
+    final boolean opening;
 
-    private FileGroup(File dir, String prefix, PopCount pop, Player player) {
-        this.prefix = prefix;
+    private FileGroup(File dir, PopCount pop, Player player, boolean opening) {
+
+        this.dir = dir;
         this.pop = pop;
         this.player = player;
-        this.dir = dir;
+        this.opening = opening;
+
+        // maximum clop
+        PopCount mclop = this.pop.mclop();
+
+        // files are set up but not verified yet
+        PopCount.CLOPS.forEach(clop->{
+            if(mclop.le(clop))
+                group.put(clop, file(clop));
+        });
     }
 
-    public static FileGroup create(File root, String prefix, PopCount pop, Player player)  {
+    public PopCount pop() {
+        return pop;
+    }
+
+    public Player player() {
+        return player;
+    }
+
+    public boolean opening() {
+        return opening;
+    }
+
+    boolean exists() {
+        return dir.isDirectory();
+    }
+
+    public FileGroup swap() {
+        PopCount swap = pop.swap();
+        if(swap.equals(pop))
+            return this;
+
+        return new FileGroup(dir, swap, player, opening);
+    }
+
+    public FileGroup down() {
+        PopCount down = pop.sub(player.other().pop);
+        if(down==null || down.min()<3)
+            return null;
+
+        return new FileGroup(dir, down, player.other(), opening);
+    }
+
+    private Function<String, File> file(PopCount clop) {
+
+        return ext -> {
+            String name = name(clop, ext);
+            return new File(dir, name);
+        };
+    }
+
+    private String name(PopCount clop, String ext) {
+        if(clop!=null)
+            return String.format("%s%d%d+%d%d%c.%s", opening ? "O" : "P",
+                    pop.nb(), pop.nw(),
+                    clop.nb(), clop.nw(),
+                    player.key(), ext);
+        else
+            return String.format("%s%d%d%c.%s", opening ? "O" : "P",
+                pop.nb(), pop.nw(),
+                player.key(), ext);
+    }
+
+    //////////////////////////////////////////////////
+
+    public static FileGroup of(File root, PopCount pop, Player player, boolean opening)  {
         try {
-            String name = String.format("%s%d%d%c", prefix, pop.nb(), pop.nw(), player.key());
+            if(!root.exists())
+                root.mkdirs();
+
+            if(!root.isDirectory())
+                throw new NotDirectoryException(root.toString());
+
+            String name = String.format("%s%d%d%c", opening ? "O" : "P", pop.nb(), pop.nw(), player.key());
             File dir = new File(root, name);
 
-            if(!dir.exists())
-                dir.mkdirs();
-
-            if(!dir.isDirectory())
-                throw new NotDirectoryException(dir.toString());
-
-            return new FileGroup(dir, prefix, pop, player);
+            return new FileGroup(dir, pop, player, opening);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    public Map<PopCount, File> group(Predicate<PopCount> clops) {
-
-        Map<PopCount, File> group = new HashMap<>();
-
-        for (PopCount clop : PopCount.CLOPS) {
-            if(clops.test(clop))
-                group.put(clop, file(clop));
-        }
-
-        return group;
-    }
-
-    public File file(PopCount clop) {
-        if(clop==null)
-            return file();
-
-        String name = String.format("%s%d%d+%d%d%c", prefix,
-                pop.nb(), pop.nw(),
-                clop.nb(), clop.nw(),
-                player.key());
-        return new File(dir, name);
-    }
-
-    public File file() {
-        String name = String.format("%s%d%d%c", prefix,
-                pop.nb(), pop.nw(),
-                player.key());
-        return new File(dir, name);
     }
 }

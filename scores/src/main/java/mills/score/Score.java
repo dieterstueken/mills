@@ -94,13 +94,20 @@ public class Score implements Comparable<Score> {
         return (score & 1) != 0;
     }
 
-    // calculate shortest lost or longest win
+    // calculate shortest win or longest lost
     public static boolean betterThan(int s1, int s2) {
+
+        assert s2>=0;
+
+        // shorter win path
+        if(Score.isWon(s1))
+            return Score.isWon(s2) && s1 < s2;
+
+        // longer loss path
         if(Score.isLost(s1))
             return Score.isLost(s2) && s1 > s2;
 
-        if(s1!=0) // s1 won
-            return !Score.isWon(s2) || s1 < s2;
+        assert s1==0;
 
         return isLost(s2);
     }

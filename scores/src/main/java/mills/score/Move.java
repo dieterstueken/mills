@@ -45,7 +45,7 @@ abstract public class Move {
 
     /////////////////////////////////////////////////////////////////////
 
-    public static interface Analyzer {
+    public interface Analyzer {
         void analyze(long i201);
     }
 

@@ -12,23 +12,22 @@ import mills.position.Position;
  * Date: 26.10.19
  * Time: 17:50
  */
-abstract public class ScoreSet implements AutoCloseable {
+abstract public class ScoreSet implements Layer, AutoCloseable {
 
     final PosIndex index;
 
-    private final Player player;
+    final Player player;
 
-    public ScoreSet(PosIndex index, Player player) {
+    final boolean opening;
+
+    public ScoreSet(PosIndex index, Player player, boolean opening) {
         this.index = index;
         this.player = player;
+        this.opening = opening;
     }
 
     public int size() {
         return index.range();
-    }
-
-    public Player player() {
-        return player;
     }
 
     abstract public int getScore(int index);
@@ -37,8 +36,23 @@ abstract public class ScoreSet implements AutoCloseable {
         throw new UnsupportedOperationException("setScore");
     }
 
-    public void process(IndexProcessor processor, int base, int i) {
-        index.process(processor, base, i);
+    public void process(IndexProcessor processor, int base, int end) {
+        index.process(processor, base, end);
+    }
+
+    IndexProcessor filter(IndexProcessor processor, int score) {
+        return (posIndex, i201) -> {
+            if(getScore(posIndex)==score)
+                processor.process(posIndex, i201);
+        };
+    }
+
+    public boolean opening() {
+        return opening;
+    }
+
+    public Player player() {
+        return player;
     }
 
     public PopCount pop() {
@@ -63,7 +77,15 @@ abstract public class ScoreSet implements AutoCloseable {
 
     public void close() { }
 
-    public class ScoredPosition extends Position {
+    ScoreSlice openSlice(int index) {
+        return ScoreSlice.of(this, index);
+    }
+
+    Slices<? extends ScoreSlice> slices() {
+        return Slices.generate(this, this::openSlice);
+    }
+
+    private class ScoredPosition extends Position {
 
         final ScoredPosition normalized;
 

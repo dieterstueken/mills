@@ -21,6 +21,11 @@ public class ArraySet<K extends Indexed, V> extends AbstractSet<Map.Entry<K, V>>
         return of(keys, values, defaultValue).asMap();
     }
 
+    public static <K extends Indexed, V> Map<K,V> mapOf(List<K> keys, V defaultValue) {
+        List<V> values = AbstractRandomArray.preset(keys.size(), defaultValue);
+        return of(keys::get, values, defaultValue).asMap();
+    }
+
     public Map<K,V> asMap() {
         return new ArrayMap();
     }
@@ -28,7 +33,7 @@ public class ArraySet<K extends Indexed, V> extends AbstractSet<Map.Entry<K, V>>
     private final IntFunction<K> keys;
     private final List<V> values;
     private final V defaultValue;
-    private final int size;
+    private int size;
 
     private ArraySet(IntFunction<K> keys, List<V> values, V defaultValue) {
         this.keys = keys;
@@ -36,17 +41,37 @@ public class ArraySet<K extends Indexed, V> extends AbstractSet<Map.Entry<K, V>>
         this.defaultValue = defaultValue;
 
         int size=0;
-        for (Object value : values) {
-            if (value != defaultValue && value!=null)
+        for (V value : values) {
+            if (isValue(value))
                 ++size;
         }
 
         this.size = size;
     }
 
+    private boolean isValue(V value) {
+        return value != defaultValue && value!=null;
+    }
+
     @Override
     public int size() {
         return size;
+    }
+
+    public V put(K key, V value) {
+        int index = key.getIndex();
+
+        V prev = values.set(index, value);
+
+        int n = isValue(value) ? 1 : 0;
+        n -= isValue(prev) ? 1 : 0;
+
+        if(n!=0)
+            size += n;
+
+        assert n>=0 && n<values.size();
+
+        return prev;
     }
 
     public V get(int index) {
@@ -114,6 +139,11 @@ public class ArraySet<K extends Indexed, V> extends AbstractSet<Map.Entry<K, V>>
         @Override
         public V get(Object key) {
             return ArraySet.this.get(key);
+        }
+
+        @Override
+        public V put(K key, V value) {
+            return ArraySet.this.put(key, value);
         }
 
         @Override

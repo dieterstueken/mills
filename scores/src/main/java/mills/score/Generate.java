@@ -76,7 +76,7 @@ public class Generate implements Runnable {
 
     final Pair<ScoreSlices> elevate(final Pair<Situation> situations) {
 
-        final Pair<ForkJoinTask<ScoreSlices>> slices = situations.transform(this.slices);
+        final Pair<ForkJoinTask<ScoreSlices>> slices = situations.map(this.slices);
 
         return slices.parallel2(
                 new Function<Pair<ForkJoinTask<ScoreSlices>>, ForkJoinTask<ScoreSlices>>() {

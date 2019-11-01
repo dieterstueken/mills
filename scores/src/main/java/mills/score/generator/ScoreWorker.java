@@ -8,11 +8,11 @@ package mills.score.generator;
  */
 public class ScoreWorker {
 
-    final SliceGroup source;
+    final SlicesGroup source;
 
-    final SliceGroup target;
+    final SlicesGroup target;
 
-    public ScoreWorker(SliceGroup source, SliceGroup target) {
+    public ScoreWorker(SlicesGroup source, SlicesGroup target) {
         this.source = source;
         this.target = target;
     }

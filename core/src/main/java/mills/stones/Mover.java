@@ -3,6 +3,7 @@ package mills.stones;
 import mills.position.Positions;
 
 import java.util.Arrays;
+import java.util.function.LongConsumer;
 
 /**
  * Created by IntelliJ IDEA.
@@ -61,6 +62,14 @@ public class Mover implements Moves.Process {
         positions[size] = i201;
         ++size;
         return true;
+    }
+
+    public Mover analyze(LongConsumer analyzer) {
+
+        for(int i=0; i<size; ++i)
+            analyzer.accept(positions[i]);
+
+        return this;
     }
 
     public Mover normalize() {

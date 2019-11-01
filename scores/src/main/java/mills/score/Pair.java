@@ -55,12 +55,28 @@ public class Pair<V> {
         return predicate.test(self) && (equal() || predicate.test(other));
     }
 
-    public <T> Pair<T> transform(Function<? super V,? extends T> f) {
+    public <T> Pair<T> map(Function<? super V,? extends T> map) {
 
-        final T b = f.apply(self);
-        final T w = equal() ? b : f.apply(other);
+        final T b = map.apply(self);
+        final T w = equal() ? b : map.apply(other);
 
         return of(b, w);
+    }
+
+    public <T> Pair<T> mapParallel(Function<? super V,? extends T> map) {
+        if(equal()) {
+            T mapped = map.apply(self);
+            return of(mapped, mapped);
+        }
+
+        ForkJoinTask<T> task = new RecursiveTask<T>() {
+            @Override
+            protected T compute() {
+                return map.apply(other);
+            }
+        }.fork();
+
+        return of(map.apply(self), task.join());
     }
 
     public <T> Pair<T> pair(Function<Pair<? super V>, ? extends T> f) {

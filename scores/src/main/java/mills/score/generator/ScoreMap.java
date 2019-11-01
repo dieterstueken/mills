@@ -23,8 +23,8 @@ abstract public class ScoreMap extends ScoreSet {
 
     private final ByteBuffer scores;
 
-    public ScoreMap(PosIndex index, Player player, ByteBuffer scores) {
-        super(index, player);
+    public ScoreMap(PosIndex index, Player player, boolean opening, ByteBuffer scores) {
+        super(index, player, opening);
         this.scores = scores;
     }
 
@@ -41,31 +41,28 @@ abstract public class ScoreMap extends ScoreSet {
         scores.put(posIndex, value);
     }
 
+    MapSlice openSlice(int index) {
+        return MapSlice.of(this, index);
+    }
+
+    Slices<MapSlice> slices() {
+        return Slices.generate(this, this::openSlice);
+    }
+
     ///////////////////////////////////////////////////////
 
-    public static ScoreMap open(PosIndex index, FileGroup files, boolean create) {
-        return open(index, files.player, files.file(index.clop()), create);
-    }
-
-    static ScoreMap open(PosIndex index, Player player, File file, boolean create) {
-        if(create)
-            return create(index, player, file);
-        else
-            return open(index, player, file);
-    }
-
-    public static ScoreMap create(PosIndex index, Player player, File file) {
+    public static ScoreMap create(PosIndex index, Player player, boolean opening, File file) {
         try {
             // return mapped(index, player, file, true);
-            return _create(index, player, file);
+            return _create(index, player, opening, file);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    public static ScoreMap open(PosIndex index, Player player, File file) {
+    public static ScoreSet open(PosIndex index, Player player, boolean opening, File file) {
         try {
-            return mapped(index, player, file, false);
+            return mapped(index, player, opening, file, true);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -75,7 +72,7 @@ abstract public class ScoreMap extends ScoreSet {
     private static final OpenOption WRITE[] = new OpenOption[]{StandardOpenOption.READ,
             StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING};
 
-    private static ScoreMap _create(PosIndex index, Player player, File file) throws IOException {
+    private static ScoreMap _create(PosIndex index, Player player, boolean opening, File file) throws IOException {
 
         if(file.exists())
             throw new FileAlreadyExistsException("file already exist: " + file.toString());
@@ -83,7 +80,7 @@ abstract public class ScoreMap extends ScoreSet {
         int size = index.range();
         final ByteBuffer scores = ByteBuffer.allocateDirect(size);
 
-        return new ScoreMap(index, player, scores) {
+        return new ScoreMap(index, player, opening, scores) {
             @Override
             public void close() {
                 try {
@@ -97,13 +94,13 @@ abstract public class ScoreMap extends ScoreSet {
         };
     }
 
-    public static ScoreMap mapped(PosIndex index, Player player, File file, boolean readonly) throws IOException {
+    public static ScoreMap mapped(PosIndex index, Player player, boolean opening, File file, boolean readonly) throws IOException {
         final int size = index.range();
 
         final FileChannel fc = FileChannel.open(file.toPath(), readonly ? READ : WRITE);
         final MappedByteBuffer scores = fc.map(readonly ? FileChannel.MapMode.READ_ONLY: FileChannel.MapMode.READ_WRITE, 0, size);
 
-        return new ScoreMap(index, player, scores) {
+        return new ScoreMap(index, player, opening, scores) {
             @Override
             public void close() {
                 try {

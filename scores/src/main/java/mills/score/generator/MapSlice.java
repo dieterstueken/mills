@@ -1,12 +1,11 @@
 package mills.score.generator;
 
-import mills.index.IndexProcessor;
-import mills.index.PosIndex;
-import mills.util.AbstractRandomArray;
+import mills.bits.Player;
+import mills.score.Score;
+import mills.stones.Mover;
+import mills.stones.Moves;
+import mills.stones.Stones;
 import mills.util.QueueActor;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Created by IntelliJ IDEA.
@@ -17,26 +16,24 @@ import java.util.function.Consumer;
  */
 public class MapSlice extends ScoreSlice {
 
+    public static MapSlice of(ScoreMap scores, int index) {
+        return new MapSlice(scores, index);
+    }
+
+    //////////////////////////////////////
+
     final ScoreMap scores;
 
     final QueueActor<MapSlice> work = new QueueActor<>(this);
 
-    // max score occurred
-    private int max = 0;
+    // current score to analyze
+    int scoring = 0;
 
-    // any positions set
-    public final long[] any = new long[256];
+    // to calculate pending moves
+    final Mover mover;
 
     public ScoreMap scores() {
         return scores;
-    }
-
-    public int max() {
-        return max;
-    }
-
-    public boolean any(final int score) {
-        return any[score]!=0;
     }
 
     public void close() {
@@ -48,119 +45,98 @@ public class MapSlice extends ScoreSlice {
         super(index);
 
         this.scores = scores;
+
+        mover = Moves.moves(scores().jumps()).mover(player()==Player.Black);
     }
 
-    public String toString() {
-        return String.format("%s@%d (%d)", scores, sliceIndex(), max);
-    }
-
-    public int getScore(short offset) {
-        int value = super.getScore(offset);
-
-        if(value>max) // should not happen if map.max was updated properly
-            value -= 256;
-
-        return value;
-    }
-
-    public void submit(Consumer<MapSlice> action) {
-        work.submit(action);
-    }
-
-    /**
-     * Process any dirty blocks of score.
-     * @param processor to process
-     * @param score to analyze
-     * @return previous dirty flags.
-     */
-    public long processAny(IndexProcessor processor, int score) {
-
-        final long dirty = any[score];
-
-        if(dirty==0)
-            return 0;
-
-        any[score] = 0;
-
-        if(dirty==-1) {
-            // process all
-            processAll(processor);
-            return dirty;
-        }
-
-        int start = base;
-        final int next = base+size();
-        long todo = dirty;
-
-        while(todo!=0) {
-            final int skip = Long.numberOfTrailingZeros(todo);
-
-            if(skip>0) {
-                start += skip*BLOCK;
-                todo >>>= skip;
-            }
-
-            final int len = Long.numberOfTrailingZeros(~todo);
-            assert len<64;
-            todo >>>= len;
-
-            final int end = Math.min(start + len*BLOCK, next);
-
-            assert end>start : "empty range";
-
-            scores.process(processor, start, end);
-            start += len*BLOCK;
-        }
-
-        return dirty;
-    }
-
-    public void setScore(short offset, int score) {
-
-        //if(score==1)
-        //    System.currentTimeMillis();
-
-        // scores < 0 just pass by
-        if (score > max)
-            max = score;
-
-        if(score>0)
-            any[score] |= mask(offset);
-        else if(score<0)
-            any[0] |= mask(offset);
-
-        byte value = (byte) (score&0xff);
-
-        if(value > max) {
-            String error = String.format("%s %d=%d: %d exceeds max %d",
-                    toString(), offset, posIndex(offset), value, max);
-
-            throw new IllegalArgumentException(error);
-        }
+    void setScore(short offset, int score) {
+        mark(offset, score);
 
         int posIndex = posIndex(offset);
         scores.setScore(posIndex, score);
     }
 
-    //////////////////////////////////////
+    private boolean resolved(int current, int newScore) {
 
-    public static MapSlice newSlice(ScoreMap scores, int index) {
-        return new MapSlice(scores, index);
+        // is not a longer win path
+        if(Score.isWon(current))
+            return Score.isWon(newScore) && current <= newScore;
+
+        // is not a shorter loss path
+        if(Score.isLost(current))
+            return Score.isLost(newScore) && current >= newScore;
+
+        // either still 0 or counting: to be resolved
+        return false;
     }
 
-    public static int sliceCount(ScoreSet scores) {
-        return (scores.size() + SIZE - 1) / SIZE;
+    /**
+     * Propagate incoming score.
+     * All smaller scores have already been processed.
+     * @param index of target position
+     * @param i201 target position
+     * @param newScore incoming new score (incremented)
+     */
+    public void propagate(int index, long i201, int newScore) {
+        short offset = offset(index);
+        int score = getScore(offset);
+
+        if(!resolved(score, newScore)) {
+            work.submit(slice -> slice.setupScore(offset, i201, newScore));
+        }
     }
 
-    public static int sliceCount(PosIndex index) {
-        return (index.range() + SIZE - 1) / SIZE;
+    private void setupScore(short offset, long i201, int newScore) {
+        int current = getScore(offset);
+        if(resolved(current, newScore))
+            return;
+
+        if(current>0) {
+            // !resolved
+            setScore(offset, newScore);
+            return;
+        }
+
+        if(current<0) {
+            // count down
+            ++current;
+            if(current==0)
+                setScore(offset, newScore);
+            else
+                setScore(offset, current);
+            return;
+        }
+
+        // current == 0
+
+        if(scoring==0) {
+            // during elevation setup L directly
+            setScore(offset, newScore);
+            return;
+        }
+
+        // count remaining
+
+        int unresolved = unresolved(i201);
+
+        // must be at least 1 since we just propagate a position.
+        assert unresolved > 1;
+
+        if(unresolved==1)
+            setScore(offset, newScore);
+        else
+            setScore(offset, 1-unresolved);
     }
 
-    static List<MapSlice> slices(ScoreMap scores) {
 
-        final int count = sliceCount(scores);
+    int unresolved(long i201) {
+        Player player = player();
+        int stay = Stones.stones(i201, player.other());
+        int move = Stones.stones(i201, player);
+        int closed = Stones.closed(move);
 
-        return AbstractRandomArray.generate(count, index -> newSlice(scores, index));
+        mover.move(stay, move, move^closed);
+        return mover.normalize().size();
     }
 
 }

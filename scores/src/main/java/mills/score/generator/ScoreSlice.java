@@ -1,7 +1,9 @@
 package mills.score.generator;
 
 import mills.bits.Player;
+import mills.bits.PopCount;
 import mills.index.IndexProcessor;
+import mills.index.PosIndex;
 import mills.position.Position;
 
 /**
@@ -18,7 +20,60 @@ abstract public class ScoreSlice {
     // a dirty block
     public static final int BLOCK = SIZE/Long.SIZE;
 
+
+    public static int sliceCount(ScoreSet scores) {
+        return (scores.size() + SIZE - 1) / SIZE;
+    }
+
+    public static int sliceCount(PosIndex index) {
+        return (index.range() + SIZE - 1) / SIZE;
+    }
+
+    static ScoreSlice of(ScoreSet scores, int index) {
+        return new ScoreSlice(index) {
+
+            @Override
+            public ScoreSet scores() {
+                return scores;
+            }
+        };
+    }
+
+    /////////////////////////////////////////////////
+
     public final int base;
+
+    // max score occurred
+    private int max = 0;
+
+    // any positions set
+    private final long[] todo = new long[256];
+
+    public int max() {
+        return max;
+    }
+
+    public boolean any(int score) {
+        return todo[score]!=0;
+    }
+
+    public long todo(int score) {
+        long dirty = todo[score];
+        todo[score] = 0;
+        return dirty;
+    }
+
+    public void mark(short offset, int score) {
+
+        // scores < 0 just pass by
+        if (score > max)
+            max = score;
+
+        if(score>0)
+            todo[score] |= mask(offset);
+        else if(score<0)
+            todo[0] |= mask(offset);
+    }
 
     protected ScoreSlice(int index) {
         this.base = SIZE * index;
@@ -26,11 +81,11 @@ abstract public class ScoreSlice {
 
     /**
      * Create a read only slice from scores.
-     * @param scores to offer.
      * @param index of this slice.
      * @return a read only slice;
      */
-    static ScoreSlice newSlice(ScoreSet scores, int index) {
+    ScoreSlice newSlice(int index) {
+        ScoreSet scores = scores();
         return new ScoreSlice(index) {
             @Override
             public ScoreSet scores() {
@@ -40,10 +95,18 @@ abstract public class ScoreSlice {
     }
 
     public String toString() {
-        return String.format("%s@%d", scores(), sliceIndex());
-    }
+            return String.format("%s@%d (%d)", scores(), sliceIndex(), max);
+        }
 
     abstract public ScoreSet scores();
+
+    public PopCount pop() {
+        return scores().pop();
+    }
+
+    public PopCount clop() {
+        return scores().clop();
+    }
 
     public Player player() {
         return scores().player();
@@ -101,12 +164,58 @@ abstract public class ScoreSlice {
 
     public int getScore(short offset) {
         int posIndex = posIndex(offset);
+        int score = scores().getScore(posIndex);
 
-        return scores().getScore(posIndex);
+        if(max>0 && score>max) // should not happen if map.max was updated properly
+            score -= 256;
+
+        return score;
     }
 
-    public void processAll(IndexProcessor processor) {
-        scores().process(processor, base, base + size());
+    /**
+     * Process any dirty blocks of score.
+     * @param processor to process
+     * @param score to analyze
+     * @return previous dirty flags.
+     */
+    public void processScores(IndexProcessor processor, int score) {
+
+        final long dirty = todo(score);
+
+        if(dirty==0)
+            return;
+
+        processor = scores().filter(processor, score);
+
+        if(dirty==-1) {
+            // process all
+            scores().process(processor, base, base + size());
+            return;
+        }
+
+        int start = base;
+        final int next = base+size();
+        long todo = dirty;
+
+        while(todo!=0) {
+            final int skip = Long.numberOfTrailingZeros(todo);
+
+            if(skip>0) {
+                start += skip*BLOCK;
+                todo >>>= skip;
+            }
+
+            final int len = Long.numberOfTrailingZeros(~todo);
+            assert len<64;
+            todo >>>= len;
+
+            final int end = Math.min(start + len*BLOCK, next);
+
+            assert end>start : "empty range";
+
+            scores().process(processor, start, end);
+            start += len*BLOCK;
+        }
     }
 
     public void close() {
