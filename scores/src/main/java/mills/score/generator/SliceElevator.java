@@ -56,21 +56,24 @@ public class SliceElevator extends SliceProcessor {
 
         PopCount clop = Positions.clop(i201);
 
-        var slices = target.group(clop);
+        var slices = target.get(clop);
         int index = slices.posIndex(i201);
         MapSlice slice = slices.get(index);
         slice.propagate(index, i201, score);
     }
 
-    static Group<Slices<MapSlice>> elevate(Group<Slices<? extends ScoreSlice>> source, SlicesGroup<MapSlice> target) {
+    static SlicesGroup<MapSlice> elevate(SlicesGroup<? extends ScoreSlice> source, SlicesGroup<MapSlice> target) {
 
         source.group().values().parallelStream()
+                .filter(slices->!slices.clop().equals(PopCount.EMPTY))
                 .flatMap(slices->slices.slices().stream())
-                .forEach(slice ->{
-                    new SliceElevator(slice, target);
-                    todo: process, close
-                });
+                .forEach(slice->elevate(slice, target));
 
         return target;
+    }
+
+    static void elevate(ScoreSlice slice, SlicesGroup<MapSlice> target) {
+        new SliceElevator(slice, target);
+        //todo: process, close
     }
 }

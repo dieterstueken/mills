@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class Group<T> {
 
-    final Map<PopCount, T> group;
+    protected final Map<PopCount, T> group;
     
     public Group() {
         this.group = ArraySet.mapOf(PopCount.CLOPS, null);
@@ -23,7 +23,7 @@ public class Group<T> {
         return group;
     }
 
-    public T group(PopCount clop) {
+    public T get(PopCount clop) {
         return group.get(clop);
     }
 }

@@ -2,7 +2,6 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.index.PosIndex;
 import mills.index.builder.IndexBuilder;
 import org.junit.Test;
 
@@ -17,18 +16,18 @@ import java.io.IOException;
  */
 public class ScoreMapTest {
 
-    IndexBuilder builder = IndexBuilder.create();
+    ScoreFiles scores = new ScoreFiles(IndexBuilder.create(), new File("output"));
 
     @Test
     public void mapped() throws IOException {
         PopCount pop = PopCount.of(5,5);
         PopCount clop = PopCount.of(0,0);
-        PosIndex index = builder.build(pop, clop);
+        FileGroup group = scores.group(pop, Player.White, false);
 
-        File file = new File("output/p55-00.map");
+        ScoreFile score = group.get(clop);
 
-        try(ScoreMap scores = ScoreMap.mapped(index, Player.White, file, false)) {
-            index.process((idx, i201) ->{
+        try(ScoreMap scores = ScoreMap.mapped(score, false)) {
+            scores.index().process((idx, i201) ->{
                 scores.setScore(idx, idx%13);
             });
         }

@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.NotDirectoryException;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Created by IntelliJ IDEA.
@@ -17,45 +17,38 @@ import java.util.function.Function;
  * Date: 28.10.19
  * Time: 15:57
  */
-public class FileGroup extends Group<ClopFile> implements Layer {
+public class FileGroup extends LayerGroup<ScoreFile> {
 
     final IndexProvider indexes;
 
     final File dir;
 
-    final PopCount pop;
-
-    final Player player;
-
-    final boolean opening;
+    private FileGroup(IndexProvider indexes, File dir, Layer layer) {
+        this(indexes, dir, layer.pop(), layer.player(), layer.opening());
+    }
 
     private FileGroup(IndexProvider indexes, File dir, PopCount pop, Player player, boolean opening) {
+        super(pop, player, opening);
         this.indexes = indexes;
         this.dir = dir;
-        this.pop = pop;
-        this.player = player;
-        this.opening = opening;
+    }
 
+    FileGroup populate() {
+        return populate(null);
+    }
+
+    FileGroup populate(Predicate<PopCount> filter) {
         // maximum clop
         PopCount mclop = this.pop.mclop();
 
         // files are set up but not verified yet
         PopCount.CLOPS.forEach(clop->{
-            if(mclop.le(clop))
-                group.put(clop, file(clop));
+            if(filter==null || filter.test(clop))
+                if(mclop.le(clop))
+                    group.put(clop, file(clop));
         });
-    }
 
-    public PopCount pop() {
-        return pop;
-    }
-
-    public Player player() {
-        return player;
-    }
-
-    public boolean opening() {
-        return opening;
+        return this;
     }
 
     boolean exists() {
@@ -67,7 +60,7 @@ public class FileGroup extends Group<ClopFile> implements Layer {
         if(swapped.equals(pop))
             return this;
 
-        return new FileGroup(indexes, dir, swapped, player, opening);
+        return new FileGroup(indexes, dir, swapped, player, opening).populate();
     }
 
     public FileGroup down() {
@@ -75,12 +68,14 @@ public class FileGroup extends Group<ClopFile> implements Layer {
         if(down==null || down.min()<3)
             return null;
 
-        return new FileGroup(indexes, dir, down, player.other(), opening);
+        // drop group of non closed
+        return new FileGroup(indexes, dir, down, player.other(), opening)
+                .populate(clop->!PopCount.EMPTY.equals(clop));
     }
 
-    private ClopFile file(PopCount clop) {
+    private ScoreFile file(PopCount clop) {
 
-        return new ClopFile() {
+        return new ScoreFile() {
 
             @Override
             public PopCount pop() {
@@ -140,35 +135,9 @@ public class FileGroup extends Group<ClopFile> implements Layer {
             String name = String.format("%s%d%d%c", opening ? "O" : "P", pop.nb(), pop.nw(), player.key());
             File dir = new File(root, name);
 
-            return new FileGroup(indexes, dir, pop, player, opening);
+            return new FileGroup(indexes, dir, pop, player, opening).populate();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    <L extends IndexLayer> Group<L> openGroup(Function<? super ClopFile, ? extends L> open) {
-        Group<L> layers = new Group<>();
-
-        group.values().parallelStream()
-                .map(open)
-                .forEach(l -> layers.group.put(l.clop(), l));
-
-        return layers;
-    }
-
-    SlicesGroup<MapSlice> create() {
-
-        Group<Slices<? extends ScoreSlice>> down = down().open();
-
-        SlicesGroup<MapSlice>  slices = openGroup(cf->ScoreMap.create(cf).slices());
-
-        return SliceElevator.elevate(down, slices);
-    }
-
-    Group<Slices<? extends ScoreSlice>> open() {
-        if(pop().min()<3)
-            return openGroup(cf -> ScoreMap.lost(cf).slices());
-
-        return openGroup(cf -> ScoreMap.open(cf).slices());
     }
 }

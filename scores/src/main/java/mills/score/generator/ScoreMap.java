@@ -53,7 +53,7 @@ abstract public class ScoreMap extends ScoreSet {
 
     ///////////////////////////////////////////////////////
 
-    public static ScoreMap create(ClopFile cf) {
+    public static ScoreMap create(ScoreFile cf) {
         try {
             // return mapped(index, player, file, true);
             return _create(cf);
@@ -62,7 +62,7 @@ abstract public class ScoreMap extends ScoreSet {
         }
     }
 
-    public static ScoreSet open(ClopFile cf) {
+    public static ScoreSet open(ScoreFile cf) {
         try {
             File file = cf.file("score");
             if(!file.exists())
@@ -87,7 +87,7 @@ abstract public class ScoreMap extends ScoreSet {
     private static final OpenOption WRITE[] = new OpenOption[]{StandardOpenOption.READ,
             StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING};
 
-    private static ScoreMap _create(ClopFile cf) throws IOException {
+    private static ScoreMap _create(ScoreFile cf) throws IOException {
 
         File file = cf.file();
         if(file.exists())
@@ -111,7 +111,7 @@ abstract public class ScoreMap extends ScoreSet {
         };
     }
 
-    public static ScoreMap mapped(ClopFile cf, boolean readonly) throws IOException {
+    public static ScoreMap mapped(ScoreFile cf, boolean readonly) throws IOException {
         PosIndex index = cf.index();
         int size = index.range();
 

@@ -1,7 +1,9 @@
 package mills.score.generator;
 
-import mills.bits.Player;
 import mills.bits.PopCount;
+
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -9,37 +11,57 @@ import mills.bits.PopCount;
  * Date: 27.10.19
  * Time: 16:15
  */
-public class SlicesGroup<Slice extends ScoreSlice> extends Group<Slices<? extends Slice>> implements Layer {
+public class SlicesGroup<Slice extends ScoreSlice> extends LayerGroup<Slices<? extends Slice>> {
 
-    static SlicesGroup<ScoreSlice> open(ScoreSet scores) {
-        SlicesGroup<ScoreSlice> group = new SlicesGroup<>(scores);
+    static SlicesGroup<ScoreSlice> lost(LayerGroup<?> layers) {
+        return SlicesGroup.create(layers, clop->ScoreMap.lost(layers.get(clop)).slices());
+    }
 
-        for (ScoreSlice slice : scores.slices().slices()) {
-            group.group.put(slice.clop(), slice.slices());
-        }
+    static SlicesGroup<ScoreSlice> open(FileGroup files) {
 
+        if(files.pop().min()<3)
+            return lost(files);
+
+        return SlicesGroup.create(files, clop->ScoreMap.open(files.get(clop)).slices());
+    }
+
+    static SlicesGroup<MapSlice> create(FileGroup files) {
+
+        SlicesGroup<ScoreSlice> down = open(files.down());
+
+        SlicesGroup<MapSlice> group = SlicesGroup.create(files, clop->ScoreMap.create(files.get(clop)).slices());
+
+        return SliceElevator.elevate(down, group);
+    }
+
+    static <Slice extends ScoreSlice> SlicesGroup<Slice>
+    create(LayerGroup<?> layers, Function<PopCount, Slices<? extends Slice>> newSlice) {
+        SlicesGroup<Slice> group = new SlicesGroup<>(layers);
+        group.addAll(layers.group().keySet().parallelStream().map(newSlice));
         return group;
     }
 
-    public final ScoreSet scores;
-
-    public SlicesGroup(ScoreSet scores) {
-        this.scores = scores;
+    private SlicesGroup(Layer layer) {
+        super(layer);
     }
 
-    @Override
-    public PopCount pop() {
-        return scores.pop();
+    SlicesGroup<Slice> addAll(Stream<Slices<? extends Slice>> stream) {
+        stream.forEach(slices->group.put(slices.clop(), slices));
+        return this;
     }
 
-    @Override
-    public Player player() {
-        return scores.player();
+    private SlicesGroup(LayerGroup<?> layers, Function<PopCount, Slices<? extends Slice>> newSlice) {
+        super(layers);
+
+        layers.group().keySet().parallelStream().forEach(clop->{
+            Slices<? extends Slice> slices = newSlice.apply(pop);
+            group.put(clop, slices);
+        });
     }
 
-    @Override
-    public boolean opening() {
-        return scores.opening();
+    private SlicesGroup(Layer layer, Stream<Slices<? extends Slice>> stream) {
+        super(layer);
+        stream.forEach(slices->group.put(slices.clop(), slices));
     }
 
     public void close() {

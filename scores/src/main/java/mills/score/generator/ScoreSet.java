@@ -1,7 +1,6 @@
 package mills.score.generator;
 
 import mills.bits.Player;
-import mills.bits.PopCount;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
 import mills.position.Position;
@@ -57,14 +56,6 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
 
     public Player player() {
         return player;
-    }
-
-    public PopCount pop() {
-        return index.pop();
-    }
-
-    public PopCount clop() {
-        return index.clop();
     }
 
     public int posIndex(long i201) {

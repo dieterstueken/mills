@@ -14,13 +14,16 @@ import java.io.File;
  */
 public class ScoreFiles {
 
+    final IndexProvider indexes;
+
     private final File root;
 
-    public ScoreFiles(File root, IndexProvider indexes) {
+    public ScoreFiles(IndexProvider indexes, File root) {
+        this.indexes = indexes;
         this.root = root;
     }
 
-    public FileGroup group(String prefix, PopCount pop, Player player) {
-        return FileGroup.create(root, prefix, pop, player);
+    public FileGroup group(PopCount pop, Player player, boolean opening) {
+        return FileGroup.of(indexes, root, pop, player, opening);
     }
 }

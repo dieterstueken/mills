@@ -2,7 +2,7 @@ package mills.score.generator;
 
 import java.io.File;
 
-public interface ClopFile extends IndexLayer {
+public interface ScoreFile extends IndexLayer {
 
     File file(String ext);
 
