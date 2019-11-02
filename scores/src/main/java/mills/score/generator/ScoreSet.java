@@ -12,7 +12,7 @@ import mills.position.Position;
  * Date: 26.10.19
  * Time: 17:50
  */
-abstract public class ScoreSet implements Layer, AutoCloseable {
+abstract public class ScoreSet implements IndexLayer, AutoCloseable {
 
     final PosIndex index;
 
@@ -45,6 +45,10 @@ abstract public class ScoreSet implements Layer, AutoCloseable {
             if(getScore(posIndex)==score)
                 processor.process(posIndex, i201);
         };
+    }
+
+    public PosIndex index() {
+        return index;
     }
 
     public boolean opening() {

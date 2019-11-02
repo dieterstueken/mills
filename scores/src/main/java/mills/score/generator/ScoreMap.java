@@ -2,8 +2,10 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.index.PosIndex;
+import mills.score.Score;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
@@ -51,36 +53,51 @@ abstract public class ScoreMap extends ScoreSet {
 
     ///////////////////////////////////////////////////////
 
-    public static ScoreMap create(PosIndex index, Player player, boolean opening, File file) {
+    public static ScoreMap create(ClopFile cf) {
         try {
             // return mapped(index, player, file, true);
-            return _create(index, player, opening, file);
+            return _create(cf);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    public static ScoreSet open(PosIndex index, Player player, boolean opening, File file) {
+    public static ScoreSet open(ClopFile cf) {
         try {
-            return mapped(index, player, opening, file, true);
+            File file = cf.file("score");
+            if(!file.exists())
+                throw new FileNotFoundException(file.toString());
+            return mapped(cf, true);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public static ScoreSet lost(IndexLayer layer) {
+        return new ScoreSet(layer.index(), layer.player(), layer.opening()) {
+
+            @Override
+            public int getScore(int index) {
+                return Score.LOST;
+            }
+        };
     }
 
     private static final OpenOption READ[] = new OpenOption[]{StandardOpenOption.READ};
     private static final OpenOption WRITE[] = new OpenOption[]{StandardOpenOption.READ,
             StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING};
 
-    private static ScoreMap _create(PosIndex index, Player player, boolean opening, File file) throws IOException {
+    private static ScoreMap _create(ClopFile cf) throws IOException {
 
+        File file = cf.file();
         if(file.exists())
             throw new FileAlreadyExistsException("file already exist: " + file.toString());
 
+        PosIndex index = cf.index();
         int size = index.range();
-        final ByteBuffer scores = ByteBuffer.allocateDirect(size);
+        ByteBuffer scores = ByteBuffer.allocateDirect(size);
 
-        return new ScoreMap(index, player, opening, scores) {
+        return new ScoreMap(index, cf.player(), cf.opening(), scores) {
             @Override
             public void close() {
                 try {
@@ -94,17 +111,22 @@ abstract public class ScoreMap extends ScoreSet {
         };
     }
 
-    public static ScoreMap mapped(PosIndex index, Player player, boolean opening, File file, boolean readonly) throws IOException {
-        final int size = index.range();
+    public static ScoreMap mapped(ClopFile cf, boolean readonly) throws IOException {
+        PosIndex index = cf.index();
+        int size = index.range();
 
-        final FileChannel fc = FileChannel.open(file.toPath(), readonly ? READ : WRITE);
-        final MappedByteBuffer scores = fc.map(readonly ? FileChannel.MapMode.READ_ONLY: FileChannel.MapMode.READ_WRITE, 0, size);
+        File file = readonly ? cf.file() : cf.file( "tmp");
+        FileChannel fc = FileChannel.open(file.toPath(), readonly ? READ : WRITE);
+        MappedByteBuffer scores = fc.map(readonly ? FileChannel.MapMode.READ_ONLY: FileChannel.MapMode.READ_WRITE, 0, size);
 
-        return new ScoreMap(index, player, opening, scores) {
+        return new ScoreMap(index, cf.player(), cf.opening(), scores) {
             @Override
             public void close() {
                 try {
                     fc.close();
+                    if(!readonly) {
+                        file.renameTo(cf.file());
+                    }
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }

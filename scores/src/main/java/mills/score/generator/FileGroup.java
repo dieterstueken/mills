@@ -2,6 +2,8 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
+import mills.index.IndexProvider;
+import mills.index.PosIndex;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +17,9 @@ import java.util.function.Function;
  * Date: 28.10.19
  * Time: 15:57
  */
-public class FileGroup extends Group<Function<String, File>> implements Layer {
+public class FileGroup extends Group<ClopFile> implements Layer {
+
+    final IndexProvider indexes;
 
     final File dir;
 
@@ -25,8 +29,8 @@ public class FileGroup extends Group<Function<String, File>> implements Layer {
 
     final boolean opening;
 
-    private FileGroup(File dir, PopCount pop, Player player, boolean opening) {
-
+    private FileGroup(IndexProvider indexes, File dir, PopCount pop, Player player, boolean opening) {
+        this.indexes = indexes;
         this.dir = dir;
         this.pop = pop;
         this.player = player;
@@ -59,11 +63,11 @@ public class FileGroup extends Group<Function<String, File>> implements Layer {
     }
 
     public FileGroup swap() {
-        PopCount swap = pop.swap();
-        if(swap.equals(pop))
+        PopCount swapped = pop.swap();
+        if(swapped.equals(pop))
             return this;
 
-        return new FileGroup(dir, swap, player, opening);
+        return new FileGroup(indexes, dir, swapped, player, opening);
     }
 
     public FileGroup down() {
@@ -71,14 +75,43 @@ public class FileGroup extends Group<Function<String, File>> implements Layer {
         if(down==null || down.min()<3)
             return null;
 
-        return new FileGroup(dir, down, player.other(), opening);
+        return new FileGroup(indexes, dir, down, player.other(), opening);
     }
 
-    private Function<String, File> file(PopCount clop) {
+    private ClopFile file(PopCount clop) {
 
-        return ext -> {
-            String name = name(clop, ext);
-            return new File(dir, name);
+        return new ClopFile() {
+
+            @Override
+            public PopCount pop() {
+                return pop;
+            }
+
+            @Override
+            public Player player() {
+                return player;
+            }
+
+            @Override
+            public boolean opening() {
+                return opening;
+            }
+
+            @Override
+            public PopCount clop() {
+                return clop;
+            }
+
+            @Override
+            public File file(String ext) {
+                String name = name(clop, ext);
+                return new File(dir, name);
+            }
+
+            @Override
+            public PosIndex index() {
+                return indexes.build(pop(), clop());
+            }
         };
     }
 
@@ -96,7 +129,7 @@ public class FileGroup extends Group<Function<String, File>> implements Layer {
 
     //////////////////////////////////////////////////
 
-    public static FileGroup of(File root, PopCount pop, Player player, boolean opening)  {
+    public static FileGroup of(IndexProvider indexes, File root, PopCount pop, Player player, boolean opening)  {
         try {
             if(!root.exists())
                 root.mkdirs();
@@ -107,9 +140,35 @@ public class FileGroup extends Group<Function<String, File>> implements Layer {
             String name = String.format("%s%d%d%c", opening ? "O" : "P", pop.nb(), pop.nw(), player.key());
             File dir = new File(root, name);
 
-            return new FileGroup(dir, pop, player, opening);
+            return new FileGroup(indexes, dir, pop, player, opening);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    <L extends IndexLayer> Group<L> openGroup(Function<? super ClopFile, ? extends L> open) {
+        Group<L> layers = new Group<>();
+
+        group.values().parallelStream()
+                .map(open)
+                .forEach(l -> layers.group.put(l.clop(), l));
+
+        return layers;
+    }
+
+    SlicesGroup<MapSlice> create() {
+
+        Group<Slices<? extends ScoreSlice>> down = down().open();
+
+        SlicesGroup<MapSlice>  slices = openGroup(cf->ScoreMap.create(cf).slices());
+
+        return SliceElevator.elevate(down, slices);
+    }
+
+    Group<Slices<? extends ScoreSlice>> open() {
+        if(pop().min()<3)
+            return openGroup(cf -> ScoreMap.lost(cf).slices());
+
+        return openGroup(cf -> ScoreMap.open(cf).slices());
     }
 }

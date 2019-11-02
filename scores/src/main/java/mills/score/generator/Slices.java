@@ -1,5 +1,8 @@
 package mills.score.generator;
 
+import mills.bits.Player;
+import mills.bits.PopCount;
+import mills.index.PosIndex;
 import mills.util.AbstractRandomList;
 
 import java.util.List;
@@ -11,7 +14,7 @@ import java.util.function.IntFunction;
  * Date: 19.05.13
  * Time: 17:04
  */
-public class Slices<Slice extends ScoreSlice> {
+public class Slices<Slice extends ScoreSlice> implements IndexLayer {
 
     public final ScoreSet scores;
 
@@ -24,6 +27,10 @@ public class Slices<Slice extends ScoreSlice> {
 
     public int size() {
         return slices.size();
+    }
+
+    public List<? extends Slice> slices() {
+        return slices;
     }
 
     public Slice get(int posIndex) {
@@ -76,5 +83,30 @@ public class Slices<Slice extends ScoreSlice> {
         int count = ScoreSlice.sliceCount(scores);
         List<Slice> slices = AbstractRandomList.generate(count, slice);
         return new Slices<>(scores, slices);
+    }
+
+    @Override
+    public PosIndex index() {
+        return scores.index();
+    }
+
+    @Override
+    public PopCount clop() {
+        return scores.clop();
+    }
+
+    @Override
+    public PopCount pop() {
+        return scores.pop();
+    }
+
+    @Override
+    public Player player() {
+        return scores.player();
+    }
+
+    @Override
+    public boolean opening() {
+        return scores.opening();
     }
 }

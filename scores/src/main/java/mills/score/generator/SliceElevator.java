@@ -61,4 +61,16 @@ public class SliceElevator extends SliceProcessor {
         MapSlice slice = slices.get(index);
         slice.propagate(index, i201, score);
     }
+
+    static Group<Slices<MapSlice>> elevate(Group<Slices<? extends ScoreSlice>> source, SlicesGroup<MapSlice> target) {
+
+        source.group().values().parallelStream()
+                .flatMap(slices->slices.slices().stream())
+                .forEach(slice ->{
+                    new SliceElevator(slice, target);
+                    todo: process, close
+                });
+
+        return target;
+    }
 }

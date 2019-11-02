@@ -9,7 +9,17 @@ import mills.bits.PopCount;
  * Date: 27.10.19
  * Time: 16:15
  */
-public class SlicesGroup<Slice extends ScoreSlice> extends Group<Slices<Slice>> implements Layer {
+public class SlicesGroup<Slice extends ScoreSlice> extends Group<Slices<? extends Slice>> implements Layer {
+
+    static SlicesGroup<ScoreSlice> open(ScoreSet scores) {
+        SlicesGroup<ScoreSlice> group = new SlicesGroup<>(scores);
+
+        for (ScoreSlice slice : scores.slices().slices()) {
+            group.group.put(slice.clop(), slice.slices());
+        }
+
+        return group;
+    }
 
     public final ScoreSet scores;
 
