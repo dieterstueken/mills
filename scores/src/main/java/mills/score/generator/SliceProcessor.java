@@ -18,21 +18,11 @@ abstract public class SliceProcessor implements IndexProcessor {
 
     final SlicesGroup<MapSlice> target;
 
-    int score;
+    protected int score;
 
     public SliceProcessor(ScoreSlice source, SlicesGroup<MapSlice> target) {
         this.source = source;
         this.target = target;
-    }
-
-    /**
-     * Process any position of given score.
-     * @param score to analyze
-     * @return count of processed positions
-     */
-    void process(int score) {
-        this.score = score;
-        source.processScores(this, score);
     }
 
     /**

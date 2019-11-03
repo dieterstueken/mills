@@ -59,7 +59,15 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
     }
 
     public int posIndex(long i201) {
-        return index.posIndex(i201);
+        int posIndex = index.posIndex(i201);
+
+        if(posIndex<0) {
+            Position pos = position(i201);
+            index.posIndex(i201);
+            throw new IllegalStateException("missing index on:" + pos.toString());
+        }
+
+        return posIndex;
     }
 
     public long i201(int posIndex) {
@@ -106,7 +114,7 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
         @Override
         public StringBuilder format(StringBuilder sb) {
             sb = super.format(sb);
-            sb.insert(3, player().name().charAt(0));
+            sb.insert(3, player().key());
             sb.append(" ").append(posIndex).append(" : ");
             sb.append(score);
             return sb;

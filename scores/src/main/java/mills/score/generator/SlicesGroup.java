@@ -2,6 +2,7 @@ package mills.score.generator;
 
 import mills.bits.PopCount;
 
+import java.io.IOException;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -11,7 +12,7 @@ import java.util.stream.Stream;
  * Date: 27.10.19
  * Time: 16:15
  */
-public class SlicesGroup<Slice extends ScoreSlice> extends LayerGroup<Slices<? extends Slice>> {
+public class SlicesGroup<Slice extends ScoreSlice> extends LayerGroup<Slices<? extends Slice>> implements AutoCloseable {
 
     static SlicesGroup<ScoreSlice> lost(LayerGroup<?> layers) {
         return SlicesGroup.create(layers, clop->ScoreMap.lost(layers.get(clop)).slices());
@@ -25,7 +26,9 @@ public class SlicesGroup<Slice extends ScoreSlice> extends LayerGroup<Slices<? e
         return SlicesGroup.create(files, clop->ScoreMap.open(files.get(clop)).slices());
     }
 
-    static SlicesGroup<MapSlice> create(FileGroup files) {
+    static SlicesGroup<MapSlice> create(FileGroup files) throws IOException {
+
+        files.create();
 
         SlicesGroup<ScoreSlice> down = open(files.down());
 

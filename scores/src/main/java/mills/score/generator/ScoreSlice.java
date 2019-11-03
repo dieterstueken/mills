@@ -94,8 +94,9 @@ abstract public class ScoreSlice {
         };
     }
 
+    @Override
     public String toString() {
-            return String.format("%s@%d (%d)", scores(), sliceIndex(), max);
+            return String.format("%s[%d]@%d", scores(), sliceIndex(), max);
         }
 
     abstract public ScoreSet scores();
@@ -164,6 +165,14 @@ abstract public class ScoreSlice {
 
     public int getScore(short offset) {
         int posIndex = posIndex(offset);
+        return getScore(posIndex);
+    }
+
+    public int getScore(int posIndex) {
+
+        assert posIndex>=base;
+        assert posIndex<base+SIZE;
+
         int score = scores().getScore(posIndex);
 
         if(max>0 && score>max) // should not happen if map.max was updated properly
@@ -189,7 +198,7 @@ abstract public class ScoreSlice {
 
         if(dirty==-1) {
             // process all
-            scores().process(processor, base, base + size());
+            process(processor);
             return;
         }
 
@@ -216,6 +225,10 @@ abstract public class ScoreSlice {
             scores().process(processor, start, end);
             start += len*BLOCK;
         }
+    }
+
+    public void process(IndexProcessor processor) {
+        scores().process(processor, base, base + size());
     }
 
     public void close() {

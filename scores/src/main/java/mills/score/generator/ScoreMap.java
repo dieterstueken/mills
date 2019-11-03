@@ -23,7 +23,7 @@ import java.nio.file.StandardOpenOption;
  */
 abstract public class ScoreMap extends ScoreSet {
 
-    private final ByteBuffer scores;
+    protected final ByteBuffer scores;
 
     public ScoreMap(PosIndex index, Player player, boolean opening, ByteBuffer scores) {
         super(index, player, opening);
@@ -77,6 +77,11 @@ abstract public class ScoreMap extends ScoreSet {
         return new ScoreSet(layer.index(), layer.player(), layer.opening()) {
 
             @Override
+            public String toString() {
+                return String.format("lost(%s)", layer.pop());
+            }
+
+            @Override
             public int getScore(int index) {
                 return Score.LOST;
             }
@@ -98,6 +103,12 @@ abstract public class ScoreMap extends ScoreSet {
         ByteBuffer scores = ByteBuffer.allocateDirect(size);
 
         return new ScoreMap(index, cf.player(), cf.opening(), scores) {
+
+            @Override
+            public String toString() {
+                return file.getName();
+            }
+            
             @Override
             public void close() {
                 try {
@@ -120,6 +131,12 @@ abstract public class ScoreMap extends ScoreSet {
         MappedByteBuffer scores = fc.map(readonly ? FileChannel.MapMode.READ_ONLY: FileChannel.MapMode.READ_WRITE, 0, size);
 
         return new ScoreMap(index, cf.player(), cf.opening(), scores) {
+
+            @Override
+            public String toString() {
+                return file.getName();
+            }
+
             @Override
             public void close() {
                 try {

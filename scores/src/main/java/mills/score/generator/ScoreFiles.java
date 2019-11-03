@@ -5,6 +5,7 @@ import mills.bits.PopCount;
 import mills.index.IndexProvider;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by IntelliJ IDEA.
@@ -23,7 +24,7 @@ public class ScoreFiles {
         this.root = root;
     }
 
-    public FileGroup group(PopCount pop, Player player, boolean opening) {
+    public FileGroup group(PopCount pop, Player player, boolean opening) throws IOException {
         return FileGroup.of(indexes, root, pop, player, opening);
     }
 }

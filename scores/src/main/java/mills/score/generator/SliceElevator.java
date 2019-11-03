@@ -30,7 +30,18 @@ public class SliceElevator extends SliceProcessor {
         take = Moves.TAKE.mover();
     }
 
+    public void run() {
+        source.process(this);
+    }
+
     public void process(int index, long i201) {
+
+        score = source.getScore(index);
+        if(score==0)
+            return;
+
+        if(score<0)
+            throw new IllegalStateException("incomplete score");
 
         Player player = source.player();
         int stay = Stones.stones(i201, player.other());
@@ -57,9 +68,14 @@ public class SliceElevator extends SliceProcessor {
         PopCount clop = Positions.clop(i201);
 
         var slices = target.get(clop);
+
+        if(slices==null) {
+            clop = Positions.clop(i201);
+        }
+
         int index = slices.posIndex(i201);
         MapSlice slice = slices.get(index);
-        slice.propagate(index, i201, score);
+        slice.propagate(index, i201, score+1);
     }
 
     static SlicesGroup<MapSlice> elevate(SlicesGroup<? extends ScoreSlice> source, SlicesGroup<MapSlice> target) {
@@ -73,7 +89,7 @@ public class SliceElevator extends SliceProcessor {
     }
 
     static void elevate(ScoreSlice slice, SlicesGroup<MapSlice> target) {
-        new SliceElevator(slice, target);
-        //todo: process, close
+        SliceElevator elevator = new SliceElevator(slice, target);
+        elevator.run();
     }
 }

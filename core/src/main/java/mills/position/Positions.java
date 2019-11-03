@@ -98,8 +98,8 @@ public interface Positions {
         RingEntry r0 = r0(i201);
         RingEntry r1 = r1(i201);
 
-        PopCount clop = r2.clop().add(r0.clop().add(r0.clop()));
-        PopCount rad = clop.add(r2.radials().and(r0).and(r1).pop);
+        PopCount clop = r2.clop().add(r0.clop().add(r1.clop()));
+        PopCount rad = r2.radials().and(r0).and(r1).pop;
 
         return clop.add(rad);
     }

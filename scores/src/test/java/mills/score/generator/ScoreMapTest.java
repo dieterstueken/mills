@@ -16,20 +16,31 @@ import java.io.IOException;
  */
 public class ScoreMapTest {
 
-    ScoreFiles scores = new ScoreFiles(IndexBuilder.create(), new File("output"));
+    ScoreFiles files = new ScoreFiles(IndexBuilder.create(), new File("build/scores"));
 
     @Test
     public void mapped() throws IOException {
         PopCount pop = PopCount.of(5,5);
         PopCount clop = PopCount.of(0,0);
-        FileGroup group = scores.group(pop, Player.White, false);
+        FileGroup group = files.group(pop, Player.White, false);
+        group.create();
 
-        ScoreFile score = group.get(clop);
+        ScoreFile file = group.get(clop);
 
-        try(ScoreMap scores = ScoreMap.mapped(score, false)) {
+        try(ScoreMap scores = ScoreMap.mapped(file, false)) {
             scores.index().process((idx, i201) ->{
                 scores.setScore(idx, idx%13);
             });
+        }
+    }
+
+    @Test
+    public void elevate() throws IOException {
+        PopCount pop = PopCount.of(3,3);
+        FileGroup group = files.group(pop, Player.White, false);
+
+        try(SlicesGroup<MapSlice> slices = SlicesGroup.create(group)) {
+            System.out.println("created");
         }
     }
 }

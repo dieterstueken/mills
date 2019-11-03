@@ -33,6 +33,7 @@ public class Position implements Comparable<Position> {
     public final long i201;
 
     public final PopCount pop;
+    public final PopCount clop;
     public final boolean normalized;
     public final int perm;
     public final RingEntry r2;
@@ -74,6 +75,7 @@ public class Position implements Comparable<Position> {
         this.i201 = i201;
 
         pop = pop(i201);
+        clop = Positions.clop(i201);
         normalized = normalized(i201);
         perm = perms(i201);
 
@@ -93,6 +95,7 @@ public class Position implements Comparable<Position> {
         sb.append(pop.nb);
         sb.append(normalized ? "!": ":");
         sb.append(pop.nw);
+        sb.append('[').append(clop).append(']');
 
         sb.append(format(r2));
         sb.append(format(r0));

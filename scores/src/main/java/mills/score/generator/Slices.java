@@ -53,9 +53,8 @@ public class Slices<Slice extends ScoreSlice> implements IndexLayer {
      */
     public int getScore201(long i201) {
         int index = scores.posIndex(i201);
-        Slice slice = slices.get(index >>> 15);
-        final short offset = (short) (index & Short.MAX_VALUE);
-        return slice.getScore(offset);
+        Slice slice = get(index);
+        return slice.getScore(index);
     }
 
     /**
