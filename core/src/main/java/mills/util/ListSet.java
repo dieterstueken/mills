@@ -2,6 +2,7 @@ package mills.util;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 
 /**
  * Created by IntelliJ IDEA.
@@ -109,6 +110,10 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
     default <E> ListSet<E> transform(Function<? super T, ? extends E> mapper, Comparator<? super E> comparator) {
         List<E> transformed = AbstractRandomList.transform(this, mapper);
         return AbstractListSet.of(transformed, comparator);
+    }
+
+    static <T extends Indexed> ListSet<T> generate(int size, IntFunction<? extends T> generate) {
+        return of(AbstractRandomList.generate(size, generate));
     }
 
     static <T extends Indexed> ListSet<T> of(List<T> values) {

@@ -1,5 +1,6 @@
 package mills.index;
 
+import mills.bits.Clops;
 import mills.bits.PopCount;
 import mills.position.Position;
 import mills.position.Positions;
@@ -14,7 +15,7 @@ import java.util.List;
  * Time: 12:17:35
  */
 
-public interface PosIndex {
+public interface PosIndex extends Clops {
 
     PopCount pop();
 

@@ -277,10 +277,11 @@ public class PopCount implements Indexed {
     public static final PopCount P99 = get(9,9);
 
     // # of closed mills (0-4)
-    public static final ListSet<PopCount> CLOPS = TABLE.subList(P44.index+1);
+    public static final int NCLOPS = P44.index+1;
+    public static final ListSet<PopCount> CLOPS = TABLE.subList(NCLOPS);
 
     // clop counts with at least one closed mill.
-    public static final ListSet<PopCount> CLOSED = TABLE.subList(1, P44.index+1);
+    public static final ListSet<PopCount> CLOSED = TABLE.subList(1, NCLOPS);
 
     public static PopCount get(int index) {
         return TABLE.get(index);
