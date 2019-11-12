@@ -16,21 +16,21 @@ public class Opening {
 
     final IndexProvider indexes = IndexProvider.load().lazy();
 
-    final List<PlopLayer> layers = new ArrayList<>(Plop.COUNT);
-
-    public Opening() {
-        for (int i=0; i<Plop.COUNT; ++i) {
-            layers.add(new PlopLayer(indexes, i));
-        }
-    }
+    final List<MoveLayer> layers = new ArrayList<>(Plop.COUNT);
 
     public void run() {
-        layers.get(0).play(Clops.EMPTY).set(0);
 
-        for(int i=1; i<Plop.COUNT; ++i) {
-            layers.get(i-1).propagate(layers.get(i));
+        if(!layers.isEmpty())
+            throw new IllegalStateException();
+
+        MoveLayer layer = new MoveLayer(indexes, 0);
+        layer.plops(Clops.EMPTY).set(0);
+
+        while(layers.size()<Plop.COUNT) {
+            layers.add(layer);
+            MoveLayer next = new MoveLayer(indexes, layers.size());
+            next.elevate(layer);
+            layer = next;
         }
     }
-
-
 }

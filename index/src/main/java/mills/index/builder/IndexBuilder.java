@@ -41,6 +41,20 @@ public class IndexBuilder implements IndexProvider {
         this.registry = registry;
     }
 
+    public IndexBuilder(EntryTables registry) {
+        ForkJoinTask<PopTable> lePopTable = PopTable.fork(Entries.TABLE, registry::table);
+        ForkJoinTask<PopTable> minPopTable = PopTable.fork(Entries.MINIMIZED, registry::table);
+        Map<PopCount, Partition> partitions = Partition.partitions(Entries.TABLE, registry);
+        this.lePopTable = lePopTable.join();
+        this.minPopTable = minPopTable.join();
+        this.partitions = partitions;
+        this.registry = registry;
+    }
+
+    public IndexBuilder() {
+        this(new EntryTables());
+    }
+
     EntryTable table(EntryTable table) {
         return registry==null ? table : registry.table(table);
     }
@@ -50,17 +64,11 @@ public class IndexBuilder implements IndexProvider {
     }
 
     public static IndexBuilder create() {
-        return create(new EntryTables());
+        return new IndexBuilder();
     }
 
     public static IndexBuilder create(EntryTables registry) {
-
-        ForkJoinTask<PopTable> lePopTable = PopTable.fork(Entries.TABLE, registry::table);
-        ForkJoinTask<PopTable> minPopTable = PopTable.fork(Entries.MINIMIZED, registry::table);
-
-        Map<PopCount, Partition> partitions = Partition.partitions(Entries.TABLE, registry);
-
-        return new IndexBuilder(lePopTable.join(), minPopTable.join(), partitions, registry);
+        return new IndexBuilder(registry);
     }
 
     public Map<PopCount, C2Table> buildGroup(PopCount pop) {

@@ -11,7 +11,7 @@ import mills.bits.PopCount;
  */
 public class Plop {
 
-    public static final int COUNT = 18;
+    public static final int COUNT = 19;
 
     protected final PopCount plop;
 

@@ -33,7 +33,7 @@ public class PlopCloser {
         this.target = target;
         this.tpop = source.pop().add(source.player().pop);
         Clops clops = Clops.get(tpop, source.clop());
-        targets.put(tpop, target.play(clops));
+        targets.put(tpop, target.plops(clops));
     }
 
     void run() {
@@ -64,6 +64,6 @@ public class PlopCloser {
 
     private PlopSet findTarget(PopCount clop) {
         Clops clops = Clops.get(tpop, clop);
-        return target.play(clops);
+        return target.plops(clops);
     }
 }

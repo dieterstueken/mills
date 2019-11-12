@@ -42,5 +42,6 @@ allprojects {
 dependencies {
     implementation project(':core')
     implementation project(':index')
+    implementation project(':scores')
 }
 
