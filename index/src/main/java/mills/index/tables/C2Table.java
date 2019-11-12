@@ -1,5 +1,6 @@
 package mills.index.tables;
 
+import mills.bits.Clops;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
@@ -7,7 +8,7 @@ import mills.ring.RingEntry;
 import java.util.Collection;
 import java.util.List;
 
-public class C2Table extends R2Table {
+public class C2Table extends R2Table implements Clops {
 
     public final PopCount clop;
 

@@ -2,7 +2,7 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.index.builder.IndexBuilder;
+import mills.index.IndexProvider;
 import org.junit.Test;
 
 import java.io.File;
@@ -16,7 +16,7 @@ import java.io.IOException;
  */
 public class ScoreMapTest {
 
-    ScoreFiles files = new ScoreFiles(IndexBuilder.create(), new File("build/scores"));
+    ScoreFiles files = new ScoreFiles(IndexProvider.load(), new File("build/scores"));
 
     @Test
     public void mapped() throws IOException {

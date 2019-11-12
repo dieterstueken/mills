@@ -14,7 +14,7 @@ import java.util.function.Supplier;
  * modified by: $Author$
  * modified on: $Date$
  */
-public class FutureReference<V> {
+public class FutureReference<V> implements Supplier<V> {
 
     // factory to be called on creation
     private final Supplier<? extends V> factory;
@@ -39,6 +39,10 @@ public class FutureReference<V> {
 
     public V get() {
         return computer.getValue();
+    }
+
+    public boolean isEmpty() {
+        return computer.ref.get()==null;
     }
 
     public void clear() {

@@ -23,8 +23,8 @@ public class Stones {
     public static final int STONES = 0xffffff;
 
     static final int P2 = 16;
-    static final int P1 = 8;
-    static final int P0 = 0;
+    static final int P0 = 8;
+    static final int P1 = 0;
 
     public Stones(int stones) {
         this.stones = stones;
@@ -85,6 +85,11 @@ public class Stones {
         return stones ^ STONES;
     }
 
+    /**
+     * Return a pattern of all position which are member of a mill.
+     * @param stones pattern to analyze.
+     * @return closed mills.
+     */
     public static int closed(final int stones) {
 
         Pattern p2 = p2(stones);
@@ -97,6 +102,11 @@ public class Stones {
         return radials | closed;
     }
 
+    /**
+     * Return a pattern of all position which will close a mill if set.
+     * @param stones
+     * @return
+     */
     public static int closes(final int stones) {
 
         Pattern p2 = p2(stones);

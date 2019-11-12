@@ -5,8 +5,6 @@ import mills.util.ListSet;
 
 import java.util.List;
 
-import static mills.bits.PopCount.NCLOPS;
-
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -20,10 +18,27 @@ public interface Clops extends Indexed {
     PopCount clop();
 
     default int getIndex() {
-        return pop().index* NCLOPS + clop().index;
+        return index(pop(), clop());
     }
 
-    static Clops _of(PopCount pop, PopCount clop) {
+    static Clops get(int index) {
+        return CLOPS.get(index);
+    }
+
+    static Clops get(PopCount pop, PopCount clop) {
+        return get(index(pop, clop));
+    }
+
+    /////////////////////////////////////////////////////////
+
+    int MCLOPS = PopCount.NCLOPS+1;
+    int NCLOPS = PopCount.SIZE * MCLOPS;
+
+    List<Clops> CLOPS = ListSet.generate(NCLOPS, Clops::_of);
+
+    Clops EMPTY = get(PopCount.EMPTY, PopCount.EMPTY);
+
+    private static Clops _of(PopCount pop, PopCount clop) {
         return new Clops() {
             @Override
             public PopCount pop() {
@@ -37,19 +52,25 @@ public interface Clops extends Indexed {
         };
     }
 
-    static Clops _of(int index) {
-        PopCount pop = PopCount.get(index / NCLOPS);
-        PopCount clop = PopCount.get(index % NCLOPS);
-        return _of(pop, clop);
+    private static int index(PopCount pop, PopCount clop) {
+
+        int index = MCLOPS * pop.index;
+
+        if(clop!=null)
+            index += clop.index+1;
+
+        return index;
     }
 
-    List<Clops> CLOPS = ListSet.generate(NCLOPS*PopCount.TABLE.size(), Clops::_of);
+    private static Clops _of(int index) {
+        PopCount pop = PopCount.get(index / MCLOPS);
+        index /= MCLOPS;
 
-    static Clops get(int index) {
-        return CLOPS.get(index);
-    }
+        PopCount clop = index==0 ? null : PopCount.get(index-1);
+        Clops clops = _of(pop, clop);
 
-    static Clops get(PopCount pop, PopCount clop) {
-        return get(pop.index* NCLOPS + clop.index);
+        assert clops.getIndex() == index;
+
+        return clops;
     }
 }
