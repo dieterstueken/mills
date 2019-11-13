@@ -31,9 +31,9 @@ public class PlopCloser {
     public PlopCloser(PlopSet source, PlopLayer target) {
         this.source = source;
         this.target = target;
-        this.tpop = source.pop().add(source.player().pop);
+        this.tpop = source.pop().sub(source.player().pop);
         Clops clops = Clops.get(tpop, source.clop());
-        targets.put(tpop, target.plops(clops));
+        targets.put(source.clop(), target.plops(clops));
     }
 
     void run() {

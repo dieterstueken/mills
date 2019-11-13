@@ -26,6 +26,8 @@ public interface Clops extends Indexed {
     }
 
     static Clops get(PopCount pop, PopCount clop) {
+        assert pop!=null && PopCount.P99.sub(pop) != null;
+        assert clop == null || PopCount.P44.sub(clop)!=null;
         return get(index(pop, clop));
     }
 
@@ -62,14 +64,15 @@ public interface Clops extends Indexed {
         return index;
     }
 
-    private static Clops _of(int index) {
+    private static Clops _of(final int index) {
         PopCount pop = PopCount.get(index / MCLOPS);
-        index /= MCLOPS;
 
-        PopCount clop = index==0 ? null : PopCount.get(index-1);
+        int ci = index%MCLOPS;
+        PopCount clop = ci==0 ? null : PopCount.get(ci-1);
         Clops clops = _of(pop, clop);
 
-        assert clops.getIndex() == index;
+        if(clops.getIndex() != index)
+            assert clops.getIndex() == index;
 
         return clops;
     }

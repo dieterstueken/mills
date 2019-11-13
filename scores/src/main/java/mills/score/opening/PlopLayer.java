@@ -31,6 +31,9 @@ class PlopLayer extends Plop {
     }
 
     private PlopSet _plops(Clops clops) {
+
+        assert plop.sub(clops.pop()) !=null;
+
         PosIndex index = index(clops);
         return new PlopSet(this, index);
     }

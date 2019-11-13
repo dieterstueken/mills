@@ -3,6 +3,7 @@ package mills.score.opening;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
+import mills.position.Positions;
 
 import java.util.BitSet;
 
@@ -58,6 +59,7 @@ public class PlopSet extends Plop {
     }
 
     public void setPos(long i201) {
+        assert pop().equals(Positions.pop(i201));
         int posIndex = index.posIndex(i201);
         set(posIndex);
     }

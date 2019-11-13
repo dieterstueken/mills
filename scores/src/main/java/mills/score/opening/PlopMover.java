@@ -32,7 +32,7 @@ public class PlopMover {
         this.target = target;
         this.tpop = source.pop().add(source.player().pop);
         Clops clops = Clops.get(tpop, source.clop());
-        targets.put(tpop, target.moves.plops(clops));
+        targets.put(source.clop(), target.moves.plops(clops));
     }
 
     void run() {
