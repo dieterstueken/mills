@@ -54,6 +54,7 @@ abstract public class PlopMover implements IndexProcessor, AutoCloseable {
             mover.move(stay, move, mask);
             mover.normalize();
             mover.analyze(this::debug);
+            throw error;
         }
     }
 
