@@ -147,8 +147,8 @@ public class IndexBuilder implements IndexProvider {
         for (RingEntry e0 : lt0) {
 
             // e2 is minimized.
-            // if e0 may be minimized to a smaller value they may be swapped.
-            if(e0.min()>e2.index)
+            // if e0 can be minimized to a smaller value then the swapped value becomes smaller.
+            if(e0.min()<e2.index)
                 continue;
 
             // remaining PopCount of e1[]

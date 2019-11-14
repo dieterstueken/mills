@@ -44,6 +44,8 @@ public interface Positions {
     int S0 = 32;
     int S2 = 48;
 
+    long MASK = ~WORD;
+
     int SWP = 1<<3;
     int INV = 1<<4;
     int PERMS = (1<<5)-1;
@@ -52,10 +54,12 @@ public interface Positions {
     static short i2(long i201) {return (short) ((i201>>>S2) & WORD);}
     static short i0(long i201) {return (short) ((i201>>>S0) & WORD);}
     static short i1(long i201) {return (short) ((i201>>>S1) & WORD);}
-
     static int stat(long i201) {return (int) (i201 & WORD);}
+
+    static long mask(long i201) {return i201 & MASK;}
     static int perms(long i201) {return (int) (i201 & PERMS);}
     static Perm perm(long i201) {return Perm.get(stat(i201));}
+
     static boolean normalized(long i201) {
         return (i201&NORMALIZED) != 0;
     }
@@ -168,7 +172,7 @@ public interface Positions {
 
         // apply swap
         if((perm&SWP)!=0)
-            return i201(r0, r1, r1, pm);
+            return i201(r0, r2, r1, pm);
         else
             return i201(r2, r0, r1, pm);
     }
@@ -177,45 +181,43 @@ public interface Positions {
         return permute(i201, perm.ordinal());
     }
 
+    static long m201(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
+        if(r0.index < r2.index)
+            return i201(r0, r2, r1, stat|SWP);
+        else
+            return i201(r2, r0, r1, stat);
+    }
+
     static long normalize(RingEntry r2, RingEntry r0, RingEntry r1) {
 
-        int perm = 0;
+        long m201 = m201(r2, r0, r1, 0);
+        
+        int m2 = r2.min();
+        int m0 = r0.min();
 
-        // find minimum of r2 or r1
-        if (r2.min() < r0.min()) {
-            RingEntry tmp = r2;
-            r2 = r0;
-            r0 = tmp;
-            perm = SWP;
-        }
+        // user smaller one or both if equal
+        int mlt = m2<m0 ? r2.min : m0<m2 ? r0.min : r2.min|r0.min;
 
-        // apply initial normalisation on r2
-        int pmin = r2.mix;
-        if (pmin != 0) {
-            r2 = r2.permute(pmin);
-            r0 = r0.permute(pmin);
-            r1 = r1.permute(pmin);
-            perm |= pmin;
-        }
-
-        long m201 = Positions.i201(r2, r0, r1, 0);
-
-        // possible permutations to minimize r20
-        int mlt = r2.meq & (r0.mlt | r0.meq & r1.mlt);
         for (Perm p : Perms.of(mlt & 0xfe)) {
-            long i201 = i201(r2.permute(p), r0.permute(p), r1.permute(p), 0);
+
+            RingEntry p2 = r2.permute(p);
+            RingEntry p0 = r0.permute(p);
+            RingEntry p1 = r1.permute(p);
+
+            int perm = p.ordinal();
+
+            long i201 = m201(p2, p0, p1, perm);
+
             if (i201 < m201) {
+                // compare including current perm
                 m201 = i201;
-                pmin = p.ordinal();
             }
         }
 
-        perm = compose(perm, pmin) | Positions.NORMALIZED;
-
-        return m201 | perm;
+        return m201;
     }
 
-    static long normalize(long i201) {
+    static long normalize(final long i201) {
 
         if(Positions.normalized(i201))
             return i201;
@@ -224,16 +226,16 @@ public interface Positions {
         RingEntry r0 = Positions.r0(i201);
         RingEntry r1 = Positions.r1(i201);
 
-        int perm = perms(i201);
+        long n201 = normalize(r2, r0, r1);
 
-        i201 = normalize(r2, r0, r1);
+        int p201 = perms(n201);
 
         // changed permutations
-        perm ^= compose(perm, perms(i201));
+        p201 ^= compose(perms(i201), p201);
 
         // apply change
-        i201 ^= perm;
+        n201 ^= p201;
 
-        return i201;
+        return n201;
     }
 }

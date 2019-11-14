@@ -1,12 +1,6 @@
 package mills.score.opening;
 
-import mills.bits.Clops;
-import mills.bits.Player;
 import mills.index.IndexProvider;
-import mills.index.PosIndex;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by IntelliJ IDEA.
@@ -14,39 +8,21 @@ import java.util.concurrent.ConcurrentHashMap;
  * Date: 12.11.19
  * Time: 17:58
  */
-class PlopLayer extends Plop {
-
-    final IndexProvider indexes;
-
-    Map<Clops, PlopSet> plops = new ConcurrentHashMap<>();
+abstract class PlopLayer extends PlopSets {
 
     PlopLayer(IndexProvider indexes, int layer) {
-        super(layer);
-        this.indexes = indexes;
+        super(indexes, layer);
     }
 
     protected PlopLayer(PlopLayer parent) {
         super(parent);
-        this.indexes = parent.indexes;
     }
 
-    private PlopSet _plops(Clops clops) {
-
-        assert plop.sub(clops.pop()) !=null;
-
-        PosIndex index = index(clops);
-        return new PlopSet(this, index);
+    protected void elevate(PlopSet plops) {
+        try(PlopMover mover = elevator(plops)) {
+            plops.process(mover);
+        }
     }
 
-    PosIndex index(Clops clops) {
-        return indexes.build(clops);
-    }
-
-    public Player player() {
-        return plop.sum()%2==0 ? Player.White : Player.Black;
-    }
-
-    PlopSet plops(Clops clops) {
-        return plops.computeIfAbsent(clops, this::_plops);
-    }
+    abstract protected PlopMover elevator(PlopSet source);
 }

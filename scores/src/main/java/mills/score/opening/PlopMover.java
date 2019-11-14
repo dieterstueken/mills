@@ -1,8 +1,9 @@
 package mills.score.opening;
 
-import mills.bits.Clops;
 import mills.bits.Player;
 import mills.bits.PopCount;
+import mills.index.IndexProcessor;
+import mills.position.Position;
 import mills.position.Positions;
 import mills.stones.Mover;
 import mills.stones.Moves;
@@ -17,52 +18,71 @@ import java.util.Map;
  * Date: 12.11.19
  * Time: 18:36
  */
-public class PlopMover {
-    final Mover mover = Moves.TAKE.mover();
+abstract public class PlopMover implements IndexProcessor, AutoCloseable {
 
-    final PlopSet source;
+    final Player player;
+    final PopCount next;
+
+    final Mover mover;
+
     final PlopLayer target;
+    final Map<PopCount, PlopSet> targets = new HashMap<>();
 
-    final PopCount tpop;
-
-    Map<PopCount, PlopSet> targets = new HashMap<>();
-
-    public PlopMover(PlopSet source, CloseLayer target) {
-        this.source = source;
+    PlopMover(PlopSet source, PopCount next, PlopLayer target) {
         this.target = target;
-        this.tpop = source.pop().add(source.player().pop);
-        Clops clops = Clops.get(tpop, source.clop());
-        targets.put(source.clop(), target.moves.plops(clops));
+        this.player = source.player();
+        this.next = next;
+
+        mover = Moves.TAKE.mover(player==Player.Black);
+
+        //targets.put(source.clop(), init.plops(next, source.clop()));
     }
 
-    void run() {
-        source.process(this::process);
-    }
+    abstract int move(int stay, int move);
 
-    private void process(int posIndex, long i201) {
-        Player player = source.player();
+    public void process(int posIndex, long i201) {
+
         int stay = Stones.stones(i201, player.other());
         int move = Stones.stones(i201, player);
+        int mask = move(stay, move);
 
-        // place onto free positions
-        int free = Stones.stones(i201, Player.None);
+        try {
+            mover.move(stay, move, mask);
+            mover.normalize();
+            mover.analyze(this::propagate);
+        } catch (Throwable error) {
+            mover.move(stay, move, mask);
+            mover.normalize();
+            mover.analyze(this::debug);
+        }
+    }
 
-        mover.move(stay, move, free).normalize();
-        mover.analyze(this::propagate);
+    private void debug(long i201) {
+        var p = Position.of(i201);
+        p.toString();
     }
 
     private void propagate(long i201) {
         PopCount clop = Positions.clop(i201);
+        assert Positions.pop(i201).equals(next);
         PlopSet target = target(clop);
         target.setPos(i201);
     }
 
-    private PlopSet target(PopCount clop) {
+    protected PlopSet target(PopCount clop) {
         return targets.computeIfAbsent(clop, this::findTarget);
     }
 
     private PlopSet findTarget(PopCount clop) {
-        Clops clops = Clops.get(tpop, clop);
-        return target.plops(clops);
+        return target.plops(next, clop);
+    }
+
+    @Override
+    public void close() {
+        System.out.format("%s : ", toString());
+        for (PlopSet plops : targets.values()) {
+            System.out.format("%s[%s] ", plops.pop(), plops.clop());
+        }
+        System.out.println();
     }
 }

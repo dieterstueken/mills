@@ -76,12 +76,13 @@ abstract public class BW extends Patterns implements Indexed {
     public StringBuilder pattern(StringBuilder pattern) {
 
         int index = this.index;
+        int pos = pattern.length();
         for(int i=0; i<8; i++, index/=3) {
             int k = index%3;
-            pattern.append(SIG[k]);
+            pattern.insert(pos, SIG[k]);
 
             if(i==3)
-                pattern.append('|');
+                pattern.insert(pos, '|');
         }
 
         return pattern;

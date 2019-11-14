@@ -51,6 +51,11 @@ public interface Clops extends Indexed {
             public PopCount clop() {
                 return clop;
             }
+
+            @Override
+            public String toString() {
+                return String.format("%s[%s]", pop, clop);
+            }
         };
     }
 

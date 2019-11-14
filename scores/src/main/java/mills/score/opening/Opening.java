@@ -16,19 +16,19 @@ public class Opening {
 
     final IndexProvider indexes = IndexProvider.load().lazy();
 
-    final List<MoveLayer> layers = new ArrayList<>(Plop.COUNT);
+    final List<MovedLayer> layers = new ArrayList<>(Plop.COUNT);
 
     public void run() {
 
         if(!layers.isEmpty())
             throw new IllegalStateException();
 
-        MoveLayer layer = new MoveLayer(indexes, 0);
+        MovedLayer layer = new MovedLayer(indexes, 0);
         layer.plops(Clops.EMPTY).set(0);
 
         while(layers.size()<Plop.COUNT) {
             layers.add(layer);
-            MoveLayer next = new MoveLayer(indexes, layers.size());
+            MovedLayer next = new MovedLayer(indexes, layers.size());
             next.elevate(layer);
             layer = next;
         }

@@ -57,8 +57,8 @@ public class Position implements Comparable<Position> {
         return permute(perm.ordinal());
     }
 
-    public static Position of(short i2, short i0, short i1) {
-        return of(i201(i2, i0, i1));
+    public static Position of(int i2, int i0, int i1) {
+        return of(i201((short)i2, (short)i0, (short)i1));
     }
 
     public static Position of(long i201) {
@@ -85,6 +85,10 @@ public class Position implements Comparable<Position> {
 
         black = Stones.stones(i201, Player.Black);
         white = Stones.stones(i201, Player.White);
+    }
+
+    public long m201() {
+        return Positions.mask(i201);
     }
 
     public static String format(RingEntry e) {

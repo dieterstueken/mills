@@ -108,7 +108,7 @@ public class Perms extends AbstractSet<Perm> implements Indexed {
 
     public static final ListSet<Perms> VALUES = ListSet.of(AbstractRandomList.generate(256, Perms::new));
 
-    public static final Perms EMPTY = VALUES.get(0);
+    public static final Perms EMPTY = of(0);
 
     public static final Perms OTHER = of(0xfe);
 

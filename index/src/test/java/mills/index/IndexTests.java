@@ -1,7 +1,6 @@
 package mills.index;
 
 import mills.bits.Perm;
-import mills.bits.Perms;
 import mills.bits.PopCount;
 import mills.index.builder.IndexBuilder;
 import mills.index.tables.C2Table;
@@ -223,15 +222,37 @@ public class IndexTests {
 
     @Test
     public void testNormalized() {
-        runGroupTests((pop, tables) -> {
-            tables.values().parallelStream().forEach(index->index.process((idx, i201) ->{
-                Position pos = Position.of(i201);
-                for (Perm perm : Perms.OTHER) {
-                    Position ppos = pos.permute(perm);
-                    if(ppos.i201 < pos.i201)
-                        assert ppos.i201 >= pos.i201;
+        runGroupTests((pop, tables) -> tables.values().parallelStream().forEach(this::testNormalized));
+    }
+
+    @Test
+    public void testNormalized12() {
+        PopCount pop = PopCount.of(1,1);
+        PosIndex index = builder.build(pop, PopCount.EMPTY);
+        testNormalized(index);
+    }
+
+    public void testNormalized(PosIndex index) {
+
+        System.out.format("%s:%s %,13d\n", index.pop(), index.clop(), index.range());
+
+        index.process((idx, i201) ->{
+            Position pos = Position.of(i201);
+
+            for (int perm=0; perm<16; ++perm) {
+                Position ppos = pos.permute(perm);
+
+                if(ppos.m201() < pos.m201())
+                    assert false;
+
+                long n201 = Positions.normalize(ppos.i201);
+                Position npos = Position.of(n201);
+
+                if(npos.m201() != pos.m201()) {
+                    n201 = Positions.normalize(ppos.i201);
+                    assert false;
                 }
-            }));
+            }
         });
     }
 

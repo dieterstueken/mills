@@ -46,7 +46,6 @@ public class Mover implements Moves.Process {
         clear();
         if(mask!=0) {
             moves.move(stay, move, mask, this);
-            normalize();
         }
 
         return this;
@@ -61,7 +60,7 @@ public class Mover implements Moves.Process {
         //i201 = Positions.normalize(i201);
         positions[size] = i201;
         ++size;
-        return true;
+        return false;
     }
 
     public Mover analyze(LongConsumer analyzer) {

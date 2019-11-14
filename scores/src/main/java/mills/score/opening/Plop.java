@@ -11,7 +11,7 @@ import mills.bits.PopCount;
  */
 public class Plop {
 
-    public static final int COUNT = 19;
+    public static final int COUNT = 18;
 
     protected final PopCount plop;
 
@@ -29,5 +29,10 @@ public class Plop {
 
     public Player player() {
         return level()%2==0 ? Player.White : Player.Black;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("(%d)%s%s", level(), plop, player().key());
     }
 }
