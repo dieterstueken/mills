@@ -183,7 +183,7 @@ public interface Positions {
 
         // find minimum of r2 or r1
         if (r2.min() < r0.min()) {
-            RingEntry tmp = r0;
+            RingEntry tmp = r2;
             r2 = r0;
             r0 = tmp;
             perm = SWP;
