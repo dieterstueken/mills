@@ -99,8 +99,9 @@ public class PopCount implements Indexed {
         // limit by given stones
         PopCount mclop = PopCount.get(mclop(nb), mclop(nw));
         // limit by missing stones.
-        PopCount nclop = P99.sub(this).swap();
-        return mclop.min(nclop);
+        //PopCount nclop = P99.sub(this).swap();
+        //return mclop.min(nclop);
+        return mclop;
     }
 
     /**
