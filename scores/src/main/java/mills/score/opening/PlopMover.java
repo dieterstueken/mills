@@ -11,6 +11,8 @@ import mills.stones.Stones;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.LongConsumer;
 
 /**
  * Created by IntelliJ IDEA.
@@ -20,22 +22,18 @@ import java.util.Map;
  */
 abstract public class PlopMover implements IndexProcessor, AutoCloseable {
 
+    final Function<PopCount, PlopSet> target;
     final Player player;
-    final PopCount next;
-
     final Mover mover;
 
-    final PlopLayer target;
+    private final LongConsumer propagator = this::propagate;
+
     final Map<PopCount, PlopSet> targets = new HashMap<>();
 
-    PlopMover(PlopSet source, PopCount next, PlopLayer target) {
+    PlopMover(PlopSet source, Function<PopCount, PlopSet> target) {
         this.target = target;
         this.player = source.player();
-        this.next = next;
-
-        mover = Moves.TAKE.mover(player==Player.Black);
-
-        //targets.put(source.clop(), init.plops(next, source.clop()));
+        this.mover = Moves.TAKE.mover(player==Player.Black);
     }
 
     abstract int move(int stay, int move);
@@ -49,7 +47,7 @@ abstract public class PlopMover implements IndexProcessor, AutoCloseable {
         try {
             mover.move(stay, move, mask);
             mover.normalize();
-            mover.analyze(this::propagate);
+            mover.analyze(propagator);
         } catch (Throwable error) {
             mover.move(stay, move, mask);
             mover.normalize();
@@ -60,29 +58,27 @@ abstract public class PlopMover implements IndexProcessor, AutoCloseable {
 
     private void debug(long i201) {
         var p = Position.of(i201);
-        p.toString();
+        System.out.println(p);
     }
 
-    private void propagate(long i201) {
+
+    protected void propagate(long i201) {
         PopCount clop = Positions.clop(i201);
-        assert Positions.pop(i201).equals(next);
+        //assert Positions.pop(i201).equals(next);
         PlopSet target = target(clop);
         target.setPos(i201);
     }
 
     protected PlopSet target(PopCount clop) {
-        return targets.computeIfAbsent(clop, this::findTarget);
-    }
-
-    private PlopSet findTarget(PopCount clop) {
-        return target.plops(next, clop);
+        return targets.computeIfAbsent(clop, target);
     }
 
     @Override
     public void close() {
-        System.out.format("%s : ", toString());
         for (PlopSet plops : targets.values()) {
-            System.out.format("%s[%s] ", plops.pop(), plops.clop());
+            System.out.format("     -> %s[%s] %,d/%,d\n",
+                    plops.pop(), plops.clop(),
+                    plops.set.cardinality(), plops.index.range());
         }
         System.out.println();
     }

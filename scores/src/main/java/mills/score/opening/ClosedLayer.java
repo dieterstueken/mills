@@ -3,6 +3,8 @@ package mills.score.opening;
 import mills.bits.PopCount;
 import mills.stones.Stones;
 
+import java.util.function.Function;
+
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -28,34 +30,25 @@ public class ClosedLayer extends PlopLayer {
         // elevate moved or closed positions
         PopCount next = source.pop().add(source.player().pop);
 
-        // verify if any mill was closed
-        // non closing positions are passed to move
-        PopCount sclop = source.clop();
+        Function<PopCount, PlopSet> target = clop -> (clop.equals(source.clop()) ? moved : this).plops(next, clop);
 
-        return new PlopMover(source, next, this) {
+        return new PlopMover(source, target) {
 
             @Override
             int move(int stay, int move) {
                 return Stones.free(stay|move);
             }
-            
-            transient PlopSet moved = null;
-
-            @Override
-            protected PlopSet target(PopCount clop) {
-                if(!clop.equals(sclop))
-                    return super.target(clop);
-
-                // not closed, just moved
-                if(moved==null)
-                    moved = ClosedLayer.this.moved.plops(next, clop);
-
-                return moved;
-            }
 
             @Override
             public String toString() {
-                return String.format("move  %s^%s[%s] -> %s", source, source.pop(), source.clop(), next);
+                return String.format("set  %s[%s] -> %s", source.pop(), source.clop(), next);
+            }
+
+            @Override
+            public void close() {
+                super.close();
+                // remove pass thru target again
+                targets.remove(source.clop());
             }
         };
     }

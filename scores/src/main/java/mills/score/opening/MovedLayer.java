@@ -31,7 +31,7 @@ public class MovedLayer extends PlopLayer {
         // elevate closed positions and take a stone away
         PopCount next = source.pop().sub(source.player().pop);
 
-        return new PlopMover(source, next, this) {
+        return new PlopMover(source, clop -> plops(next, clop)) {
 
             @Override
             int move(int stay, int move) {
@@ -50,7 +50,7 @@ public class MovedLayer extends PlopLayer {
 
             @Override
             public String toString() {
-                return String.format("close %s^%s[%s] -> %s", source, source.pop(), source.clop(), next);
+                return String.format("take %s[%s] -> %s", source.pop(), source.clop(), next);
             }
         };
     }

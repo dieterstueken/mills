@@ -20,6 +20,7 @@ abstract class PlopLayer extends PlopSets {
 
     protected void elevate(PlopSet plops) {
         try(PlopMover mover = elevator(plops)) {
+            System.out.format("  %s\n", mover.toString());
             plops.process(mover);
         }
     }
