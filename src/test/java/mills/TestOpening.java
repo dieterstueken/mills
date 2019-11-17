@@ -13,13 +13,6 @@ public class TestOpening {
 
     @Test
     public void testOpening() {
-        double start = System.currentTimeMillis();
-        try {
-            new Opening().run();
-        } catch(Throwable error) {
-            error.printStackTrace();
-        }
-        double stop = System.currentTimeMillis();
-        System.out.format("\n%.3fs\n", (stop - start) / 1000);
+        new Opening().run();
     }
 }
