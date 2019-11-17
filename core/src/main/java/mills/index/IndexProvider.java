@@ -2,11 +2,12 @@ package mills.index;
 
 import mills.bits.Clops;
 import mills.bits.PopCount;
-import mills.util.FutureReference;
 
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 public interface IndexProvider {
@@ -28,17 +29,9 @@ public interface IndexProvider {
 
     default IndexProvider lazy() {
 
-        Map<Clops, Supplier<PosIndex>> suppliers = new ConcurrentHashMap<>();
-
         return new IndexProvider() {
 
-            private PosIndex create(Clops clops) {
-                return IndexProvider.this.build(clops);
-            }
-
-            private Supplier<PosIndex> lazy(Clops clops) {
-                return FutureReference.of(()->create(clops));
-            }
+            Map<Clops, Supplier<PosIndex>> suppliers = new ConcurrentHashMap<>();
 
             @Override
             public PosIndex build(PopCount pop, PopCount clop) {
@@ -47,12 +40,27 @@ public interface IndexProvider {
 
             @Override
             public PosIndex build(Clops clops) {
-                return suppliers.computeIfAbsent(clops, this::lazy).get();
+                return suppliers.computeIfAbsent(clops, this::supplier).get();
             }
             
-            @Override
-            public IndexProvider lazy() {
-                return this;
+            private Supplier<PosIndex> supplier(Clops clops) {
+
+                return () -> {
+
+                    RecursiveTask<PosIndex> task = new RecursiveTask<>() {
+                        @Override
+                        protected PosIndex compute() {
+                            return IndexProvider.this.build(clops);
+                        }
+                    };
+
+                    AtomicBoolean started = new AtomicBoolean(false);
+
+                    if(!started.getAndSet(true))
+                        task.fork();
+
+                    return task.join();
+                };
             }
         };
     }

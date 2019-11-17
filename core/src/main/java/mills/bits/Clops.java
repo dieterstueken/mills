@@ -31,6 +31,11 @@ public interface Clops extends Indexed {
         return get(index(pop, clop));
     }
 
+    // canonicalize
+    static Clops get(Clops clop) {
+        return get(clop.pop(), clop.clop());
+    }
+
     /////////////////////////////////////////////////////////
 
     int MCLOPS = PopCount.NCLOPS+1;
