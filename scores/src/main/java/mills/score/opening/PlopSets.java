@@ -54,7 +54,7 @@ public class PlopSets extends Plop {
     }
 
     PlopSet plops(PopCount pop, PopCount clop) {
-        Clops clops = Clops.get(pop, clop);
+        Clops clops = Clops.of(pop, clop);
         return plops(clops);
     }
 

@@ -1,5 +1,6 @@
 package mills.score.opening;
 
+import mills.bits.Clops;
 import mills.index.IndexProvider;
 
 /**
@@ -18,12 +19,16 @@ abstract class PlopLayer extends PlopSets {
         super(parent);
     }
 
-    protected void elevate(PlopSet plops) {
-        try(PlopMover mover = elevator(plops)) {
-            System.out.format("  %s\n", mover.toString());
-            plops.process(mover);
-        }
+    abstract protected void elevate(PlopSet source);
+
+    void elevate(PlopSets source) {
+        source.process(this::elevate);
+        show();
     }
 
-    abstract protected PlopMover elevator(PlopSet source);
+    public void show() {
+        for (Clops clops : plops.keySet()) {
+            System.out.format("%c %s[%s]\n", getClass().getSimpleName().charAt(0), clops.pop(), clops.clop());
+        }
+    }
 }

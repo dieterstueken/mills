@@ -1,5 +1,6 @@
 package mills.score.opening;
 
+import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.stones.Stones;
 
@@ -20,9 +21,34 @@ public class ClosedLayer extends PlopLayer {
         this.moved = moved;
     }
 
-    @Override
-    PlopSet plops(PopCount pop, PopCount clop) {
-        return super.plops(pop, clop);
+    /**
+     * Callback from each plop set of elevating layer
+     *
+     * @param source to elevate
+     */
+    protected void elevate(PlopSet source) {
+        Player player = source.player();
+
+        // put stone
+        PopCount next = source.pop().add(player.pop);
+        PopCount clop = source.clop();
+
+        // none closed -> moved
+        moved.plops(next, clop);
+        
+        int closeable = source.clops().closeables(player);
+
+        if (closeable > 0) {
+            // might close a mill
+            clop = clop.add(player.pop);
+            this.plops(next, clop);
+
+            if (closeable > 1) {
+                // might close two mills
+                clop = clop.add(player.pop);
+                this.plops(next, clop);
+            }
+        }
     }
 
     protected PlopMover elevator(PlopSet source) {

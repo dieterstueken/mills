@@ -1,5 +1,6 @@
 package mills.score.opening;
 
+import mills.bits.Clops;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
@@ -31,6 +32,10 @@ public class PlopSet extends Plop {
 
     public PopCount clop() {
         return index.clop();
+    }
+
+    public Clops clops() {
+        return Clops.of(index);
     }
 
     public PopCount taken() {

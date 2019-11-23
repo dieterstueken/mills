@@ -35,7 +35,7 @@ public interface IndexProvider {
 
             @Override
             public PosIndex build(PopCount pop, PopCount clop) {
-                return build(Clops.get(pop, clop));
+                return build(Clops.of(pop, clop));
             }
 
             @Override

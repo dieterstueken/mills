@@ -21,19 +21,73 @@ public interface Clops extends Indexed {
         return index(pop(), clop());
     }
 
-    static Clops get(int index) {
+    /**
+     * If all stones belong to closed mills those may be broken.
+     * @param player to analyze
+     * @return number of closed mills that may be broken.
+     */
+    default int closed(Player player) {
+        int np = player.count(pop());
+        int nc = player.count(clop());
+
+        if(np==3 && nc==1)
+            return 1;
+
+        if(np==5 && nc==2)
+            return 2;
+
+        if(np==7 && nc==3)
+            return 3;
+
+        if(np==8 && nc==4)
+            return 4;
+
+        return 0;
+    }
+
+    /**
+     *
+     * @param player to move
+     * @return number of additionally closeable mills
+     */
+    default int closeables(Player player) {
+        int np = player.count(pop());
+        int nc = player.count(clop());
+
+        if(nc==0) {
+            if(np>=5)
+                return 2;
+            if(np>=3)
+                return 1;
+        } else if(nc==1) {
+            if(np>=7)
+                return 2;
+            if(np>=5)
+                return 1;
+        } else if(nc==2) {
+            if(np>=7)
+                return 1;
+        } else if(nc==3) {
+            if(np>=8)
+                return 1;
+        }
+
+        return 0;
+    }
+
+    static Clops of(int index) {
         return CLOPS.get(index);
     }
 
-    static Clops get(PopCount pop, PopCount clop) {
+    static Clops of(PopCount pop, PopCount clop) {
         assert pop!=null && PopCount.P99.sub(pop) != null;
         assert clop == null || PopCount.P44.sub(clop)!=null;
-        return get(index(pop, clop));
+        return of(index(pop, clop));
     }
 
     // canonicalize
-    static Clops get(Clops clop) {
-        return get(clop.pop(), clop.clop());
+    static Clops of(Clops clop) {
+        return of(clop.pop(), clop.clop());
     }
 
     /////////////////////////////////////////////////////////
@@ -41,11 +95,11 @@ public interface Clops extends Indexed {
     int MCLOPS = PopCount.NCLOPS+1;
     int NCLOPS = PopCount.SIZE * MCLOPS;
 
-    List<Clops> CLOPS = ListSet.generate(NCLOPS, Clops::_of);
+    List<Clops> CLOPS = ListSet.generate(NCLOPS, Clops::create);
 
-    Clops EMPTY = get(PopCount.EMPTY, PopCount.EMPTY);
+    Clops EMPTY = of(PopCount.EMPTY, PopCount.EMPTY);
 
-    private static Clops _of(PopCount pop, PopCount clop) {
+    private static Clops create(PopCount pop, PopCount clop) {
         return new Clops() {
             @Override
             public PopCount pop() {
@@ -66,20 +120,20 @@ public interface Clops extends Indexed {
 
     private static int index(PopCount pop, PopCount clop) {
 
-        int index = MCLOPS * pop.index;
+        int index = pop.index;
 
         if(clop!=null)
-            index += clop.index+1;
+            index += (clop.index+1) * PopCount.SIZE;
 
         return index;
     }
 
-    private static Clops _of(final int index) {
-        PopCount pop = PopCount.get(index / MCLOPS);
+    private static Clops create(final int index) {
+        PopCount pop = PopCount.get(index % PopCount.SIZE);
 
-        int ci = index%MCLOPS;
+        int ci = index/PopCount.SIZE;
         PopCount clop = ci==0 ? null : PopCount.get(ci-1);
-        Clops clops = _of(pop, clop);
+        Clops clops = create(pop, clop);
 
         if(clops.getIndex() != index)
             assert clops.getIndex() == index;

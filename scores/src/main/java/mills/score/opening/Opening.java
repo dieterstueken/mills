@@ -19,6 +19,7 @@ public class Opening {
     final List<MovedLayer> layers = new ArrayList<>(Plop.COUNT);
 
     public void run() {
+        double start = System.currentTimeMillis();
 
         if(!layers.isEmpty())
             throw new IllegalStateException();
@@ -29,8 +30,13 @@ public class Opening {
         while(layers.size()<Plop.COUNT) {
             layers.add(layer);
             MovedLayer next = new MovedLayer(indexes, layers.size());
+            double stop = System.currentTimeMillis();
+            System.out.format("elevate %s %.3fs\n", layer, (stop - start) / 1000);
             next.elevate(layer);
             layer = next;
         }
+
+        double stop = System.currentTimeMillis();
+        System.out.format("\n%.3fs\n", (stop - start) / 1000);
     }
 }

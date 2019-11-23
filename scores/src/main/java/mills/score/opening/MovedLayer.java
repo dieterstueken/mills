@@ -1,5 +1,6 @@
 package mills.score.opening;
 
+import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.stones.Stones;
@@ -19,11 +20,40 @@ public class MovedLayer extends PlopLayer {
         closed = new ClosedLayer(this);
     }
 
+    @Override
     void elevate(PlopSets source) {
-        System.out.format("elevate %s\n", source);
+        closed.elevate(source);
+        super.elevate(closed);
+    }
 
-        source.process(closed::elevate);
-        closed.process(this::elevate);
+    /**
+     * Callback from each plop set of elevating layer (closed)
+     * @param source to elevate
+     */
+    protected void elevate(PlopSet source) {
+        Player player = source.player();
+
+        // take stone
+        PopCount next = source.pop().sub(player.pop);
+
+        // check for completely closed mills?
+        int closed = source.clops().closed(player);
+        PopCount clop = source.clop();
+
+        if(closed == 0) {
+            plops(next, clop);
+        } else {
+            // destroy other mill
+            Player other = player.other();
+            clop = clop.sub(other.pop);
+            plops(next, clop);
+
+            if(closed>1) {
+                // may even destroy double mill
+                clop = clop.sub(other.pop);
+                plops(next, clop);
+            }
+        }
     }
 
     protected PlopMover elevator(PlopSet source) {
@@ -46,7 +76,6 @@ public class MovedLayer extends PlopLayer {
 
                 return move;
             }
-
 
             @Override
             public String toString() {
