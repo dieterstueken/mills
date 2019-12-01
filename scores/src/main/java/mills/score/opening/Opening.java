@@ -24,16 +24,16 @@ public class Opening {
         if(!layers.isEmpty())
             throw new IllegalStateException();
 
-        MovedLayer layer = new MovedLayer(indexes, 0);
-        layer.plops(Clops.EMPTY).set(0);
+        MovedLayer prev = new MovedLayer(indexes, 0);
+        prev.plops(Clops.EMPTY).set(0);
 
-        while(layers.size()<Plop.COUNT) {
-            layers.add(layer);
-            MovedLayer next = new MovedLayer(indexes, layers.size());
+        for(int l = 1; l<Plop.COUNT; ++l) {
+            MovedLayer layer = new MovedLayer(indexes, l);
+            layer.elevate(prev);
+            prev = layer;
+
             double stop = System.currentTimeMillis();
             System.out.format("elevate %s %.3fs\n", layer, (stop - start) / 1000);
-            next.elevate(layer);
-            layer = next;
         }
 
         double stop = System.currentTimeMillis();

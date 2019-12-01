@@ -55,20 +55,20 @@ public interface Clops extends Indexed {
         int nc = player.count(clop());
 
         if(nc==0) {
-            if(np>=5)
+            if(np>=4)
                 return 2;
-            if(np>=3)
+            if(np>=2)
                 return 1;
         } else if(nc==1) {
-            if(np>=7)
+            if(np>=6)
                 return 2;
-            if(np>=5)
+            if(np>=4)
                 return 1;
         } else if(nc==2) {
-            if(np>=7)
+            if(np>=6)
                 return 1;
         } else if(nc==3) {
-            if(np>=8)
+            if(np>=7)
                 return 1;
         }
 

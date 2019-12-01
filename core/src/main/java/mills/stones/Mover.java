@@ -55,12 +55,12 @@ public class Mover implements Moves.Process {
         return swap ? Stones.i201(move, stay) | Positions.INV : Stones.i201(stay, move);
     }
 
-    public boolean process(int stay, int move) {
-        long i201 = i201(stay, move);
+    public boolean process(int stay, int move, int mask) {
+        long i201 = i201(stay, move^mask);
         //i201 = Positions.normalize(i201);
         positions[size] = i201;
         ++size;
-        return false;
+        return !Moves.ABORT;
     }
 
     public Mover analyze(LongConsumer analyzer) {

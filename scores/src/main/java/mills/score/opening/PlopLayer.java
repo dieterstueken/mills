@@ -19,11 +19,10 @@ abstract class PlopLayer extends PlopSets {
         super(parent);
     }
 
-    abstract protected void elevate(PlopSet source);
+    abstract protected void trace(MovedLayer source, PlopSet tgt);
 
-    void elevate(PlopSets source) {
-        source.process(this::elevate);
-        show();
+    protected void trace(MovedLayer src) {
+        forEach(tgt -> trace(src, tgt));
     }
 
     public void show() {

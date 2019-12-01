@@ -5,6 +5,9 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
+import mills.position.Positions;
+import mills.stones.Moves;
+import mills.stones.Stones;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,7 +20,7 @@ import java.util.function.Consumer;
  * modified by: $
  * modified on: $
  */
-public class PlopSets extends Plop {
+public class PlopSets extends Plop implements Moves.Process {
 
     final IndexProvider indexes;
 
@@ -58,7 +61,26 @@ public class PlopSets extends Plop {
         return plops(clops);
     }
 
-    void process(Consumer<PlopSet> process) {
+    boolean lookup(long i201) {
+        PopCount pop = Positions.pop(i201);
+        PopCount clop = Positions.clop(i201);
+        Clops clops = Clops.of(pop, clop);
+        PlopSet ps = plops.get(clops);
+        // check for null
+        int index = ps.index.posIndex(i201);
+        return ps.get(index);
+    }
+
+    @Override
+    public boolean process(int stay, int move, int mask) {
+        // apply move
+        move ^= mask;
+        Player player = player();
+        long i201 = Stones.i201(stay, move, player);
+        return lookup(i201);
+    }
+
+    void forEach(Consumer<? super PlopSet> process) {
         plops.values().forEach(process);
     }
 }

@@ -70,6 +70,13 @@ public class Stones {
         return Positions.i201(i2, i0, i1);
     }
 
+    public static long i201(int stay, int move, Player player) {
+        if(player==Player.Black)
+            return Stones.i201(move, stay) | Positions.INV;
+        else
+            return Stones.i201(stay, move);
+    }
+
     static int perm(final int stones, final int perm) {
         int i2 = p2(stones).perm(perm).stones();
         int i0 = p0(stones).perm(perm).stones();

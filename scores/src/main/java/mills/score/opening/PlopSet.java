@@ -46,6 +46,10 @@ public class PlopSet extends Plop {
         this.set.set(posIndex);
     }
 
+    public boolean get(int posIndex) {
+        return this.set.get(posIndex);
+    }
+
     public void process(IndexProcessor processor) {
         int start = 0;
 

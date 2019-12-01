@@ -2,7 +2,9 @@ package mills.score.opening;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
+import mills.index.IndexProcessor;
 import mills.index.IndexProvider;
+import mills.stones.Moves;
 import mills.stones.Stones;
 
 /**
@@ -20,25 +22,42 @@ public class MovedLayer extends PlopLayer {
         closed = new ClosedLayer(this);
     }
 
-    @Override
-    void elevate(PlopSets source) {
-        closed.elevate(source);
-        super.elevate(closed);
+    void elevate(MovedLayer src) {
+
+        // prepare target plop sets of both layers
+        src.forEach(this::elevateMoved);
+        src.forEach(closed::elevate);
+        closed.forEach(src::elevateClosed);
+
+        closed.trace(src);
+        this.trace(src);
+
+        show();
+    }
+
+    /**
+     * Regular propagation.
+     * @param src to elevate.
+     */
+    protected PlopSet elevateMoved(PlopSet src) {
+        PopCount next = src.pop().add(src.player().pop);
+        PopCount clop = src.clop();
+        return  plops(next, clop);
     }
 
     /**
      * Callback from each plop set of elevating layer (closed)
-     * @param source to elevate
+     * @param src to elevate.
      */
-    protected void elevate(PlopSet source) {
-        Player player = source.player();
+    protected void elevateClosed(PlopSet src) {
+        Player player = src.player();
 
         // take stone
-        PopCount next = source.pop().sub(player.pop);
+        PopCount next = src.pop().sub(player.pop);
 
         // check for completely closed mills?
-        int closed = source.clops().closed(player);
-        PopCount clop = source.clop();
+        int closed = src.clops().closed(player);
+        PopCount clop = src.clop();
 
         if(closed == 0) {
             plops(next, clop);
@@ -56,31 +75,59 @@ public class MovedLayer extends PlopLayer {
         }
     }
 
-    protected PlopMover elevator(PlopSet source) {
+    /**
+     * Trace moved target positions back to src or this.closed layer.
+     *
+     * Ordinary moves from src layer must not have closed a mill.
+     *
+     * Moves coming from from this.closed layer had closed a mill (or two)
+     * and will loose an opponent stone from either non closed or all closed positions.
+     *
+     * @param src of ordinary moves.
+     */
+    
+    @Override
+    protected void trace(MovedLayer src, PlopSet tgt) {
 
-        // elevate closed positions and take a stone away
-        PopCount next = source.pop().sub(source.player().pop);
+        IndexProcessor processor = new IndexProcessor() {
 
-        return new PlopMover(source, clop -> plops(next, clop)) {
+            // Reset a non closed stone put before.
+            boolean traceMove(long i201) {
+                Player player = src.player();
+                int stay = Stones.stones(i201, player.other());
+                int move = Stones.stones(i201, player);
 
-            @Override
-            int move(int stay, int move) {
-                int closed = Stones.closed(move);
+                // must not have closed a mill
+                int mask = move ^ Stones.closed(move);
 
-                // don't take from closed
-                move ^= closed;
+                int at = Moves.TAKE.move(stay, move, mask, src);
+                return at<0;
+            }
 
-                // except if there ar no others
-                if(move==0)
-                    move = closed;
+            // replace lost opponents stone
+            boolean traceClose (long i201) {
+                Player player = closed.player();
 
-                return move;
+                int stay = Stones.stones(i201, player.other());
+                if(Stones.closed(stay)==0)
+                    return false;
+                
+                int move = Stones.stones(i201, player);
+
+                // reset any void position
+                int mask = Stones.STONES ^ (stay|move);
+
+                int at = Moves.TAKE.move(stay, move, mask, closed);
+                return at<0;
             }
 
             @Override
-            public String toString() {
-                return String.format("take %s[%s] -> %s", source.pop(), source.clop(), next);
+            public void process(int posIndex, long i201) {
+                if (traceClose(i201) || traceMove(i201))
+                    tgt.setPos(i201);
             }
         };
+
+        tgt.index.process(processor);
     }
 }

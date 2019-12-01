@@ -16,8 +16,10 @@ import mills.bits.Sector;
  */
 abstract public class Moves {
 
+    public static final boolean ABORT = true;
+
     public interface Process {
-        boolean process(int stay, int move);
+        boolean process(int stay, int move, int mask);
     }
 
     public static final Moves JUMP = new Moves(jumps()) {
@@ -64,7 +66,7 @@ abstract public class Moves {
 
                     ++n;
                     // target may abort further processing by returning true
-                    if(target.process(stay, move^m))
+                    if(target.process(stay, move, m) == ABORT)
                         return -n-1;
                 }
             }
@@ -128,8 +130,8 @@ abstract public class Moves {
 
             ++n;
 
-            // target may abort further processing by returning false
-            if(!target.process(stay, move^m))
+            // target may abort further processing by returning true
+            if(target.process(stay, move, m) == ABORT)
                 return -n-1;
         }
 
@@ -138,8 +140,8 @@ abstract public class Moves {
 
     private static final Process ANY = new Process() {
         @Override
-        public boolean process(int stay, int move) {
-            return false;
+        public boolean process(int stay, int move, int mask) {
+            return ABORT;
         }
 
         public String toString() {

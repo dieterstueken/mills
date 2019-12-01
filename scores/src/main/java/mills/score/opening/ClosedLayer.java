@@ -2,9 +2,9 @@ package mills.score.opening;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
+import mills.index.IndexProcessor;
+import mills.stones.Moves;
 import mills.stones.Stones;
-
-import java.util.function.Function;
 
 /**
  * Created by IntelliJ IDEA.
@@ -33,9 +33,10 @@ public class ClosedLayer extends PlopLayer {
         PopCount next = source.pop().add(player.pop);
         PopCount clop = source.clop();
 
-        // none closed -> moved
+        // same clop (no closings) passed to ordinary moved
         moved.plops(next, clop);
-        
+
+        // # of mills that may be closed
         int closeable = source.clops().closeables(player);
 
         if (closeable > 0) {
@@ -51,32 +52,41 @@ public class ClosedLayer extends PlopLayer {
         }
     }
 
-    protected PlopMover elevator(PlopSet source) {
+    /**
+     * Trace closed target positions back to src:
+     * Break a closed mill and lookup position @src.
+     * @param src source of back trace.
+     */
+    @Override
+    protected void trace(MovedLayer src, PlopSet tgt) {
 
-        // elevate moved or closed positions
-        PopCount next = source.pop().add(source.player().pop);
+        // target plop set of closed positions to analyze
 
-        Function<PopCount, PlopSet> target = clop -> (clop.equals(source.clop()) ? moved : this).plops(next, clop);
+        IndexProcessor processor = (posIndex, i201) -> {
+            Player player = src.player();
+            int stay = Stones.stones(i201, player.other());
+            int move = Stones.stones(i201, player);
 
-        return new PlopMover(source, target) {
+            // break a closed mill
+            int mask = Stones.closed(move);
 
-            @Override
-            int move(int stay, int move) {
-                return Stones.free(stay|move);
-            }
-
-            @Override
-            public String toString() {
-                return String.format("set  %s[%s] -> %s", source.pop(), source.clop(), next);
-            }
-
-            @Override
-            public void close() {
-                super.close();
-                // remove pass thru target again
-                targets.remove(source.clop());
-            }
+            int at = Moves.TAKE.move(stay, move, mask, src);
+            if(at<0)
+                tgt.setPos(i201);
         };
+
+        tgt.index.process(processor);
     }
 
+    @Override
+    public boolean process(int stay, int move, int mask) {
+        int moved = move&mask;
+        int closing = Stones.closed(move);
+
+        // closed mills are rejected except if all positions are closed
+        if((closing&mask)!=0 && closing!=moved)
+            return false;
+
+        return super.process(stay, move, mask);
+    }
 }
