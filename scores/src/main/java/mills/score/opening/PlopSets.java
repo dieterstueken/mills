@@ -5,6 +5,7 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
+import mills.position.Position;
 import mills.position.Positions;
 import mills.stones.Moves;
 import mills.stones.Stones;
@@ -53,7 +54,13 @@ public class PlopSets extends Plop implements Moves.Process {
     }
 
     PlopSet plops(Clops clops) {
-        return plops.computeIfAbsent(clops, this::newPlops);
+        PlopSet ps = plops.get(clops);
+        if(ps==null) {
+            synchronized (plops) {
+                ps = plops.computeIfAbsent(clops, this::newPlops);
+            }
+        }
+        return ps;
     }
 
     PlopSet plops(PopCount pop, PopCount clop) {
@@ -66,7 +73,11 @@ public class PlopSets extends Plop implements Moves.Process {
         PopCount clop = Positions.clop(i201);
         Clops clops = Clops.of(pop, clop);
         PlopSet ps = plops.get(clops);
-        // check for null
+
+        // may be missing
+        if(ps==null)
+            return false;
+
         int index = ps.index.posIndex(i201);
         return ps.get(index);
     }
@@ -77,10 +88,17 @@ public class PlopSets extends Plop implements Moves.Process {
         move ^= mask;
         Player player = player();
         long i201 = Stones.i201(stay, move, player);
-        return lookup(i201);
+        try {
+            return lookup(i201);
+        } catch (Throwable err) {
+            Position pos = Position.of(i201);
+            System.out.println(pos);
+            lookup(i201);
+            throw err;
+        }
     }
 
     void forEach(Consumer<? super PlopSet> process) {
-        plops.values().forEach(process);
+        plops.values().parallelStream().forEach(process);
     }
 }

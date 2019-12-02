@@ -25,9 +25,9 @@ public class MovedLayer extends PlopLayer {
     void elevate(MovedLayer src) {
 
         // prepare target plop sets of both layers
-        src.forEach(this::elevateMoved);
-
+        src.forEach(this::elevate);
         src.forEach(closed::elevate);
+
         closed.forEach(this::elevateClosed);
 
         closed.forEach(tgt -> closed.trace(src, tgt));
@@ -41,10 +41,10 @@ public class MovedLayer extends PlopLayer {
      * Regular propagation.
      * @param src to elevate.
      */
-    protected PlopSet elevateMoved(PlopSet src) {
+    protected void elevate(PlopSet src) {
         PopCount next = src.pop().add(src.player().pop);
         PopCount clop = src.clop();
-        return  plops(next, clop);
+        plops(next, clop);
     }
 
     /**
@@ -58,20 +58,19 @@ public class MovedLayer extends PlopLayer {
         PopCount next = src.pop().sub(player.pop);
 
         // check for completely closed mills?
-        int closed = src.clops().closed(player.other());
+        int closed = src.clops().closed(player);
         PopCount clop = src.clop();
 
         if(closed == 0) {
             plops(next, clop);
         } else {
-            // destroy other mill
-            Player other = player.other();
-            clop = clop.sub(other.pop);
+            // destroy a mill
+            clop = clop.sub(player.pop);
             plops(next, clop);
 
             if(closed>1) {
                 // may even destroy double mill
-                clop = clop.sub(other.pop);
+                clop = clop.sub(player.pop);
                 plops(next, clop);
             }
         }
@@ -90,6 +89,12 @@ public class MovedLayer extends PlopLayer {
     
     @Override
     protected void trace(MovedLayer src, PlopSet tgt) {
+
+        if(tgt.clop().equals(PopCount.EMPTY)) {
+            // simply setup all
+            tgt.set.set(0, tgt.index.range());
+            return;
+        }
 
         IndexProcessor processor = new IndexProcessor() {
 
@@ -130,6 +135,6 @@ public class MovedLayer extends PlopLayer {
             }
         };
 
-        tgt.index.process(processor);
+        tgt.processParallel(processor);
     }
 }

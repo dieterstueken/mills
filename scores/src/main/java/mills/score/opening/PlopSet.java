@@ -7,6 +7,7 @@ import mills.index.PosIndex;
 import mills.position.Positions;
 
 import java.util.BitSet;
+import java.util.stream.IntStream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -71,5 +72,17 @@ public class PlopSet extends Plop {
         assert pop().equals(Positions.pop(i201));
         int posIndex = index.posIndex(i201);
         set(posIndex);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s/%s", clops(), super.toString());
+    }
+
+    static final int BLOCK = 1024;
+
+    public void processParallel(IndexProcessor processor) {
+        int blocks = (index.range() + BLOCK - 1)/BLOCK;
+        IntStream.range(0, blocks).parallel().forEach(start -> index.process(processor, start, start+BLOCK));
     }
 }

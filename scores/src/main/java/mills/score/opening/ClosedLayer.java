@@ -40,7 +40,7 @@ public class ClosedLayer extends PlopLayer {
         int closeable = source.clops().closeables(player);
 
         if (closeable > 0) {
-            // might close a mill
+            // opponent might have close a mill
             clop = clop.add(player.pop);
             this.plops(next, clop);
 
@@ -75,18 +75,20 @@ public class ClosedLayer extends PlopLayer {
                 tgt.setPos(i201);
         };
 
-        tgt.index.process(processor);
+        tgt.processParallel(processor);
     }
 
     @Override
     public boolean process(int stay, int move, int mask) {
-        int moved = move&mask;
-        int closing = Stones.closed(move);
+        int moved = move^mask;
 
-        // closed mills are rejected except if all positions are closed
-        if((closing&mask)!=0 && closing!=moved)
+        // broke a mill?
+        int closing = Stones.closed(moved);
+
+        // breaking closed mills is permitted only if all positions are closed too.
+        if((closing&mask)==0 || closing==moved)
+            return super.process(stay, move, mask);
+        else
             return false;
-
-        return super.process(stay, move, mask);
     }
 }
