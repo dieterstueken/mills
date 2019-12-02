@@ -26,12 +26,14 @@ public class MovedLayer extends PlopLayer {
 
         // prepare target plop sets of both layers
         src.forEach(this::elevateMoved);
+
         src.forEach(closed::elevate);
-        closed.forEach(src::elevateClosed);
+        closed.forEach(this::elevateClosed);
 
-        closed.trace(src);
-        this.trace(src);
+        closed.forEach(tgt -> closed.trace(src, tgt));
+        this.forEach(tgt -> trace(src, tgt));
 
+        closed.show();
         show();
     }
 
@@ -56,7 +58,7 @@ public class MovedLayer extends PlopLayer {
         PopCount next = src.pop().sub(player.pop);
 
         // check for completely closed mills?
-        int closed = src.clops().closed(player);
+        int closed = src.clops().closed(player.other());
         PopCount clop = src.clop();
 
         if(closed == 0) {

@@ -21,10 +21,6 @@ abstract class PlopLayer extends PlopSets {
 
     abstract protected void trace(MovedLayer source, PlopSet tgt);
 
-    protected void trace(MovedLayer src) {
-        forEach(tgt -> trace(src, tgt));
-    }
-
     public void show() {
         for (Clops clops : plops.keySet()) {
             System.out.format("%c %s[%s]\n", getClass().getSimpleName().charAt(0), clops.pop(), clops.clop());
