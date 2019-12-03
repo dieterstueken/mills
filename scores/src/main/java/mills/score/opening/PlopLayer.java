@@ -1,6 +1,5 @@
 package mills.score.opening;
 
-import mills.bits.Clops;
 import mills.index.IndexProvider;
 
 /**
@@ -22,8 +21,10 @@ abstract class PlopLayer extends PlopSets {
     abstract protected void trace(MovedLayer source, PlopSet tgt);
 
     public void show() {
-        for (Clops clops : plops.keySet()) {
-            System.out.format("%c %s[%s]\n", getClass().getSimpleName().charAt(0), clops.pop(), clops.clop());
+        for (PlopSet ps : plops.values()) {
+            System.out.format("%c %s[%s] %d/%d\n", getClass().getSimpleName().charAt(0),
+                    ps.pop(), ps.clop(),
+                    ps.set.cardinality(), ps.index.range());
         }
     }
 }
