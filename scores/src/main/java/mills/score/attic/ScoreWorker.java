@@ -1,4 +1,4 @@
-package mills.score;
+package mills.score.attic;
 
 import mills.index.IndexProcessor;
 

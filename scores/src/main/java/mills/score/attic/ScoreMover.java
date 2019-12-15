@@ -1,6 +1,8 @@
-package mills.score;
+package mills.score.attic;
 
 import mills.index.IndexProcessor;
+import mills.score.Pair;
+import mills.score.Score;
 
 import java.util.function.Consumer;
 

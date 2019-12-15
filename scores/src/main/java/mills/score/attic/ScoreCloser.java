@@ -1,6 +1,8 @@
-package mills.score;
+package mills.score.attic;
 
 import mills.index.IndexProcessor;
+import mills.score.Pair;
+import mills.score.Score;
 
 /**
  * Created by IntelliJ IDEA.

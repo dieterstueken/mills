@@ -1,8 +1,9 @@
-package mills.score;
+package mills.score.attic;
 
 import mills.bits.Player;
 import mills.index.IndexProcessor;
 import mills.position.Position;
+import mills.score.ScoreMap;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;

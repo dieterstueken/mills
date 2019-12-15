@@ -1,8 +1,9 @@
-package mills.score;
+package mills.score.attic;
 
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
 import mills.position.Situation;
+import mills.score.ScoreMap;
 import mills.util.QueueActor;
 
 import java.io.File;

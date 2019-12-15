@@ -1,5 +1,6 @@
-package mills.score;
+package mills.score.attic;
 
+import mills.score.Score;
 import mills.util.AbstractRandomArray;
 
 import java.util.concurrent.RecursiveAction;

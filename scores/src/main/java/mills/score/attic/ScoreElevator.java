@@ -1,7 +1,9 @@
-package mills.score;
+package mills.score.attic;
 
 import mills.bits.Player;
 import mills.index.IndexProcessor;
+import mills.score.Score;
+import mills.score.ScoreMap;
 import mills.stones.Stones;
 
 /**
