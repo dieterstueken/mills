@@ -15,8 +15,6 @@ public interface Layer {
 
     Player player();
 
-    boolean opening();
-
     default boolean jumps() {
         return player().count(pop())<=3;
     }

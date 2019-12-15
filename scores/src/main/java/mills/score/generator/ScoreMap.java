@@ -25,8 +25,8 @@ abstract public class ScoreMap extends ScoreSet {
 
     protected final ByteBuffer scores;
 
-    public ScoreMap(PosIndex index, Player player, boolean opening, ByteBuffer scores) {
-        super(index, player, opening);
+    public ScoreMap(PosIndex index, Player player, ByteBuffer scores) {
+        super(index, player);
         this.scores = scores;
     }
 
@@ -74,7 +74,7 @@ abstract public class ScoreMap extends ScoreSet {
     }
 
     public static ScoreSet lost(IndexLayer layer) {
-        return new ScoreSet(layer.index(), layer.player(), layer.opening()) {
+        return new ScoreSet(layer.index(), layer.player()) {
 
             @Override
             public String toString() {
@@ -102,7 +102,7 @@ abstract public class ScoreMap extends ScoreSet {
         int size = index.range();
         ByteBuffer scores = ByteBuffer.allocateDirect(size);
 
-        return new ScoreMap(index, cf.player(), cf.opening(), scores) {
+        return new ScoreMap(index, cf.player(), scores) {
 
             @Override
             public String toString() {
@@ -130,7 +130,7 @@ abstract public class ScoreMap extends ScoreSet {
         FileChannel fc = FileChannel.open(file.toPath(), readonly ? READ : WRITE);
         MappedByteBuffer scores = fc.map(readonly ? FileChannel.MapMode.READ_ONLY: FileChannel.MapMode.READ_WRITE, 0, size);
 
-        return new ScoreMap(index, cf.player(), cf.opening(), scores) {
+        return new ScoreMap(index, cf.player(), scores) {
 
             @Override
             public String toString() {

@@ -17,12 +17,9 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
 
     final Player player;
 
-    final boolean opening;
-
-    public ScoreSet(PosIndex index, Player player, boolean opening) {
+    public ScoreSet(PosIndex index, Player player) {
         this.index = index;
         this.player = player;
-        this.opening = opening;
     }
 
     public int size() {
@@ -48,10 +45,6 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
 
     public PosIndex index() {
         return index;
-    }
-
-    public boolean opening() {
-        return opening;
     }
 
     public Player player() {

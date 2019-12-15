@@ -22,7 +22,7 @@ public class ScoreMapTest {
     public void mapped() throws IOException {
         PopCount pop = PopCount.of(5,5);
         PopCount clop = PopCount.of(0,0);
-        FileGroup group = files.group(pop, Player.White, false);
+        FileGroup group = files.group(pop, Player.White);
         group.create();
 
         ScoreFile file = group.get(clop);
@@ -37,7 +37,7 @@ public class ScoreMapTest {
     @Test
     public void elevate() throws IOException {
         PopCount pop = PopCount.of(3,3);
-        FileGroup group = files.group(pop, Player.White, false);
+        FileGroup group = files.group(pop, Player.White);
 
         try(SlicesGroup<MapSlice> slices = SlicesGroup.create(group)) {
             System.out.println("created");

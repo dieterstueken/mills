@@ -15,16 +15,13 @@ public class LayerGroup<T extends IndexLayer> extends Group<T> implements Layer 
 
     final Player player;
 
-    final boolean opening;
-
-    public LayerGroup(PopCount pop, Player player, boolean opening) {
+    public LayerGroup(PopCount pop, Player player) {
         this.pop = pop;
         this.player = player;
-        this.opening = opening;
     }
 
     public LayerGroup(Layer layer) {
-        this(layer.pop(), layer.player(), layer.opening());
+        this(layer.pop(), layer.player());
     }
 
     @Override
@@ -35,10 +32,5 @@ public class LayerGroup<T extends IndexLayer> extends Group<T> implements Layer 
     @Override
     public Player player() {
         return player;
-    }
-
-    @Override
-    public boolean opening() {
-        return opening;
     }
 }

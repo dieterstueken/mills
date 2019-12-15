@@ -24,7 +24,7 @@ public class ScoreFiles {
         this.root = root;
     }
 
-    public FileGroup group(PopCount pop, Player player, boolean opening) throws IOException {
-        return FileGroup.of(indexes, root, pop, player, opening);
+    public FileGroup group(PopCount pop, Player player) throws IOException {
+        return FileGroup.of(indexes, root, pop, player);
     }
 }

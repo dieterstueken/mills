@@ -24,11 +24,11 @@ public class FileGroup extends LayerGroup<ScoreFile> {
     final File dir;
 
     private FileGroup(IndexProvider indexes, File dir, Layer layer) {
-        this(indexes, dir, layer.pop(), layer.player(), layer.opening());
+        this(indexes, dir, layer.pop(), layer.player());
     }
 
-    private FileGroup(IndexProvider indexes, File dir, PopCount pop, Player player, boolean opening) {
-        super(pop, player, opening);
+    private FileGroup(IndexProvider indexes, File dir, PopCount pop, Player player) {
+        super(pop, player);
         this.indexes = indexes;
         this.dir = dir;
     }
@@ -73,7 +73,7 @@ public class FileGroup extends LayerGroup<ScoreFile> {
         if(swapped.equals(pop))
             return this;
 
-        return new FileGroup(indexes, dir, swapped, player, opening).populate();
+        return new FileGroup(indexes, dir, swapped, player).populate();
     }
 
     public FileGroup down() {
@@ -82,7 +82,7 @@ public class FileGroup extends LayerGroup<ScoreFile> {
             return null;
 
         // drop group of non closed
-        return new FileGroup(indexes, dir, down, player.other(), opening)
+        return new FileGroup(indexes, dir, down, player.other())
                 .populate(clop->!PopCount.EMPTY.equals(clop));
     }
 
@@ -98,11 +98,6 @@ public class FileGroup extends LayerGroup<ScoreFile> {
             @Override
             public Player player() {
                 return player;
-            }
-
-            @Override
-            public boolean opening() {
-                return opening;
             }
 
             @Override
@@ -125,30 +120,29 @@ public class FileGroup extends LayerGroup<ScoreFile> {
 
     private String name(PopCount clop, String ext) {
         if(clop!=null)
-            return String.format("%s%d%d%c%d%d.%s",
-                    opening ? "o" : "p",
+            return String.format("p%d%d%c%d%d.%s",
                     pop.nb(), pop.nw(),
                     player.key(),
                     clop.nb(), clop.nw(),
                     ext);
         else
-            return String.format("%s%d%d%c.%s", opening ? "o" : "p",
+            return String.format("p%d%d%c.%s",
                 pop.nb(), pop.nw(),
                 player.key(), ext);
     }
 
     //////////////////////////////////////////////////
 
-    public static FileGroup of(IndexProvider indexes, File root, PopCount pop, Player player, boolean opening) throws IOException {
+    public static FileGroup of(IndexProvider indexes, File root, PopCount pop, Player player) throws IOException {
         if(!root.exists())
             root.mkdirs();
 
         if(!root.isDirectory())
             throw new NotDirectoryException(root.toString());
 
-        String name = String.format("%s%d%d%c", opening ? "o" : "p", pop.nb(), pop.nw(), player.key());
-        File dir = new File(root, name);
+        //String name = String.format("p%d%d%c", pop.nb(), pop.nw(), player.key());
+        //File dir = new File(root, name);
 
-        return new FileGroup(indexes, dir, pop, player, opening).populate();
+        return new FileGroup(indexes, root, pop, player).populate();
     }
 }

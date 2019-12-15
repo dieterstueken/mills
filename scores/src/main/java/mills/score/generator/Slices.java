@@ -103,9 +103,4 @@ public class Slices<Slice extends ScoreSlice> implements IndexLayer {
     public Player player() {
         return scores.player();
     }
-
-    @Override
-    public boolean opening() {
-        return scores.opening();
-    }
 }
