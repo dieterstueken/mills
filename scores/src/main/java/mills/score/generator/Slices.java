@@ -7,6 +7,7 @@ import mills.util.AbstractRandomList;
 
 import java.util.List;
 import java.util.function.IntFunction;
+import java.util.stream.Stream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -16,11 +17,11 @@ import java.util.function.IntFunction;
  */
 public class Slices<Slice extends ScoreSlice> implements IndexLayer {
 
-    public final ScoreSet scores;
+    public final ScoreLayer scores;
 
     public final List<? extends Slice> slices;
 
-    Slices(ScoreSet scores, List<? extends Slice> slices) {
+    Slices(ScoreLayer scores, List<? extends Slice> slices) {
         this.scores = scores;
         this.slices = slices;
     }
@@ -31,6 +32,10 @@ public class Slices<Slice extends ScoreSlice> implements IndexLayer {
 
     public List<? extends Slice> slices() {
         return slices;
+    }
+
+    public Stream<? extends Slice> stream() {
+        return slices.stream();
     }
 
     public Slice get(int posIndex) {
@@ -57,17 +62,19 @@ public class Slices<Slice extends ScoreSlice> implements IndexLayer {
         return slice.getScore(index);
     }
 
+    public int getScore(int posIndex) {
+        return scores.getScore(posIndex);
+    }
+
     /**
      * Determine max score.
      * @return current max score of all slices.
      */
     public int max() {
         int max = 0;
-        for (ScoreSlice slice : slices) {
-            int m = slice.max();
-            if(m>max)
-                max = m;
-        }
+
+        for (ScoreSlice slice : slices)
+            max = Math.max(max, slice.max());
 
         return max;
     }
@@ -78,10 +85,14 @@ public class Slices<Slice extends ScoreSlice> implements IndexLayer {
     }
 
     public static <Slice extends ScoreSlice> Slices<Slice>
-    generate(ScoreSet scores, IntFunction<? extends Slice> slice) {
+    generate(ScoreLayer scores, IntFunction<? extends Slice> slice) {
         int count = ScoreSlice.sliceCount(scores);
         List<Slice> slices = AbstractRandomList.generate(count, slice);
         return new Slices<>(scores, slices);
+    }
+
+    ScoreLayer scores() {
+        return scores;
     }
 
     @Override

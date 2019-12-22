@@ -26,9 +26,6 @@ public class MapSlice extends ScoreSlice {
 
     final QueueActor<MapSlice> work = new QueueActor<>(this);
 
-    // current score to analyze
-    int scoring = 0;
-
     // to calculate pending moves
     final Mover mover;
 
@@ -109,11 +106,6 @@ public class MapSlice extends ScoreSlice {
 
         // current == 0
 
-        if(scoring==0) {
-            // during elevation setup L directly
-            setScore(offset, newScore);
-            return;
-        }
 
         // count remaining
 

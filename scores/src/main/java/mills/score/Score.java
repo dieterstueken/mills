@@ -24,21 +24,21 @@ public class Score implements Comparable<Score> {
 
     public enum Result {LOST, DRAWN, WON}
 
-    public final int score;
+    public final int value;
 
     private Score(int score) {
-        this.score = score;
+        this.value = score;
     }
 
     public String toString() {
-        return String.format("%s(%d)", result(), score);
+        return String.format("%s(%d)", result(), value);
     }
 
     public Result result() {
-        if(score==0)
+        if(value ==0)
             return Result.DRAWN;
 
-        if((score&1)==1)
+        if((value &1)==1)
             return Result.LOST;
 
         return Result.WON;
@@ -48,8 +48,8 @@ public class Score implements Comparable<Score> {
         return result() == result;
     }
 
-    public int score() {
-        return score;
+    public int value() {
+        return value;
     }
 
     @Override
@@ -57,14 +57,14 @@ public class Score implements Comparable<Score> {
 
         if(is(Result.WON)) {
             if(other.is(Result.WON))    // shorter path is better
-                return Integer.compare(other.score, score);
+                return Integer.compare(other.value, value);
             else // or better than everything else.
                 return +1;
         }
 
         if(is(Result.LOST)) {
             if(other.is(Result.LOST))    // longer path is better
-                return Integer.compare(score, other.score);
+                return Integer.compare(value, other.value);
             else // or worse than everything else.
                 return -1;
         }

@@ -1,6 +1,7 @@
 package mills.score.generator;
 
 import mills.bits.PopCount;
+import mills.score.Score;
 
 import java.io.IOException;
 import java.util.function.Function;
@@ -65,6 +66,22 @@ public class SlicesGroup<Slice extends ScoreSlice> extends LayerGroup<Slices<? e
     private SlicesGroup(Layer layer, Stream<Slices<? extends Slice>> stream) {
         super(layer);
         stream.forEach(slices->group.put(slices.clop(), slices));
+    }
+
+    Stream<? extends Slice> slices() {
+        return group.values().stream().flatMap(Slices::stream);
+    }
+
+    Stream<? extends Slice> slices(Score score) {
+        return slices().filter(slice->slice.hasScores(score));
+    }
+
+    public int max() {
+        int max = 0;
+        for (Slices<? extends Slice> slice : group.values()) {
+            max = Math.max(0, slice.max());
+        }
+        return max;
     }
 
     public void close() {

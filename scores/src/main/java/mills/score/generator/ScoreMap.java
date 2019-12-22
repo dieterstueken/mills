@@ -21,7 +21,7 @@ import java.nio.file.StandardOpenOption;
  * Date: 26.10.19
  * Time: 17:52
  */
-abstract public class ScoreMap extends ScoreSet {
+abstract public class ScoreMap extends ScoreLayer {
 
     protected final ByteBuffer scores;
 
@@ -62,7 +62,7 @@ abstract public class ScoreMap extends ScoreSet {
         }
     }
 
-    public static ScoreSet open(ScoreFile cf) {
+    public static ScoreLayer open(ScoreFile cf) {
         try {
             File file = cf.file("score");
             if(!file.exists())
@@ -73,8 +73,8 @@ abstract public class ScoreMap extends ScoreSet {
         }
     }
 
-    public static ScoreSet lost(IndexLayer layer) {
-        return new ScoreSet(layer.index(), layer.player()) {
+    public static ScoreLayer lost(IndexLayer layer) {
+        return new ScoreLayer(layer.index(), layer.player()) {
 
             @Override
             public String toString() {

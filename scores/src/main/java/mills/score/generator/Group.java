@@ -4,6 +4,7 @@ import mills.bits.PopCount;
 import mills.util.ArraySet;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -21,6 +22,10 @@ public class Group<T> {
 
     public Map<PopCount, T> group() {
         return group;
+    }
+
+    public Stream<T> stream() {
+        return group.values().stream();
     }
 
     public T get(PopCount clop) {

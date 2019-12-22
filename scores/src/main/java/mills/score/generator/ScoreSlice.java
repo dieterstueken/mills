@@ -3,14 +3,21 @@ package mills.score.generator;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
-import mills.index.PosIndex;
 import mills.position.Position;
+import mills.score.Score;
 
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
  * Date: 07.10.13
  * Time: 18:02
+ */
+
+/**
+ * Class ScoreSlice provides a slice of 32k scores.
+ * Thus a short may be used as local index.
+ *
+ * A lookup bitmap for each score tags those parts of a slice containing that score.
  */
 abstract public class ScoreSlice {
 
@@ -20,20 +27,15 @@ abstract public class ScoreSlice {
     // a dirty block
     public static final int BLOCK = SIZE/Long.SIZE;
 
-
-    public static int sliceCount(ScoreSet scores) {
+    public static int sliceCount(ScoreLayer scores) {
         return (scores.size() + SIZE - 1) / SIZE;
     }
 
-    public static int sliceCount(PosIndex index) {
-        return (index.range() + SIZE - 1) / SIZE;
-    }
-
-    static ScoreSlice of(ScoreSet scores, int index) {
+    static ScoreSlice of(ScoreLayer scores, int index) {
         return new ScoreSlice(index) {
 
             @Override
-            public ScoreSet scores() {
+            public ScoreLayer scores() {
                 return scores;
             }
         };
@@ -47,19 +49,23 @@ abstract public class ScoreSlice {
     private int max = 0;
 
     // any positions set
-    private final long[] todo = new long[256];
+    private final long[] dirty = new long[256];
 
     public int max() {
         return max;
     }
 
-    public boolean any(int score) {
-        return todo[score]!=0;
+    public boolean hasScores(Score score) {
+        return score.value<=max;
     }
 
-    public long todo(int score) {
-        long dirty = todo[score];
-        todo[score] = 0;
+    public boolean any(int score) {
+        return dirty[score]!=0;
+    }
+
+    public long dirty(Score score) {
+        long dirty = this.dirty[score.value];
+        //this.dirty[score] = 0;
         return dirty;
     }
 
@@ -70,9 +76,9 @@ abstract public class ScoreSlice {
             max = score;
 
         if(score>0)
-            todo[score] |= mask(offset);
+            dirty[score] |= mask(offset);
         else if(score<0)
-            todo[0] |= mask(offset);
+            dirty[0] |= mask(offset);
     }
 
     protected ScoreSlice(int index) {
@@ -85,10 +91,10 @@ abstract public class ScoreSlice {
      * @return a read only slice;
      */
     ScoreSlice newSlice(int index) {
-        ScoreSet scores = scores();
+        ScoreLayer scores = scores();
         return new ScoreSlice(index) {
             @Override
-            public ScoreSet scores() {
+            public ScoreLayer scores() {
                 return scores;
             }
         };
@@ -99,7 +105,7 @@ abstract public class ScoreSlice {
             return String.format("%s[%d]@%d", scores(), sliceIndex(), max);
         }
 
-    abstract public ScoreSet scores();
+    abstract public ScoreLayer scores();
 
     public PopCount pop() {
         return scores().pop();
@@ -187,14 +193,14 @@ abstract public class ScoreSlice {
      * @param score to analyze
      * @return previous dirty flags.
      */
-    public void processScores(IndexProcessor processor, int score) {
+    public void processScores(IndexProcessor processor, Score score) {
 
-        final long dirty = todo(score);
+        final long dirty = dirty(score);
 
         if(dirty==0)
             return;
 
-        processor = scores().filter(processor, score);
+        processor = scores().filter(processor, score.value);
 
         if(dirty==-1) {
             // process all
