@@ -4,6 +4,7 @@ import mills.util.Indexed;
 import mills.util.ListSet;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,6 +20,10 @@ public interface Clops extends Indexed {
 
     default int getIndex() {
         return index(pop(), clop());
+    }
+
+    default boolean isEqual(Clops other) {
+        return Objects.equals(pop(), other.pop()) && Objects.equals(clop(), other.clop());
     }
 
     /**
@@ -114,6 +119,16 @@ public interface Clops extends Indexed {
             @Override
             public String toString() {
                 return String.format("%s[%s]", pop, clop);
+            }
+
+            @Override
+            public int hashCode() {
+                return getIndex();
+            }
+
+            @Override
+            public boolean equals(Object other) {
+                return other instanceof Clops && isEqual((Clops)other);
             }
         };
     }

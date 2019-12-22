@@ -168,7 +168,7 @@ abstract class ScoreElevator extends ScoreWorker {
 
                         assert mayTake(i201);
 
-                        return Score.LOST;
+                        return Score.LOST.value;
                     }
 
                     // Debug
@@ -219,7 +219,7 @@ abstract class ScoreElevator extends ScoreWorker {
                             if (size == 0)
                                 return 0;
 
-                            int score = Score.LOST;
+                            int score = Score.LOST.value;
 
                             for (int i = 0; i < size; ++i) {
                                 long t201 = take.get201(i);

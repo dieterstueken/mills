@@ -83,7 +83,7 @@ abstract public class ScoreMap extends ScoreLayer {
 
             @Override
             public int getScore(int index) {
-                return Score.LOST;
+                return Score.LOST.value;
             }
         };
     }

@@ -46,7 +46,7 @@ abstract public class ScoreSlice {
     public final int base;
 
     // max score occurred
-    private int max = 0;
+    protected int max = 0;
 
     // any positions set
     private final long[] dirty = new long[256];

@@ -29,6 +29,8 @@ public class MapSlice extends ScoreSlice {
     // to calculate pending moves
     final Mover mover;
 
+    int pending = 0;
+
     public ScoreMap scores() {
         return scores;
     }
@@ -51,6 +53,16 @@ public class MapSlice extends ScoreSlice {
 
         int posIndex = posIndex(offset);
         scores.setScore(posIndex, score);
+    }
+    
+    public void mark(short offset, int score) {
+        if(score<0) {
+            pending = Math.max(pending, -score);
+        } else
+            super.mark(offset, score);
+
+        if(max+pending>=255)
+            throw new IllegalStateException("score overflow");
     }
 
     private boolean resolved(int current, int newScore) {
@@ -120,15 +132,13 @@ public class MapSlice extends ScoreSlice {
             setScore(offset, 1-unresolved);
     }
 
-
     int unresolved(long i201) {
         Player player = player();
         int stay = Stones.stones(i201, player.other());
         int move = Stones.stones(i201, player);
-        int closed = Stones.closed(move);
-
-        mover.move(stay, move, move^closed);
+        //int closed = Stones.closed(move);
+        // include closed, too
+        mover.move(stay, move, move);
         return mover.normalize().size();
     }
-
 }

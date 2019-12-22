@@ -7,8 +7,8 @@ package mills.score.generator;
  * Time: 20:08
  */
 
+import mills.bits.Clops;
 import mills.bits.Player;
-import mills.bits.PopCount;
 import mills.index.IndexProcessor;
 import mills.position.Positions;
 import mills.score.Score;
@@ -18,12 +18,11 @@ import mills.stones.Stones;
 
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveAction;
 import java.util.function.Function;
 import java.util.function.LongConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static mills.score.Score.Result.LOST;
 
 /**
  * Generate a group of score maps.
@@ -46,9 +45,7 @@ public class GroupGenerator {
         List<ForkJoinTask<?>> tasks = Stream.concat(
                 moved.slices(score).map(move(score)),
                 closed.slices(score).map(close(score))
-        )
-                .map(ForkJoinTask::adapt)
-                .collect(Collectors.toList());
+        ).collect(Collectors.toList());
 
         if(!tasks.isEmpty())
             ForkJoinTask.invokeAll(tasks);
@@ -56,50 +53,46 @@ public class GroupGenerator {
         return tasks.size();
     }
 
-    Function<ScoreSlice, Runnable> move(Score score) {
-
-        if (score.is(LOST)) {
-            return slice -> () -> slice.processScores(moveLost(slice, score), score);
-        } else
-            return slice -> () -> {};
+    Function<ScoreSlice, RecursiveAction> move(Score score) {
+        return slice -> task(slice, score, false);
     }
 
-    Function<ScoreSlice, Runnable> close(Score score) {
-
-        return slice -> () -> {};
+    Function<ScoreSlice, RecursiveAction> close(Score score) {
+        return slice -> task(slice, score, true);
     }
 
-    IndexProcessor moveLost(ScoreSlice slice, Score score) {
+    RecursiveAction task(ScoreSlice slice, Score score, boolean closed) {
 
-        Mover mover = Moves.moves(source.jumps()).mover(slice.player().equals(source.player()));
         Player player = slice.player();
+        boolean swap = slice.player().equals(source.player());
+        Mover mover = Moves.moves(source.jumps()).mover(swap);
+        Score newScore = score.next();
+        LongConsumer analyzer = m201 -> propagate(m201, newScore);
 
-        return (posIndex, i201) -> {
+        IndexProcessor processor = (posIndex, i201) -> {
             // reversed move
             int stay = Stones.stones(i201, player);
             int move = Stones.stones(i201, player.other());
-
-            // no mill was closed
-            int mask = move ^ Stones.closed(move);
-
-            mover.move(stay, move, mask).normalize().analyze(m201 -> propagateLost(m201, score));
+            int mask = Stones.closed(move);
+            if(!closed)
+                mask ^= move;
+            mover.move(stay, move, mask).normalize().analyze(analyzer);
         };
 
+        return new RecursiveAction() {
+
+            @Override
+            protected void compute() {
+                slice.processScores(processor, score);
+            }
+        };
     }
 
-    void propagateLost(long i201, Score score) {
-        PopCount clop = Positions.clop(i201);
-        Slices<? extends MapSlice> slices = source.get(clop);
-        int index = slices.posIndex(i201);
-        int current = slices.scores.getScore(index);
-
-        if(Score.isWon(current) && current <= score.value)
-            return;
-
-        MapSlice slice = slices.get(index);
-        short offset = slice.offset(index);
-
-        slice.submit(()->{});
-
+    void propagate(long i201, Score newScore) {
+        Clops clops = Positions.clops(i201);
+        Slices<? extends MapSlice> slices = source.group.get(clops);
+        int posIndex = slices.scores.index.posIndex(i201);
+        MapSlice mapSlice = slices.get(posIndex);
+        mapSlice.propagate(posIndex, i201, newScore.value);
     }
 }

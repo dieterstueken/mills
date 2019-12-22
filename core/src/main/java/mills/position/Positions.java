@@ -1,5 +1,6 @@
 package mills.position;
 
+import mills.bits.Clops;
 import mills.bits.Perm;
 import mills.bits.Perms;
 import mills.bits.PopCount;
@@ -106,6 +107,10 @@ public interface Positions {
         PopCount rad = r2.radials().and(r0).and(r1).pop;
 
         return clop.add(rad);
+    }
+
+    static Clops clops(long i201) {
+        return Clops.of(pop(i201), clop(i201));
     }
 
     static Position position(long i201) {

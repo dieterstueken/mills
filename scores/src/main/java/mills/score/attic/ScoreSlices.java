@@ -76,7 +76,7 @@ public class ScoreSlices {
 
                     assert slice.getScore(offset) == 0 : "concurrent update of stuck position";
 
-                    slice.setScore(offset, Score.LOST);
+                    slice.setScore(offset, Score.LOST.value);
                 }
             }
 

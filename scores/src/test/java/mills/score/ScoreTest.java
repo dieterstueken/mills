@@ -46,7 +46,7 @@ public class ScoreTest {
         Collections.sort(scores);
 
         for (Score score : scores) {
-            System.out.format("%3d: %s\n", score.score, score.result());
+            System.out.format("%3d: %s\n", score.value, score.result());
 
             compareTest(score, score);
             for (Score ts : test) {
@@ -59,7 +59,7 @@ public class ScoreTest {
 
     private void compareTest(Score s1, Score s2) {
         int cmp = s1.compareTo(s2);
-        boolean betterThan = Score.betterThan(s1.score, s2.score);
+        boolean betterThan = Score.betterThan(s1.value, s2.value);
 
         assertEquals(betterThan, cmp>0);
 

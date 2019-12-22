@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.NotDirectoryException;
-import java.util.function.Predicate;
+import java.util.HashMap;
 
 /**
  * Created by IntelliJ IDEA.
@@ -28,7 +28,7 @@ public class FileGroup extends LayerGroup<ScoreFile> {
     }
 
     private FileGroup(IndexProvider indexes, File dir, PopCount pop, Player player) {
-        super(pop, player);
+        super(pop, player, new HashMap<>());
         this.indexes = indexes;
         this.dir = dir;
     }
@@ -46,44 +46,8 @@ public class FileGroup extends LayerGroup<ScoreFile> {
             throw new NotDirectoryException(dir.toString());
     }
 
-    FileGroup populate() {
-        return populate(null);
-    }
-
-    FileGroup populate(Predicate<PopCount> filter) {
-        // maximum clop
-        PopCount mclop = this.pop.mclop();
-
-        // files are set up but not verified yet
-        PopCount.CLOPS.forEach(clop->{
-            if(filter==null || filter.test(clop))
-                if(clop.le(mclop))
-                    group.put(clop, file(clop));
-        });
-
-        return this;
-    }
-
     boolean exists() {
         return dir.isDirectory();
-    }
-
-    public FileGroup swap() {
-        PopCount swapped = pop.swap();
-        if(swapped.equals(pop))
-            return this;
-
-        return new FileGroup(indexes, dir, swapped, player).populate();
-    }
-
-    public FileGroup down() {
-        PopCount down = pop.sub(player.other().pop);
-        if(down==null)
-            return null;
-
-        // drop group of non closed
-        return new FileGroup(indexes, dir, down, player.other())
-                .populate(clop->!PopCount.EMPTY.equals(clop));
     }
 
     private ScoreFile file(PopCount clop) {
@@ -129,20 +93,5 @@ public class FileGroup extends LayerGroup<ScoreFile> {
             return String.format("p%d%d%c.%s",
                 pop.nb(), pop.nw(),
                 player.key(), ext);
-    }
-
-    //////////////////////////////////////////////////
-
-    public static FileGroup of(IndexProvider indexes, File root, PopCount pop, Player player) throws IOException {
-        if(!root.exists())
-            root.mkdirs();
-
-        if(!root.isDirectory())
-            throw new NotDirectoryException(root.toString());
-
-        //String name = String.format("p%d%d%c", pop.nb(), pop.nw(), player.key());
-        //File dir = new File(root, name);
-
-        return new FileGroup(indexes, root, pop, player).populate();
     }
 }

@@ -52,6 +52,10 @@ public class Score implements Comparable<Score> {
         return value;
     }
 
+    public Score next() {
+        return Score.of(value+1);
+    }
+
     @Override
     public int compareTo(Score other) {
 
@@ -77,8 +81,10 @@ public class Score implements Comparable<Score> {
 
     ////////////////////////////////////////////////////////////
 
-    public static final int LOST = 1;
-    public static final int WON = 2;
+
+    public static final Score DRAWN = Score.of(0);
+    public static final Score LOST = Score.of(1);
+    public static final Score WON = Score.of(2);
 
     public static Score of(int score) {
         return SCORES.get(score);
