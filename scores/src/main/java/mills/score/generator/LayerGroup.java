@@ -30,6 +30,10 @@ public class LayerGroup<T extends IndexLayer> implements Layer {
         this(layer.pop(), layer.player(), group);
     }
 
+    public void add(T layer) {
+        group.put(Clops.of(layer), layer);
+    }
+
     @Override
     public PopCount pop() {
         return pop;

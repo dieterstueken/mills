@@ -81,6 +81,7 @@ public class Score implements Comparable<Score> {
 
     ////////////////////////////////////////////////////////////
 
+    public static final List<Score> SCORES = AbstractRandomList.generate(256, Score::new);
 
     public static final Score DRAWN = Score.of(0);
     public static final Score LOST = Score.of(1);
@@ -89,9 +90,7 @@ public class Score implements Comparable<Score> {
     public static Score of(int score) {
         return SCORES.get(score);
     }
-
-    public static final List<Score> SCORES = AbstractRandomList.generate(256, Score::new);
-
+    
     public static boolean isWon(int score) {
         return score>0 && ((score & 1) == 0);
     }

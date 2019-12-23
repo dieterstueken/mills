@@ -32,12 +32,13 @@ public class GroupGenerator {
 
     final SlicesGroup<? extends ScoreSlice> moved;
     final SlicesGroup<? extends ScoreSlice> closed;
-    final SlicesGroup<? extends MapSlice> source;
+    final SlicesGroup<? extends MapSlice> target;
 
-    public GroupGenerator(SlicesGroup<MapSlice> moved, SlicesGroup<MapSlice> closed, SlicesGroup<MapSlice> source) {
+    public GroupGenerator(SlicesGroup<? extends MapSlice> target, SlicesGroup<? extends ScoreSlice> moved,
+                          SlicesGroup<? extends ScoreSlice> closed) {
         this.moved = moved;
         this.closed = closed;
-        this.source = source;
+        this.target = target;
     }
 
     public int process(Score score) {
@@ -64,8 +65,8 @@ public class GroupGenerator {
     RecursiveAction task(ScoreSlice slice, Score score, boolean closed) {
 
         Player player = slice.player();
-        boolean swap = slice.player().equals(source.player());
-        Mover mover = Moves.moves(source.jumps()).mover(swap);
+        boolean swap = slice.player().equals(target.player());
+        Mover mover = Moves.moves(target.jumps()).mover(swap);
         Score newScore = score.next();
         LongConsumer analyzer = m201 -> propagate(m201, newScore);
 
@@ -90,7 +91,7 @@ public class GroupGenerator {
 
     void propagate(long i201, Score newScore) {
         Clops clops = Positions.clops(i201);
-        Slices<? extends MapSlice> slices = source.group.get(clops);
+        Slices<? extends MapSlice> slices = target.group.get(clops);
         int posIndex = slices.scores.index.posIndex(i201);
         MapSlice mapSlice = slices.get(posIndex);
         mapSlice.propagate(posIndex, i201, newScore.value);

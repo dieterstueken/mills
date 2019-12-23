@@ -16,13 +16,13 @@ import mills.position.Position;
  * Class ScoreSet represents a read only view of scores for a given index (pop:clop).
  * ScoreSets may be purely virtual if they refer to an IndexLayer which is completely lost.
  */
-abstract public class ScoreLayer implements IndexLayer, AutoCloseable {
+abstract public class ScoreSet implements IndexLayer, AutoCloseable {
 
     final PosIndex index;
 
     final Player player;
 
-    public ScoreLayer(PosIndex index, Player player) {
+    public ScoreSet(PosIndex index, Player player) {
         this.index = index;
         this.player = player;
     }

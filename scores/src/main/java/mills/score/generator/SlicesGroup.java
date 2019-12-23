@@ -1,6 +1,8 @@
 package mills.score.generator;
 
 import mills.bits.Clops;
+import mills.bits.Player;
+import mills.bits.PopCount;
 import mills.score.Score;
 
 import java.util.Map;
@@ -14,8 +16,8 @@ import java.util.stream.Stream;
  */
 public class SlicesGroup<Slice extends ScoreSlice> extends LayerGroup<Slices<Slice>> {
 
-    public SlicesGroup(Layer layer, Map<Clops, Slices<Slice>> slices) {
-        super(layer, slices);
+    public SlicesGroup(PopCount pop, Player player, Map<Clops, Slices<Slice>> slices) {
+        super(pop, player, slices);
     }
 
     Stream<? extends Slice> slices() {

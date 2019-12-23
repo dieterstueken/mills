@@ -17,11 +17,11 @@ import java.util.stream.Stream;
  */
 public class Slices<Slice extends ScoreSlice> implements IndexLayer {
 
-    public final ScoreLayer scores;
+    public final ScoreSet scores;
 
     public final List<? extends Slice> slices;
 
-    Slices(ScoreLayer scores, List<? extends Slice> slices) {
+    Slices(ScoreSet scores, List<? extends Slice> slices) {
         this.scores = scores;
         this.slices = slices;
     }
@@ -50,18 +50,6 @@ public class Slices<Slice extends ScoreSlice> implements IndexLayer {
         return String.format("ScoreSlices %s (%d)", scores, max());
     }
 
-    /**
-     * Lookup a score based on a i201 mask.
-     *
-     * @param i201 position to look up.
-     * @return current score or count down
-     */
-    public int getScore201(long i201) {
-        int index = scores.posIndex(i201);
-        Slice slice = get(index);
-        return slice.getScore(index);
-    }
-
     public int getScore(int posIndex) {
         return scores.getScore(posIndex);
     }
@@ -85,13 +73,13 @@ public class Slices<Slice extends ScoreSlice> implements IndexLayer {
     }
 
     public static <Slice extends ScoreSlice> Slices<Slice>
-    generate(ScoreLayer scores, IntFunction<? extends Slice> slice) {
+    generate(ScoreSet scores, IntFunction<? extends Slice> slice) {
         int count = ScoreSlice.sliceCount(scores);
         List<Slice> slices = AbstractRandomList.generate(count, slice);
         return new Slices<>(scores, slices);
     }
 
-    ScoreLayer scores() {
+    ScoreSet scores() {
         return scores;
     }
 

@@ -27,15 +27,15 @@ abstract public class ScoreSlice {
     // a dirty block
     public static final int BLOCK = SIZE/Long.SIZE;
 
-    public static int sliceCount(ScoreLayer scores) {
+    public static int sliceCount(ScoreSet scores) {
         return (scores.size() + SIZE - 1) / SIZE;
     }
 
-    static ScoreSlice of(ScoreLayer scores, int index) {
+    static ScoreSlice of(ScoreSet scores, int index) {
         return new ScoreSlice(index) {
 
             @Override
-            public ScoreLayer scores() {
+            public ScoreSet scores() {
                 return scores;
             }
         };
@@ -49,7 +49,7 @@ abstract public class ScoreSlice {
     protected int max = 0;
 
     // any positions set
-    private final long[] dirty = new long[256];
+    protected long[] dirty = new long[256];
 
     public int max() {
         return max;
@@ -63,10 +63,10 @@ abstract public class ScoreSlice {
         return dirty[score]!=0;
     }
 
-    public long dirty(Score score) {
-        long dirty = this.dirty[score.value];
+    public long marked(Score score) {
+        long marked = this.dirty[score.value];
         //this.dirty[score] = 0;
-        return dirty;
+        return marked;
     }
 
     public void mark(short offset, int score) {
@@ -91,10 +91,10 @@ abstract public class ScoreSlice {
      * @return a read only slice;
      */
     ScoreSlice newSlice(int index) {
-        ScoreLayer scores = scores();
+        ScoreSet scores = scores();
         return new ScoreSlice(index) {
             @Override
-            public ScoreLayer scores() {
+            public ScoreSet scores() {
                 return scores;
             }
         };
@@ -105,7 +105,7 @@ abstract public class ScoreSlice {
             return String.format("%s[%d]@%d", scores(), sliceIndex(), max);
         }
 
-    abstract public ScoreLayer scores();
+    abstract public ScoreSet scores();
 
     public PopCount pop() {
         return scores().pop();
@@ -195,14 +195,14 @@ abstract public class ScoreSlice {
      */
     public void processScores(IndexProcessor processor, Score score) {
 
-        final long dirty = dirty(score);
+        final long marked = marked(score);
 
-        if(dirty==0)
+        if(marked==0)
             return;
 
         processor = scores().filter(processor, score.value);
 
-        if(dirty==-1) {
+        if(marked==-1) {
             // process all
             process(processor);
             return;
@@ -210,7 +210,7 @@ abstract public class ScoreSlice {
 
         int start = base;
         final int next = base+size();
-        long todo = dirty;
+        long todo = marked;
 
         while(todo!=0) {
             final int skip = Long.numberOfTrailingZeros(todo);
