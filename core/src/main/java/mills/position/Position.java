@@ -26,6 +26,13 @@ public class Position implements Comparable<Position> {
 
     public interface Factory {
         Position position(long i201);
+        default Position position(int i2, int i0, int i1) {
+            return position(i201((short)i2, (short)i0, (short)i1));
+        }
+    }
+
+    public static Position of(long i201) {
+        return new Position(i201);
     }
 
     // ordering: i1:i0:i2
@@ -34,7 +41,7 @@ public class Position implements Comparable<Position> {
 
     public final PopCount pop;
     public final PopCount clop;
-    public final boolean normalized;
+    public final boolean isNormalized;
     public final int perm;
     public final RingEntry r2;
     public final RingEntry r0;
@@ -50,24 +57,15 @@ public class Position implements Comparable<Position> {
             return this;
 
         long p201 = Positions.permute(i201, perm);
-        return of(p201);
+        return position(p201);
     }
 
     public Position permute(Perm perm) {
         return permute(perm.ordinal());
     }
 
-    public static Position of(int i2, int i0, int i1) {
-        return of(i201((short)i2, (short)i0, (short)i1));
-    }
-
-    public static Position of(long i201) {
-        return new Position(i201);
-    }
-
-    public Position inverted() {
-        long x201 = Positions.inverted(i201);
-        return new Position(x201);
+    public Position position(long i201) {
+        return of(i201);
     }
 
     public Position(long i201) {
@@ -76,7 +74,7 @@ public class Position implements Comparable<Position> {
 
         pop = pop(i201);
         clop = Positions.clop(i201);
-        normalized = normalized(i201);
+        isNormalized = normalized(i201);
         perm = perms(i201);
 
         r2 = r2(i201);
@@ -97,7 +95,7 @@ public class Position implements Comparable<Position> {
 
     public StringBuilder format(StringBuilder sb) {
         sb.append(pop.nb);
-        sb.append(normalized ? "!": ":");
+        sb.append(isNormalized ? "!": ":");
         sb.append(pop.nw);
         sb.append('[').append(clop).append(']');
 

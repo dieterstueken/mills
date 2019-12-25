@@ -4,6 +4,8 @@ import mills.bits.Player;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
 import mills.position.Position;
+import mills.stones.Mover;
+import mills.stones.Moves;
 
 /**
  * Created by IntelliJ IDEA.
@@ -31,6 +33,10 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
         return index.range();
     }
 
+    Mover mover(Player player) {
+        return Moves.moves(jumps()).mover(player!=this.player());
+    }
+
     abstract public int getScore(int index);
 
     public void process(IndexProcessor processor, int base, int end) {
@@ -56,7 +62,7 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
         int posIndex = index.posIndex(i201);
 
         if(posIndex<0) {
-            Position pos = position(i201);
+            Position pos = position(i201, player());
             index.posIndex(i201);
             throw new IllegalStateException("missing index on:" + pos.toString());
         }
@@ -66,10 +72,6 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
 
     public long i201(int posIndex) {
         return index.i201(posIndex);
-    }
-
-    public ScoredPosition position(long i201) {
-        return new ScoredPosition(i201);
     }
 
     public void close() { }
@@ -82,36 +84,12 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
         return Slices.generate(this, this::openSlice);
     }
 
-    private class ScoredPosition extends Position {
-
-        final ScoredPosition normalized;
-
-        final int posIndex;
-        final int score;
-
-        public ScoredPosition(long i201) {
-            super(i201);
-
-            posIndex = index.posIndex(i201);
-            score = posIndex < 0 ? -1 : getScore(posIndex);
-
-            if (super.normalized)
-                normalized = this;
-            else
-                normalized = position(i201(posIndex));
-        }
-
-        public ScoredPosition position(long i201) {
-            return new ScoredPosition(i201);
-        }
-
-        @Override
-        public StringBuilder format(StringBuilder sb) {
-            sb = super.format(sb);
-            sb.insert(3, player().key());
-            sb.append(" ").append(posIndex).append(" : ");
-            sb.append(score);
-            return sb;
-        }
+    public ScoredPosition position(long i201) {
+        return position(i201, player);
     }
+
+    public ScoredPosition position(long i201, Player player) {
+        return new ScoredPosition(this, i201, player);
+    }
+
 }

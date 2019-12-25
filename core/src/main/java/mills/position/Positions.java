@@ -114,7 +114,7 @@ public interface Positions {
     }
 
     static Position position(long i201) {
-        return new Position(i201);
+        return Position.of(i201);
     }
 
     static boolean equals(long p1, long p2) {

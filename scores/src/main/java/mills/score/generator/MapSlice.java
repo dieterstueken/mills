@@ -3,7 +3,6 @@ package mills.score.generator;
 import mills.bits.Player;
 import mills.score.Score;
 import mills.stones.Mover;
-import mills.stones.Moves;
 import mills.stones.Stones;
 import mills.util.QueueActor;
 
@@ -45,7 +44,7 @@ public class MapSlice extends ScoreSlice {
 
         this.scores = scores;
 
-        mover = Moves.moves(scores().jumps()).mover(player()==Player.Black);
+        mover = scores.mover(player());
     }
 
     void setScore(short offset, int score) {

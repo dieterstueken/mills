@@ -1,9 +1,12 @@
 package mills.stones;
 
 import mills.position.Positions;
+import mills.util.AbstractRandomList;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.LongConsumer;
+import java.util.function.LongFunction;
 
 /**
  * Created by IntelliJ IDEA.
@@ -40,6 +43,21 @@ public class Mover implements Moves.Process {
 
     public long get201(int index) {
         return positions[index];
+    }
+
+    public <T> List<T> transform(LongFunction<T> generator) {
+        return new AbstractRandomList<>() {
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public T get(int index) {
+                return generator.apply(get201(index));
+            }
+        };
     }
 
     public Mover move(int stay, int move, int mask) {

@@ -71,7 +71,7 @@ abstract public class BW extends Patterns implements Indexed {
         return pattern(new StringBuilder()).toString();
     }
     
-    private static final char[] SIG = {'⏤', '⚫', '⚪'};
+    private static final char[] SIG = {'⏤', 'X', 'O'};
 
     public StringBuilder pattern(StringBuilder pattern) {
 

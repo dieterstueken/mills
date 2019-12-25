@@ -33,6 +33,7 @@ public class GroupGeneratorTest {
     PosIndex i33c11 = indexes.build(p33, c11);
 
     Player b = Player.Black;
+    Player w = Player.White;
 
     @Test
     public void process() {
@@ -40,12 +41,13 @@ public class GroupGeneratorTest {
         SlicesGroup<ScoreSlice> closed = closed();
         SlicesGroup<MapSlice> target = target();
 
-        GroupGenerator generator = new GroupGenerator(target, target, closed);
+        GroupGenerator generator = new GroupGenerator(target, closed);
+        GroupGenerators generators = new GroupGenerators(generator);
 
         Score score = Score.LOST;
 
         while(true) {
-            int n = generator.process(score);
+            int n = generators.process(score);
             if(n==0)
                 break;
             else
@@ -57,18 +59,18 @@ public class GroupGeneratorTest {
 
     SlicesGroup<MapSlice> target() {
         SlicesGroup<MapSlice> group = new SlicesGroup<>(p33, b, new HashMap<>());
-        group.add(target(i33c00, b));
-        group.add(target(i33c01, b));
-        group.add(target(i33c10, b));
-        group.add(target(i33c10, b));
+        group.add(target(i33c00, w));
+        group.add(target(i33c01, w));
+        group.add(target(i33c10, w));
+        group.add(target(i33c10, w));
         return group;
     }
 
     SlicesGroup<ScoreSlice> closed() {
 
         SlicesGroup<ScoreSlice> group = new SlicesGroup<>(p33, b, new HashMap<>());
-        group.add(lost(i33c10, b));
-        group.add(lost(i33c11, b));
+        group.add(lost(i33c10, w));
+        group.add(lost(i33c11, w));
         return group;
     }
 

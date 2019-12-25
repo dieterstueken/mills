@@ -16,13 +16,8 @@ import mills.stones.Mover;
 import mills.stones.Moves;
 import mills.stones.Stones;
 
-import java.util.List;
-import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
-import java.util.function.Function;
 import java.util.function.LongConsumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Generate a group of score maps.
@@ -30,43 +25,20 @@ import java.util.stream.Stream;
  */
 public class GroupGenerator {
 
-    final SlicesGroup<? extends ScoreSlice> moved;
+    final SlicesGroup<? extends MapSlice> moved;
     final SlicesGroup<? extends ScoreSlice> closed;
-    final SlicesGroup<? extends MapSlice> target;
 
-    public GroupGenerator(SlicesGroup<? extends MapSlice> target, SlicesGroup<? extends ScoreSlice> moved,
+    public GroupGenerator(SlicesGroup<? extends MapSlice> moved,
                           SlicesGroup<? extends ScoreSlice> closed) {
         this.moved = moved;
         this.closed = closed;
-        this.target = target;
     }
 
-    public int process(Score score) {
-
-        List<ForkJoinTask<?>> tasks = Stream.concat(
-                moved.slices(score).map(move(score)),
-                closed.slices(score).map(close(score))
-        ).collect(Collectors.toList());
-
-        if(!tasks.isEmpty())
-            ForkJoinTask.invokeAll(tasks);
-
-        return tasks.size();
-    }
-
-    Function<ScoreSlice, RecursiveAction> move(Score score) {
-        return slice -> task(slice, score, false);
-    }
-
-    Function<ScoreSlice, RecursiveAction> close(Score score) {
-        return slice -> task(slice, score, true);
-    }
-
-    RecursiveAction task(ScoreSlice slice, Score score, boolean closed) {
+    RecursiveAction propagator(ScoreSlice slice, Score score, boolean closed) {
 
         Player player = slice.player();
-        boolean swap = slice.player().equals(target.player());
-        Mover mover = Moves.moves(target.jumps()).mover(swap);
+        boolean swap = slice.player().equals(moved.player());
+        Mover mover = Moves.moves(moved.jumps()).mover(swap);
         Score newScore = score.next();
         LongConsumer analyzer = m201 -> propagate(m201, newScore);
 
@@ -91,7 +63,7 @@ public class GroupGenerator {
 
     void propagate(long i201, Score newScore) {
         Clops clops = Positions.clops(i201);
-        Slices<? extends MapSlice> slices = target.group.get(clops);
+        Slices<? extends MapSlice> slices = moved.group.get(clops);
         int posIndex = slices.scores.index.posIndex(i201);
         MapSlice mapSlice = slices.get(posIndex);
         mapSlice.propagate(posIndex, i201, newScore.value);

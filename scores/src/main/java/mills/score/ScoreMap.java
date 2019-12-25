@@ -125,7 +125,7 @@ public class ScoreMap implements Position.Factory, Closeable {
             posIndex = index.posIndex(i201);
             score = posIndex<0 ? -1 : getScore(posIndex);
 
-            if(super.normalized)
+            if(super.isNormalized)
                 normalized = this;
             else
                 normalized = position(i201(posIndex));
