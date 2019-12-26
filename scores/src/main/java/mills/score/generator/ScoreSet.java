@@ -89,7 +89,7 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
     }
 
     public ScoredPosition position(long i201, Player player) {
-        return new ScoredPosition(this, i201, player);
+        return new ScoredPosition(this, i201, player, null);
     }
 
 }

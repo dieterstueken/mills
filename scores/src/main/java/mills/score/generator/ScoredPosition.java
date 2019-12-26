@@ -15,15 +15,19 @@ class ScoredPosition extends Position {
     final ScoredPosition normalized;
     final ScoredPosition inverted;
 
+    protected ScoredPosition position(long i201, Player player, ScoredPosition inverted) {
+        return new ScoredPosition(scores, i201, player, inverted);
+    }
+
     public ScoredPosition position(long i201, Player player) {
-        return scores.position(i201, player);
+        return position(i201, player, null);
     }
 
     public ScoredPosition position(long i201) {
         return position(i201, this.player);
     }
 
-    public ScoredPosition(ScoreSet scores, long i201, Player player) {
+    public ScoredPosition(ScoreSet scores, long i201, Player player, ScoredPosition inverted) {
         super(i201);
         this.scores = scores;
         this.player = player;
@@ -36,9 +40,9 @@ class ScoredPosition extends Position {
         if (super.isNormalized)
             normalized = this;
         else
-            normalized = scores.position(Positions.normalize(i201), player);
+            normalized = position(Positions.normalize(i201), player);
 
-        inverted = scores.position(j201, player.other());
+        this.inverted = inverted!=null ? inverted : position(j201, player.other(), this);
     }
 
     @Override

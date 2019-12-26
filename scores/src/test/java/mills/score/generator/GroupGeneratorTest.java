@@ -58,7 +58,7 @@ public class GroupGeneratorTest {
     }
 
     SlicesGroup<MapSlice> target() {
-        SlicesGroup<MapSlice> group = new SlicesGroup<>(p33, b, new HashMap<>());
+        SlicesGroup<MapSlice> group = new SlicesGroup<>(p33, w, new HashMap<>());
         group.add(target(i33c00, w));
         group.add(target(i33c01, w));
         group.add(target(i33c10, w));
@@ -68,7 +68,7 @@ public class GroupGeneratorTest {
 
     SlicesGroup<ScoreSlice> closed() {
 
-        SlicesGroup<ScoreSlice> group = new SlicesGroup<>(p33, b, new HashMap<>());
+        SlicesGroup<ScoreSlice> group = new SlicesGroup<>(p33, w, new HashMap<>());
         group.add(lost(i33c10, w));
         group.add(lost(i33c11, w));
         return group;

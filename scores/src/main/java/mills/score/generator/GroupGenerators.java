@@ -2,6 +2,8 @@ package mills.score.generator;
 
 import mills.bits.Clops;
 import mills.bits.Player;
+import mills.bits.PopCount;
+import mills.index.IndexProcessor;
 import mills.position.Positions;
 import mills.score.Score;
 import mills.stones.Mover;
@@ -44,11 +46,21 @@ public class GroupGenerators {
             //ForkJoinTask.invokeAll(tasks);
         }
 
+        Long i201 = self.moved.group.get(Clops.of(self.moved.pop(), PopCount.EMPTY)).index().i201(0);
+        MovedPosition pos = movedPosition(i201, Player.White);
+
         return tasks.size();
     }
 
     Function<ScoreSlice, RecursiveAction> task(Score score, boolean close) {
-        return slice -> other.propagator(slice, score, close);
+        return slice -> new RecursiveAction() {
+
+            @Override
+            protected void compute() {
+                IndexProcessor processor = other.processor(slice.player(), score, close);
+                slice.processScores(processor, score);
+            }
+        };
     }
 
     public MovedPosition movedPosition(long i201, Player player) {
@@ -56,7 +68,7 @@ public class GroupGenerators {
         long j201 = inverted ? Positions.inverted(i201) : i201;
         Clops clops = Positions.clops(j201);
         ScoreSet scores = self.moved.group.get(clops).scores;
-        return new MovedPosition(scores, i201, player);
+        return new MovedPosition(scores, i201, player, null);
     }
 
     public ScoredPosition closedPosition(long i201, Player player) {
@@ -68,8 +80,13 @@ public class GroupGenerators {
         final List<MovedPosition> moved;
         final List<ScoredPosition> closed;
 
-        public MovedPosition(ScoreSet scores, long i201, Player player) {
-            super(scores, i201, player);
+        @Override
+        protected MovedPosition position(long i201, Player player, ScoredPosition inverted) {
+            return new MovedPosition(scores, i201, player, inverted);
+        }
+
+        public MovedPosition(ScoreSet scores, long i201, Player player, ScoredPosition inverted) {
+            super(scores, i201, player, inverted);
 
             moved = moved();
             closed = closed();
