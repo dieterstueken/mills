@@ -46,7 +46,7 @@ public class SlicesGroup<Slice extends ScoreSlice> extends LayerGroup<Slices<Sli
         return max;
     }
 
-    public void close() {
+    public void closeAll() {
         group.values().forEach(Slices::close);
     }
 
@@ -55,5 +55,9 @@ public class SlicesGroup<Slice extends ScoreSlice> extends LayerGroup<Slices<Sli
         long j201 = inverted ? Positions.inverted(i201) : i201;
         Clops clops = Positions.clops(j201);
         return group.get(clops).scores.position(i201, player);
+    }
+
+    public ScoredPosition position(long i201) {
+        return position(i201, this.player());
     }
 }

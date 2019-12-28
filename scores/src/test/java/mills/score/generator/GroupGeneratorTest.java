@@ -28,8 +28,8 @@ public class GroupGeneratorTest {
     PopCount c11 = PopCount.of(1,1);
 
     PosIndex i33c00 = indexes.build(p33, c00);
-    PosIndex i33c01 = indexes.build(p33, c10);
-    PosIndex i33c10 = indexes.build(p33, c01);
+    PosIndex i33c01 = indexes.build(p33, c01);
+    PosIndex i33c10 = indexes.build(p33, c10);
     PosIndex i33c11 = indexes.build(p33, c11);
 
     Player b = Player.Black;
@@ -62,25 +62,25 @@ public class GroupGeneratorTest {
         group.add(target(i33c00, w));
         group.add(target(i33c01, w));
         group.add(target(i33c10, w));
-        group.add(target(i33c10, w));
+        group.add(target(i33c11, w));
         return group;
     }
 
     SlicesGroup<ScoreSlice> closed() {
 
         SlicesGroup<ScoreSlice> group = new SlicesGroup<>(p33, w, new HashMap<>());
-        group.add(lost(i33c10, w));
-        group.add(lost(i33c11, w));
+        group.add(closed(i33c10, w));
+        group.add(closed(i33c11, w));
         return group;
     }
 
-    Slices<ScoreSlice> lost(PosIndex index, Player player) {
+    Slices<ScoreSlice> closed(PosIndex index, Player player) {
 
         ScoreSet scores = new ScoreSet(index, player) {
 
             @Override
             public String toString() {
-                return String.format("lost(%s%c)", pop(), player.key());
+                return String.format("lost(%s%c%s)", pop(), player.key(), clop());
             }
 
             @Override

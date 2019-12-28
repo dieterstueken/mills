@@ -4,6 +4,7 @@ import mills.bits.Player;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
 import mills.position.Position;
+import mills.position.Positions;
 import mills.stones.Mover;
 import mills.stones.Moves;
 
@@ -27,6 +28,10 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
     public ScoreSet(PosIndex index, Player player) {
         this.index = index;
         this.player = player;
+    }
+
+    public String toString() {
+        return String.format("%s%c%s", pop(), player().key(), clop());
     }
 
     public int size() {
@@ -89,7 +94,13 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
     }
 
     public ScoredPosition position(long i201, Player player) {
-        return new ScoredPosition(this, i201, player, null);
-    }
+        boolean inverted = player==this.player;
 
+        int posIndex = index.posIndex(inverted ? Positions.inverted(i201) : i201);
+        int score = getScore(posIndex);
+
+        // todo: max value
+
+        return new ScoredPosition(i201, player, score, null);
+    }
 }

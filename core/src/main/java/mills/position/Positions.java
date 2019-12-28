@@ -219,7 +219,7 @@ public interface Positions {
             }
         }
 
-        return m201;
+        return m201 | NORMALIZED;
     }
 
     static long normalize(final long i201) {
@@ -241,6 +241,6 @@ public interface Positions {
         // apply change
         n201 ^= p201;
 
-        return n201;
+        return n201 | NORMALIZED;
     }
 }

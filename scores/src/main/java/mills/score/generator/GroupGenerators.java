@@ -42,7 +42,9 @@ public class GroupGenerators {
         ).collect(Collectors.toList());
 
         if (!tasks.isEmpty()) {
-            tasks.forEach(ForkJoinTask::invoke);
+            for (ForkJoinTask<?> task : tasks) {
+                task.invoke();
+            }
             //ForkJoinTask.invokeAll(tasks);
         }
 
@@ -57,7 +59,7 @@ public class GroupGenerators {
 
             @Override
             protected void compute() {
-                IndexProcessor processor = other.processor(slice.player(), score, close);
+                IndexProcessor processor = other.processor(slice, score, close);
                 slice.processScores(processor, score);
             }
         };
