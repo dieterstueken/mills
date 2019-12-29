@@ -102,4 +102,9 @@ public class Slices<Slice extends ScoreSlice> implements IndexLayer {
     public Player player() {
         return scores.player();
     }
+
+    public int getScore(long i201) {
+        int posIndex = scores.index.posIndex(i201);
+        return get(posIndex).getScore(posIndex);
+    }
 }

@@ -1,10 +1,11 @@
 package mills.score.generator;
 
 import mills.bits.Player;
+import mills.bits.PopCount;
 import mills.position.Position;
 import mills.position.Positions;
 
-class ScoredPosition extends Position {
+class ScoredPosition extends Position implements Layer {
 
     final Player player;
     final int score;
@@ -42,5 +43,15 @@ class ScoredPosition extends Position {
         sb.append(':');
         sb.append(score);
         return sb;
+    }
+
+    @Override
+    public PopCount pop() {
+        return pop;
+    }
+
+    @Override
+    public Player player() {
+        return player;
     }
 }

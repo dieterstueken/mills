@@ -50,6 +50,11 @@ public class SlicesGroup<Slice extends ScoreSlice> extends LayerGroup<Slices<Sli
         group.values().forEach(Slices::close);
     }
 
+    public int getScore(long i201) {
+        Clops clops = Positions.clops(i201);
+        return group.get(clops).getScore(i201);
+    }
+
     public ScoredPosition position(long i201, Player player) {
         boolean inverted = player!=this.player();
         long j201 = inverted ? Positions.inverted(i201) : i201;
