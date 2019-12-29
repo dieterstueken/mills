@@ -59,8 +59,8 @@ abstract public class ScoreSlice {
         return score.value<=max;
     }
 
-    public boolean any(int score) {
-        return dirty[score]!=0;
+    public boolean any(Score score) {
+        return dirty[score.value]!=0;
     }
 
     public long marked(Score score) {

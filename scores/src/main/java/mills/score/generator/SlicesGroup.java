@@ -55,14 +55,16 @@ public class SlicesGroup<Slice extends ScoreSlice> extends LayerGroup<Slices<Sli
         return group.get(clops).getScore(i201);
     }
 
-    public ScoredPosition position(long i201, Player player) {
-        boolean inverted = player!=this.player();
-        long j201 = inverted ? Positions.inverted(i201) : i201;
-        Clops clops = Positions.clops(j201);
+    public ScoredPosition position(long i201) {
+        Clops clops = Positions.clops(i201);
         return group.get(clops).scores.position(i201, player);
     }
 
-    public ScoredPosition position(long i201) {
-        return position(i201, this.player());
+    public ScoredPosition position(long i201, Player player) {
+        if(player==this.player)
+            return position(i201);
+
+        i201 = Positions.inverted(i201);
+        return position(i201).inverted;
     }
 }
