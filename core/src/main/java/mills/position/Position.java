@@ -64,7 +64,7 @@ public class Position implements Comparable<Position> {
         return permute(perm.ordinal());
     }
 
-    public Position position(long i201) {
+    protected Position position(long i201) {
         return of(i201);
     }
 

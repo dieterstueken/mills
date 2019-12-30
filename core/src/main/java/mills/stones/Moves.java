@@ -102,14 +102,18 @@ abstract public class Moves {
      * @param stay stones
      * @param move stones
      * @param mask stones to be moved
+     * @param free stones to move to
      * @return # of different mv or -n-1 if aborted
      */
-    public int move(final int stay, final int move, final int mask, Process target) {
+    public int move(final int stay, final int move, final int mask, final int free, Process target) {
 
         if(mask==0)
             return 0;
 
-        final int free = Stones.STONES ^ (stay|move);
+        if((free&Stones.STONES)==Stones.STONES)
+            return 0;
+
+        //final int free = Stones.STONES ^ (stay|move);
         int n=0;
 
         // try all possible mv
@@ -136,6 +140,17 @@ abstract public class Moves {
         }
 
         return n;
+    }
+
+    /**
+     * Move stones.
+     * @param stay stones
+     * @param move stones
+     * @param mask stones to be moved
+     * @return # of different mv or -n-1 if aborted
+     */
+    public int move(final int stay, final int move, final int mask, Process target) {
+        return move(stay, move, mask, Stones.STONES ^ (stay|move), target);
     }
 
     private static final Process ANY = new Process() {

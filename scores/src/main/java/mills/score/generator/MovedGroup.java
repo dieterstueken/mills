@@ -6,13 +6,13 @@ import mills.bits.PopCount;
 import mills.index.IndexProcessor;
 import mills.position.Positions;
 import mills.score.Score;
+import mills.stones.Mover;
 import mills.stones.Moves;
 import mills.stones.Stones;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.LongConsumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -32,73 +32,79 @@ public class MovedGroup extends MovingGroup<MapSlice> {
 
     public boolean propagate(MovedGroup target, Score score) {
 
-        List<? extends ScoreSlice> slices = Stream.concat(group.values().stream(), closed.group.values().stream())
-                .flatMap(Slices::stream)
-                .filter(slice->slice.hasScores(score))
-                .collect(Collectors.toList());
+        DEBUG = score.value>1;
 
-        if(slices.isEmpty())
+        BiConsumer<MovingGroup<?>, ScoreSlice> processors = (group, slice) -> {
+            LongConsumer analyzer = m201 -> target.propagate(this, m201, score.next());
+            IndexProcessor processor = group.processor(target, analyzer);
+            slice.processScores(processor, score);
+        };
+
+        Stream<Runnable> movingTasks = this.propagate(score, processors);
+        Stream<Runnable> closingTasks = closed.propagate(score, processors);
+
+        Stream<? extends Runnable> tasks = join(closingTasks, movingTasks);
+        if(tasks==null)
             return false;
 
-        slices.parallelStream()
-                .filter(slice -> slice.any(score))
-                .forEach(slice -> {
-                    LongConsumer analyzer = m201 -> target.propagate(this, m201, score.next());
-                    IndexProcessor processor = processor(target, analyzer);
-                    slice.processScores(processor, score);
-                });
+        tasks.forEach(Runnable::run);
 
         return true;
+    }
+
+    static <T> Stream<? extends T> join(Stream<? extends T> a, Stream<? extends T> b) {
+        if(a==null)
+            return b;
+
+        if(b==null)
+            return a;
+
+        return Stream.concat(a,b);
+
     }
 
     void propagate(MovedGroup source, long i201, Score newScore) {
         Clops clops = Positions.clops(i201);
         Slices<? extends MapSlice> slices = group.get(clops);
-        debug(source, i201);
+        ScoredPosition debug = debug(source, i201);
         int posIndex = slices.scores.index.posIndex(i201);
         MapSlice mapSlice = slices.get(posIndex);
         mapSlice.propagate(posIndex, i201, newScore.value);
     }
 
-    public class MovedPosition extends ScoredPosition {
-
-        final MovedGroup target;
-
-        final List<ScoredPosition> moved = new ArrayList<>();
-
-        @Override
-        protected MovedPosition position(long i201, Player player, int score, ScoredPosition inverted) {
-            return new MovedPosition(target, i201, player, score, inverted);
-        }
-
-        public MovedPosition(MovedGroup target, long i201, Player player, int score, ScoredPosition inverted) {
-            super(i201, player, score, inverted);
-            this.target = target;
-
-            Moves moves = Moves.moves(jumps());
-            int stay = Stones.stones(i201, player.other());
-            int move = Stones.stones(i201, player);
-            int closed = Stones.closed(move);
-            moves.move(stay, move, move, (s, m, mask) -> {
-                int moved = move ^ mask;
-                long m201 = player==Player.White ? Stones.i201(stay, moved) : Stones.i201(moved, stay);
-                boolean closing = (Stones.closed(moved) & ~closed) != 0;
-                ScoredPosition position = movedPosition(target, m201, closing);
-                this.moved.add(position);
-                return !Moves.ABORT;
-            });
-        }
-    }
-
-    public ScoredPosition movedPosition(MovedGroup target, long i201, boolean closing) {
-        if(closing)
-            return closed.position(i201, player.other());
-        else
-            return this.position(target, i201, player.other());
-    }
-
-    public MovedPosition position(MovedGroup target, long i201) {
+    @Override
+    protected MovedPosition position(MovedGroup source, long i201) {
+        List<? extends ScoredPosition> movedPositions = movedPositions(this, i201);
+        List<? extends ScoredPosition> closedPositions = movedPositions(closed, i201);
         int score = getScore(i201);
-        return new MovedPosition(target, i201, player, score, null);
+        return new MovedPosition(i201, player, score, movedPositions, closedPositions, null);
+    }
+
+    /**
+     * Return a list of positions if moving this i201 to moving group.
+     * @param moving group either moved or closed.
+     * @param i201 current position to analyze.
+     * @return a List of moved positions.
+     */
+    protected List<? extends ScoredPosition> movedPositions(MovingGroup<?> moving, long i201) {
+
+        boolean swap = moving.player==Player.White;
+        Mover mover = Moves.moves(jumps()).mover(swap);
+
+        // playing forward
+        int stay = Stones.stones(i201, player.other());
+        int move = Stones.stones(i201, player);
+        int free = Stones.STONES ^ (stay|move);
+
+        // those positions will close a mill
+        int closes = Stones.closes(move) & ~stay;
+
+        if (!moving.closed())
+            free &= ~closes;
+        else
+            free &= closes;
+
+        //ScoredPosition debug = debug(target, i201);
+        return mover.move(stay, move, move, free).normalize().transform(m201 -> moving.position(this, m201));
     }
 }

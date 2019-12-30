@@ -22,7 +22,7 @@ public class Mover implements Moves.Process {
     private final long[] positions;
     private int size = 0;
 
-    Mover(Moves moves, boolean swap) {
+    public Mover(Moves moves, boolean swap) {
         this.positions = new long[moves.size()];
         this.moves = moves;
         this.swap = swap;
@@ -61,21 +61,30 @@ public class Mover implements Moves.Process {
     }
 
     public Mover move(int stay, int move, int mask) {
+        return move(stay, move, mask, Stones.STONES ^ (stay|move));
+    }
+
+    public Mover move(int stay, int move, int mask, int free) {
         clear();
         if(mask!=0) {
-            moves.move(stay, move, mask, this);
+            moves.move(stay, move, mask, free, this);
         }
 
         return this;
     }
 
-    private long i201(int stay, int move) {
-        return swap ? Stones.i201(move, stay) | Positions.INV : Stones.i201(stay, move);
+    /**
+     * If swap==false the next player to play is Black else Bhite.
+     * @param stay opponents stones
+     * @param moved stones moved.
+     * @return i201 mask
+     */
+    protected long i201(int stay, int moved) {
+        return swap ? Stones.i201(moved, stay) | Positions.INV : Stones.i201(stay, moved);
     }
 
     public boolean process(int stay, int move, int mask) {
         long i201 = i201(stay, move^mask);
-        //i201 = Positions.normalize(i201);
         positions[size] = i201;
         ++size;
         return !Moves.ABORT;

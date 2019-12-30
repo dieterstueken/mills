@@ -30,7 +30,18 @@ public class MovedGroupTest {
 
     @Test
     public void process() {
+        MovedGroup target = target();
+        Score score = Score.LOST;
 
+        while(true) {
+            boolean work = target.propagate(target, score);
+            if(!work)
+                break;
+            else
+                score = score.next();
+        }
+
+        System.out.println(score);
     }
 
     ClosedGroup closed() {

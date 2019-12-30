@@ -13,6 +13,11 @@ class ScoredPosition extends Position implements Layer {
     final ScoredPosition normalized;
     final ScoredPosition inverted;
 
+    @Override
+    protected Position position(long i201) {
+        return position(i201, player, score, null);
+    }
+
     protected ScoredPosition position(long i201, Player player, int score, ScoredPosition inverted) {
         return new ScoredPosition(i201, player, score, inverted);
     }
@@ -33,6 +38,10 @@ class ScoredPosition extends Position implements Layer {
             normalized = position(Positions.normalize(i201), player, score, null);
 
         this.inverted = inverted!=null ? inverted : position(j201, player.other(), score, this);
+    }
+
+    public ScoredPosition inverted() {
+        return inverted;
     }
 
     @Override
