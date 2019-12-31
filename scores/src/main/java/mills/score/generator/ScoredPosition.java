@@ -11,23 +11,20 @@ class ScoredPosition extends Position implements Layer {
     final int score;
 
     final ScoredPosition normalized;
-    final ScoredPosition inverted;
 
     @Override
     protected Position position(long i201) {
-        return position(i201, player, score, null);
+        return new ScoredPosition(Positions.inverted(i201), player, score);
     }
 
-    protected ScoredPosition position(long i201, Player player, int score, ScoredPosition inverted) {
-        return new ScoredPosition(i201, player, score, inverted);
+    protected ScoredPosition position(long i201, Player player, int score) {
+        return new ScoredPosition(i201, player, score);
     }
 
-    public ScoredPosition(long i201, Player player, int score, ScoredPosition inverted) {
+    protected ScoredPosition(long i201, Player player, int score) {
         super(i201);
         this.player = player;
         this.score = score;
-
-        long j201 = Positions.inverted(i201);
 
         //posIndex = scores.index.posIndex(player==scores.player()? i201 : j201);
         //score = posIndex < 0 ? -1 : scores.getScore(posIndex);
@@ -35,13 +32,18 @@ class ScoredPosition extends Position implements Layer {
         if (super.isNormalized)
             normalized = this;
         else
-            normalized = position(Positions.normalize(i201), player, score, null);
+            normalized = position(Positions.normalize(i201), player, score);
 
-        this.inverted = inverted!=null ? inverted : position(j201, player.other(), score, this);
+        //this.inverted = inverted;//!=null ? inverted : position(j201, player.other(), score, this);
     }
 
     public ScoredPosition inverted() {
-        return inverted;
+        return new ScoredPosition(Positions.inverted(i201), player.other(), score) {
+            @Override
+            public ScoredPosition inverted() {
+                return ScoredPosition.this;
+            }
+        };
     }
 
     @Override

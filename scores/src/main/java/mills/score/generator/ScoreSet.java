@@ -101,6 +101,6 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
 
         // todo: max value
 
-        return new ScoredPosition(i201, player, score, null);
+        return new ScoredPosition(i201, player, score);
     }
 }

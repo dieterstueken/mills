@@ -18,29 +18,30 @@ public class MovedPosition extends ScoredPosition {
 
     public MovedPosition(long i201, Player player, int score,
                          List<? extends ScoredPosition> moved,
-                         List<? extends ScoredPosition> closed,
-                         ScoredPosition inverted) {
-        super(i201, player, score, inverted);
+                         List<? extends ScoredPosition> closed) {
+        super(i201, player, score);
         this.moved = moved;
         this.closed = closed;
     }
 
     @Override
-    protected ScoredPosition position(long i201, Player xplayer, int score, ScoredPosition inverted) {
-        if(xplayer == this.player)
-            return position(i201, xplayer, score, moved, closed, inverted);
+    public ScoredPosition inverted() {
 
         List<? extends ScoredPosition> xmoved = AbstractRandomList.map(this.moved, ScoredPosition::inverted);
         List<? extends ScoredPosition> xclosed = AbstractRandomList.map(this.closed, ScoredPosition::inverted);
 
-        return position(i201, xplayer, score, xmoved, xclosed, inverted);
+        return new MovedPosition(i201, player.other(), score, xmoved, xclosed) {
+            @Override
+            public MovedPosition inverted() {
+                return MovedPosition.this;
+            }
+        };
     }
 
     protected MovedPosition position(long i201, Player player, int score,
                                      List<? extends ScoredPosition> moved,
-                                     List<? extends ScoredPosition> closed,
-                                     ScoredPosition inverted) {
+                                     List<? extends ScoredPosition> closed) {
 
-        return new MovedPosition(i201, player, score, moved, closed, inverted);
+        return new MovedPosition(i201, player, score, moved, closed);
     }
 }

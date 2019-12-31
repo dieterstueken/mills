@@ -81,7 +81,7 @@ public class MovingGroup<Slice extends ScoreSlice> extends SlicesGroup<Slice> {
             return position(target, i201);
 
         i201 = Positions.inverted(i201);
-        return position(target, i201).inverted;
+        return position(target, i201).inverted();
     }
 
     /**

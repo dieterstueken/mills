@@ -77,7 +77,7 @@ public class MovedGroup extends MovingGroup<MapSlice> {
         List<? extends ScoredPosition> movedPositions = movedPositions(this, i201);
         List<? extends ScoredPosition> closedPositions = movedPositions(closed, i201);
         int score = getScore(i201);
-        return new MovedPosition(i201, player, score, movedPositions, closedPositions, null);
+        return new MovedPosition(i201, player, score, movedPositions, closedPositions);
     }
 
     /**

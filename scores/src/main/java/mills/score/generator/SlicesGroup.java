@@ -65,6 +65,6 @@ public class SlicesGroup<Slice extends ScoreSlice> extends LayerGroup<Slices<Sli
             return position(i201);
 
         i201 = Positions.inverted(i201);
-        return position(i201).inverted;
+        return position(i201).inverted();
     }
 }
