@@ -99,12 +99,10 @@ public class MapSlice extends ScoreSlice {
         if(resolved(current, newScore))
             return;
 
-        if(current>0) {
-            // !resolved
+        if(Score.isWon(newScore)) {
+            // no further checks necessary
             setScore(offset, newScore);
-            return;
-        }
-
+        } else // propagate loss
         if(current<0) {
             // count down
             ++current;
@@ -112,23 +110,20 @@ public class MapSlice extends ScoreSlice {
                 setScore(offset, newScore);
             else
                 setScore(offset, current);
-            return;
+        } else {
+
+            // count remaining
+
+            int unresolved = unresolved(i201);
+
+            // must be at least 1 since we just propagate a position.
+            assert unresolved > 1;
+
+            if (unresolved == 1)
+                setScore(offset, newScore);
+            else
+                setScore(offset, 1 - unresolved);
         }
-
-        // current == 0
-
-
-        // count remaining
-
-        int unresolved = unresolved(i201);
-
-        // must be at least 1 since we just propagate a position.
-        assert unresolved > 1;
-
-        if(unresolved==1)
-            setScore(offset, newScore);
-        else
-            setScore(offset, 1-unresolved);
     }
 
     int unresolved(long i201) {
