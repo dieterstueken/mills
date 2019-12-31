@@ -15,7 +15,7 @@ public class ClosedGroup extends MovingGroup<ScoreSlice> {
 
     @Override
     public boolean closed() {
-        return super.closed();
+        return true;
     }
 
     public ClosedGroup(PopCount pop, Player player, List<Slices<ScoreSlice>> slices) {
