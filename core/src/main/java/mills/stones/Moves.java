@@ -110,9 +110,6 @@ abstract public class Moves {
         if(mask==0)
             return 0;
 
-        if((free&Stones.STONES)==Stones.STONES)
-            return 0;
-
         //final int free = Stones.STONES ^ (stay|move);
         int n=0;
 

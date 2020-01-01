@@ -3,7 +3,6 @@ package mills.score.generator;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
-import mills.position.Positions;
 import mills.score.Score;
 import mills.stones.Mover;
 import mills.stones.Moves;
@@ -23,7 +22,7 @@ import java.util.stream.Stream;
  */
 public class MovingGroup<Slice extends ScoreSlice> extends SlicesGroup<Slice> {
 
-    boolean DEBUG = true;
+    boolean DEBUG = false;
 
     public boolean closed() {
         return false;
@@ -34,7 +33,9 @@ public class MovingGroup<Slice extends ScoreSlice> extends SlicesGroup<Slice> {
     }
 
     ScoredPosition debug(MovedGroup target, long i201) {
-        return DEBUG ? position(target, i201) : null;
+        if (DEBUG)
+            return position(target, i201);
+        return null;
     }
 
     public Stream<Runnable> propagate(Score score, BiConsumer<MovingGroup<?>, ScoreSlice> processors) {
@@ -45,8 +46,8 @@ public class MovingGroup<Slice extends ScoreSlice> extends SlicesGroup<Slice> {
 
         if(slices.isEmpty())
             return null;
-           
-        return slices.stream() //parallelStream()
+
+        return slices.parallelStream() //parallelStream()
                 .filter(slice -> slice.any(score))
                 .map(slice -> () -> processors.accept(this, slice));
     }
@@ -61,7 +62,7 @@ public class MovingGroup<Slice extends ScoreSlice> extends SlicesGroup<Slice> {
     IndexProcessor processor(MovedGroup target, LongConsumer analyzer) {
 
         // backtrace moves: move Black
-        boolean swap = target.player()!=Player.Black;
+        boolean swap = target.player()!=Player.White;
         Mover mover = Moves.moves(jumps()).mover(swap);
 
         return (posIndex, i201) -> {
@@ -72,7 +73,10 @@ public class MovingGroup<Slice extends ScoreSlice> extends SlicesGroup<Slice> {
             if (!closed())
                 mask ^= move;
             ScoredPosition debug = debug(target, i201);
-            mover.move(stay, move, mask).normalize().analyze(analyzer);
+            mover.move(stay, move, mask).normalize().analyze(m201 -> {
+                //Position pos = Position.of(m201);
+                analyzer.accept(m201);
+            });
         };
     }
 
@@ -80,7 +84,7 @@ public class MovingGroup<Slice extends ScoreSlice> extends SlicesGroup<Slice> {
         if(player == this.player)
             return position(target, i201);
 
-        i201 = Positions.inverted(i201);
+        //i201 = Positions.inverted(i201);
         return position(target, i201).inverted();
     }
 
@@ -91,7 +95,7 @@ public class MovingGroup<Slice extends ScoreSlice> extends SlicesGroup<Slice> {
      * @return
      */
     protected ScoredPosition position(MovedGroup source, long i201) {
-        return position(i201);
+        return source.position(i201);
     }
 
 }

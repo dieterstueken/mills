@@ -23,11 +23,16 @@ abstract public class BW extends Patterns implements Indexed {
      * @return a composed ringIndex index.
      */
 
+
     public static short index(final Pattern b, final Pattern w) {
 
         assert (b.pattern&w.pattern) == 0 : "duplicate occupation";
 
         return (short) (b.pow3* Player.Black.wgt() + w.pow3* Player.White.wgt());
+    }
+
+    public static short index(int b, int w) {
+        return index(Pattern.of(b), Pattern.of(w));
     }
 
     public final PopCount pop;

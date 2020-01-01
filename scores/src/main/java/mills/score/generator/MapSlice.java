@@ -64,18 +64,41 @@ public class MapSlice extends ScoreSlice {
             throw new IllegalStateException("score overflow");
     }
 
+
+    /**
+     * Return if new score is not better than current score
+     *
+     * current score: 0 L W count
+     * newScore W:    W W < W
+     * newScore L:    C > W --count
+     *
+     * @param current score
+     * @param newScore score
+     * @return true if new score can be ignored.
+     */
     private boolean resolved(int current, int newScore) {
 
+        assert newScore > 0;
+
         // is not a longer win path
-        if(Score.isWon(current))
-            return Score.isWon(newScore) && current <= newScore;
+        if (Score.isWon(newScore)) {
+            if (Score.isWon(current)) {
+                // ignore longer win paths
+                return newScore >= current;
+            } else
+                // everything else propagates won
+                return false;
+        } else if (Score.isLost(newScore)) {
+            if (Score.isLost(current)) {
+                // ignore longer win paths
+                return newScore <= current;
+            } else if (Score.isWon(current))
+                return true;
+            else
+                return false;
+        }
 
-        // is not a shorter loss path
-        if(Score.isLost(current))
-            return Score.isLost(newScore) && current >= newScore;
-
-        // either still 0 or counting: to be resolved
-        return false;
+        throw new IllegalStateException("invalid score");
     }
 
     /**
@@ -84,17 +107,31 @@ public class MapSlice extends ScoreSlice {
      * @param index of target position
      * @param i201 target position
      * @param newScore incoming new score (incremented)
+     * @return new current score
      */
-    public void propagate(int index, long i201, int newScore) {
+    public int propagate(int index, long i201, int newScore) {
         short offset = offset(index);
         int score = getScore(offset);
 
         if(!resolved(score, newScore)) {
             work.submit(slice -> slice.setupScore(offset, i201, newScore));
+            score = getScore(offset);
         }
+
+        return score;
+    }
+
+    void debug(Long i201) {
+        if(i201!=8614510628L)
+            return;
+        
+        return;
     }
 
     private void setupScore(short offset, long i201, int newScore) {
+
+        debug(i201);
+
         int current = getScore(offset);
         if(resolved(current, newScore))
             return;
@@ -113,7 +150,6 @@ public class MapSlice extends ScoreSlice {
         } else {
 
             // count remaining
-
             int unresolved = unresolved(i201);
 
             // must be at least 1 since we just propagate a position.

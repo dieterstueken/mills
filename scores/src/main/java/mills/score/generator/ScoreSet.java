@@ -94,7 +94,7 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
     }
 
     public ScoredPosition position(long i201, Player player) {
-        boolean inverted = player==this.player;
+        boolean inverted = player!=this.player;
 
         int posIndex = index.posIndex(inverted ? Positions.inverted(i201) : i201);
         int score = getScore(posIndex);

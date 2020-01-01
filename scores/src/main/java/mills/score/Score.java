@@ -96,7 +96,7 @@ public class Score implements Comparable<Score> {
     }
 
     public static boolean isLost(int score) {
-        return (score & 1) != 0;
+        return score>0 && (score & 1) != 0;
     }
 
     // calculate shortest win or longest lost

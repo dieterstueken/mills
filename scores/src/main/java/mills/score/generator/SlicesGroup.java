@@ -57,7 +57,7 @@ public class SlicesGroup<Slice extends ScoreSlice> extends LayerGroup<Slices<Sli
 
     public ScoredPosition position(long i201) {
         Clops clops = Positions.clops(i201);
-        return group.get(clops).scores.position(i201, player);
+        return group.get(clops).scores.position(i201);
     }
 
     public ScoredPosition position(long i201, Player player) {

@@ -34,6 +34,8 @@ public class MovedGroupTest {
         Score score = Score.LOST;
 
         while(true) {
+            System.out.println(score);
+
             boolean work = target.propagate(target, score);
             if(!work)
                 break;
@@ -41,7 +43,8 @@ public class MovedGroupTest {
                 score = score.next();
         }
 
-        System.out.println(score);
+        MovedPosition pos = target.position(target, 562950021120016L);
+        pos.toString();
     }
 
     ClosedGroup closed() {

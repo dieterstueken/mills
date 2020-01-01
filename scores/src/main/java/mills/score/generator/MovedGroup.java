@@ -32,7 +32,8 @@ public class MovedGroup extends MovingGroup<MapSlice> {
 
     public boolean propagate(MovedGroup target, Score score) {
 
-        DEBUG = score.value>1;
+        //if(score.value>3)
+        //    DEBUG = true;
 
         BiConsumer<MovingGroup<?>, ScoreSlice> processors = (group, slice) -> {
             LongConsumer analyzer = m201 -> target.propagate(this, m201, score.next());
@@ -66,18 +67,19 @@ public class MovedGroup extends MovingGroup<MapSlice> {
     void propagate(MovedGroup source, long i201, Score newScore) {
         Clops clops = Positions.clops(i201);
         Slices<? extends MapSlice> slices = group.get(clops);
-        ScoredPosition debug = debug(source, i201);
+
         int posIndex = slices.scores.index.posIndex(i201);
         MapSlice mapSlice = slices.get(posIndex);
-        mapSlice.propagate(posIndex, i201, newScore.value);
+        int score = mapSlice.propagate(posIndex, i201, newScore.value);
+        ScoredPosition debug = debug(source, i201);
     }
 
     @Override
     protected MovedPosition position(MovedGroup source, long i201) {
-        List<? extends ScoredPosition> movedPositions = movedPositions(this, i201);
         List<? extends ScoredPosition> closedPositions = movedPositions(closed, i201);
-        int score = getScore(i201);
-        return new MovedPosition(i201, player, score, movedPositions, closedPositions);
+        List<? extends ScoredPosition> movedPositions = movedPositions(this, i201);
+        int score = source.getScore(i201);
+        return new MovedPosition(i201, source.player, score, movedPositions, closedPositions);
     }
 
     /**
@@ -89,22 +91,32 @@ public class MovedGroup extends MovingGroup<MapSlice> {
     protected List<? extends ScoredPosition> movedPositions(MovingGroup<?> moving, long i201) {
 
         boolean swap = moving.player==Player.White;
-        Mover mover = Moves.moves(jumps()).mover(swap);
+        boolean close = moving.closed();
+
+        Mover mover = new Mover(Moves.moves(jumps()),swap) {
+            @Override
+            public boolean process(int stay, int move, int mask) {
+                int moved = move^mask;
+                int closed = Stones.closed(moved) & mask;
+                if((closed!=0) == close)
+                    super.process(stay, move, mask);
+
+                return !Moves.ABORT;
+            }
+        };
 
         // playing forward
         int stay = Stones.stones(i201, player.other());
         int move = Stones.stones(i201, player);
-        int free = Stones.STONES ^ (stay|move);
-
-        // those positions will close a mill
-        int closes = Stones.closes(move) & ~stay;
-
-        if (!moving.closed())
-            free &= ~closes;
-        else
-            free &= closes;
 
         //ScoredPosition debug = debug(target, i201);
-        return mover.move(stay, move, move, free).normalize().transform(m201 -> moving.position(this, m201));
+        mover.move(stay, move, move).normalize();
+
+        //Position pos = Position.of(i201);
+        //mover.analyze(m201 -> {
+        //    Position moved = Position.of(m201);
+        //});
+
+        return mover.transform(m201 -> moving.position(this, m201, player.other()));
     }
 }
