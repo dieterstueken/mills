@@ -109,28 +109,16 @@ public class MapSlice extends ScoreSlice {
      * @param newScore incoming new score (incremented)
      * @return new current score
      */
-    public int propagate(int index, long i201, int newScore) {
+    public void propagate(int index, long i201, int newScore) {
         short offset = offset(index);
         int score = getScore(offset);
 
         if(!resolved(score, newScore)) {
             work.submit(slice -> slice.setupScore(offset, i201, newScore));
-            score = getScore(offset);
         }
-
-        return score;
-    }
-
-    void debug(Long i201) {
-        if(i201!=8614510628L)
-            return;
-        
-        return;
     }
 
     private void setupScore(short offset, long i201, int newScore) {
-
-        debug(i201);
 
         int current = getScore(offset);
         if(resolved(current, newScore))
