@@ -48,11 +48,24 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
         index.process(processor, base, end);
     }
 
-    IndexProcessor filter(IndexProcessor processor, int score) {
-        return (posIndex, i201) -> {
-            if(getScore(posIndex)==score)
-                processor.process(posIndex, i201);
-        };
+    class IndexCounter implements IndexProcessor {
+
+        final IndexProcessor delegate;
+        final int score;
+        int count = 0;
+
+        IndexCounter(IndexProcessor delegate, int score) {
+            this.delegate = delegate;
+            this.score = score;
+        }
+
+        @Override
+        public void process(int posIndex, long i201) {
+            if(getScore(posIndex)==score) {
+                delegate.process(posIndex, i201);
+                ++count;
+            }
+        }
     }
 
     public PosIndex index() {

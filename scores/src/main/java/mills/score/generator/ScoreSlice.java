@@ -191,21 +191,21 @@ abstract public class ScoreSlice {
      * Process any dirty blocks of score.
      * @param processor to process
      * @param score to analyze
-     * @return previous dirty flags.
+     * @return number of analyzed scores.
      */
-    public void processScores(IndexProcessor processor, Score score) {
+    public int processScores(IndexProcessor processor, Score score) {
 
         final long marked = marked(score);
 
         if(marked==0)
-            return;
+            return 0;
 
-        processor = scores().filter(processor, score.value);
+        ScoreSet.IndexCounter counter = scores().new IndexCounter(processor, score.value);
 
         if(marked==-1) {
             // process all
-            process(processor);
-            return;
+            process(counter);
+            return counter.count;
         }
 
         int start = base;
@@ -228,9 +228,11 @@ abstract public class ScoreSlice {
 
             assert end>start : "empty range";
 
-            scores().process(processor, start, end);
+            scores().process(counter, start, end);
             start += len*BLOCK;
         }
+
+        return counter.count;
     }
 
     public void process(IndexProcessor processor) {

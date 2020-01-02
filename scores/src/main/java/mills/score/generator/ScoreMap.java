@@ -2,7 +2,6 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.index.PosIndex;
-import mills.score.Score;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -71,21 +70,6 @@ public class ScoreMap extends ScoreSet {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    public static ScoreSet lost(PosIndex index, Player player) {
-        return new ScoreSet(index, player) {
-
-            @Override
-            public String toString() {
-                return String.format("lost(%s%c)", pop(), player.key());
-            }
-
-            @Override
-            public int getScore(int index) {
-                return Score.LOST.value;
-            }
-        };
     }
 
     private static final OpenOption READ[] = new OpenOption[]{StandardOpenOption.READ};

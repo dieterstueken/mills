@@ -9,9 +9,10 @@ import mills.stones.Moves;
 import mills.stones.Stones;
 
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.LongConsumer;
+import java.util.function.ToIntBiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -28,7 +29,7 @@ public class MovingGroup<Slice extends ScoreSlice> extends SlicesGroup<Slice> {
         return false;
     }
 
-    public MovingGroup(PopCount pop, Player player, List<Slices<Slice>> slices) {
+    public MovingGroup(PopCount pop, Player player, Stream<Slices<Slice>> slices) {
         super(pop, player, slices);
     }
 
@@ -38,7 +39,8 @@ public class MovingGroup<Slice extends ScoreSlice> extends SlicesGroup<Slice> {
         return null;
     }
 
-    public Stream<Runnable> propagate(Score score, BiConsumer<MovingGroup<?>, ScoreSlice> processors) {
+    public IntStream propagate(Score score, ToIntBiFunction<MovingGroup<?>, ScoreSlice> processors) {
+
         List<? extends ScoreSlice> slices = group.values().stream()
                    .flatMap(Slices::stream)
                    .filter(slice->slice.hasScores(score))
@@ -49,7 +51,7 @@ public class MovingGroup<Slice extends ScoreSlice> extends SlicesGroup<Slice> {
 
         return slices.parallelStream() //parallelStream()
                 .filter(slice -> slice.any(score))
-                .map(slice -> () -> processors.accept(this, slice));
+                .mapToInt(slice -> processors.applyAsInt(this, slice));
     }
 
     /**

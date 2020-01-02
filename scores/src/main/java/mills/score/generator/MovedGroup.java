@@ -11,8 +11,10 @@ import mills.stones.Moves;
 import mills.stones.Stones;
 
 import java.util.List;
-import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.LongConsumer;
+import java.util.function.ToIntBiFunction;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -25,42 +27,54 @@ public class MovedGroup extends MovingGroup<MapSlice> {
     
     final ClosedGroup closed;
     
-    public MovedGroup(PopCount pop, Player player, ClosedGroup closed, List<Slices<MapSlice>> slices) {
-        super(pop, player, slices);
+    public MovedGroup(PopCount pop, Player player, ClosedGroup closed, Stream<ScoreMap> slices) {
+        super(pop, player, slices.map(scores -> Slices.generate(scores, scores::openSlice)));
         this.closed = closed;
     }
 
-    public boolean propagate(MovedGroup target, Score score) {
+    public static MovedGroup moved(PopCount pop, Player player, ClosedGroup closed, Function<Clops, ScoreMap> generator) {
+        PopCount mclop = pop.mclop()
+                        .min(PopCount.P99.sub(pop).swap());
+
+        Stream<ScoreMap> slices = PopCount.TABLE.parallelStream()
+                        .filter(clop -> clop.le(mclop))
+                        .map(clop -> Clops.of(pop, clop))
+                        .map(generator);
+
+        return new MovedGroup(pop, player, closed, slices);
+    }
+
+    public int propagate(MovedGroup target, Score score) {
 
         //if(score.value>3)
         //    DEBUG = true;
 
-        BiConsumer<MovingGroup<?>, ScoreSlice> processors = (group, slice) -> {
+        ToIntBiFunction<MovingGroup<?>, ScoreSlice> processors = (group, slice) -> {
             LongConsumer analyzer = m201 -> target.propagate(this, m201, score.next());
             IndexProcessor processor = group.processor(target, analyzer);
-            slice.processScores(processor, score);
+            return slice.processScores(processor, score);
         };
 
-        Stream<Runnable> movingTasks = this.propagate(score, processors);
-        Stream<Runnable> closingTasks = closed.propagate(score, processors);
+        IntStream movingTasks = this.propagate(score, processors);
+        IntStream closingTasks = closed.propagate(score, processors);
 
-        Stream<? extends Runnable> tasks = join(closingTasks, movingTasks);
+        IntStream tasks = concat(closingTasks, movingTasks);
         if(tasks==null)
-            return false;
+            return 0;
 
-        tasks.forEach(Runnable::run);
+        long count = tasks.sum();
 
-        return true;
+        return (int) count;
     }
 
-    static <T> Stream<? extends T> join(Stream<? extends T> a, Stream<? extends T> b) {
+    static IntStream concat(IntStream a, IntStream b) {
         if(a==null)
             return b;
 
         if(b==null)
             return a;
 
-        return Stream.concat(a,b);
+        return IntStream.concat(a,b);
 
     }
 

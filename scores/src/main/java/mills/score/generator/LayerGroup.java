@@ -7,6 +7,7 @@ import mills.bits.PopCount;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -29,12 +30,14 @@ public class LayerGroup<T extends IndexLayer> implements Layer {
         this.player = player;
     }
 
+    public LayerGroup(PopCount pop, Player player, Stream<? extends T> layers) {
+          this.group = layers.collect(Collectors.toMap(Clops::of, Function.identity()));
+          this.pop = pop;
+          this.player = player;
+      }
+
     public <R extends IndexLayer> LayerGroup<R> map(Function<? super T,? extends R> map) {
         return of(pop, player, group.values().stream().map(map));
-    }
-
-    public void add(T layer) {
-        group.put(Clops.of(layer), layer);
     }
 
     @Override
@@ -47,8 +50,23 @@ public class LayerGroup<T extends IndexLayer> implements Layer {
         return player;
     }
 
-    public Stream<T> stream() {
+    public int range() {
+        int range=0;
+
+        for (T layer : group.values()) {
+            range += layer.index().range();
+        }
+
+        return range;
+    }
+
+    public Stream<? extends T> stream() {
         return group.values().stream();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s%s[%d]", pop, player.key(), group.size());
     }
 
     //////////////////////////////////////////
@@ -62,9 +80,7 @@ public class LayerGroup<T extends IndexLayer> implements Layer {
     }
 
     public static <T extends IndexLayer> LayerGroup<T> of(PopCount pop, Player player, Stream<? extends T> values) {
-        LayerGroup<T> group = of(pop, player, new HashMap<>());
-        values.forEach(group::add);
-        return group;
+        return new LayerGroup<>(pop, player, values);
     }
 
 }

@@ -50,10 +50,6 @@ public class Slices<Slice extends ScoreSlice> implements IndexLayer {
         return String.format("ScoreSlices %s (%d)", scores, max());
     }
 
-    public int getScore(int posIndex) {
-        return scores.getScore(posIndex);
-    }
-
     /**
      * Determine max score.
      * @return current max score of all slices.

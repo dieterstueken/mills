@@ -6,8 +6,6 @@ import mills.bits.PopCount;
 import mills.position.Positions;
 import mills.score.Score;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -23,11 +21,8 @@ public class SlicesGroup<Slice extends ScoreSlice> extends LayerGroup<Slices<Sli
         super(pop, player, slices);
     }
 
-    public SlicesGroup(PopCount pop, Player player, List<? extends Slices<Slice>> slices) {
-        super(pop, player, new HashMap<>());
-        for (Slices<Slice> slice : slices) {
-            group.put(Clops.of(slice), slice);
-        }
+    public SlicesGroup(PopCount pop, Player player, Stream<Slices<Slice>> slices) {
+        super(pop, player, slices);
     }
 
     Stream<? extends Slice> slices() {
