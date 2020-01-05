@@ -3,6 +3,7 @@ package mills.score.generator;
 import mills.bits.Player;
 import mills.score.Score;
 import mills.stones.Mover;
+import mills.stones.Moves;
 import mills.stones.Stones;
 import mills.util.QueueActor;
 
@@ -13,15 +14,7 @@ import mills.util.QueueActor;
  * Date: 17.11.12
  * Time: 19:43
  */
-public class MapSlice extends ScoreSlice {
-
-    public static MapSlice of(ScoreMap scores, int index) {
-        return new MapSlice(scores, index);
-    }
-
-    //////////////////////////////////////
-
-    final ScoreMap scores;
+abstract public class MapSlice extends ScoreSlice {
 
     final QueueActor<MapSlice> work = new QueueActor<>(this);
 
@@ -30,28 +23,37 @@ public class MapSlice extends ScoreSlice {
 
     int pending = 0;
 
-    public ScoreMap scores() {
-        return scores;
-    }
+    abstract public ScoreMap scores();
 
     public void close() {
         super.close();
         work.finish();
     }
 
-    protected MapSlice(ScoreMap scores, int index) {
+    protected MapSlice(int index, Mover mover) {
         super(index);
 
-        this.scores = scores;
+        this.mover = mover;
+    }
 
-        mover = scores.mover(player());
+    static MapSlice of(ScoreMap scores, int index) {
+
+        Mover mover = Moves.moves(scores.jumps()).mover(true);
+
+        return new MapSlice(index, mover) {
+
+            @Override
+            public ScoreMap scores() {
+                return scores;
+            }
+        };
     }
 
     void setScore(short offset, int score) {
         mark(offset, score);
 
         int posIndex = posIndex(offset);
-        scores.setScore(posIndex, score);
+        scores().setScore(posIndex, score);
     }
     
     public void mark(short offset, int score) {

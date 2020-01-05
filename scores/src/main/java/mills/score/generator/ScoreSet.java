@@ -5,8 +5,6 @@ import mills.index.IndexProcessor;
 import mills.index.PosIndex;
 import mills.position.Position;
 import mills.position.Positions;
-import mills.stones.Mover;
-import mills.stones.Moves;
 
 /**
  * Created by IntelliJ IDEA.
@@ -36,10 +34,6 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
 
     public int size() {
         return index.range();
-    }
-
-    Mover mover(Player player) {
-        return Moves.moves(jumps()).mover(player!=this.player());
     }
 
     abstract public int getScore(int index);
@@ -96,10 +90,6 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
 
     ScoreSlice openSlice(int index) {
         return ScoreSlice.of(this, index);
-    }
-
-    Slices<? extends ScoreSlice> slices() {
-        return Slices.generate(this, this::openSlice);
     }
 
     public ScoredPosition position(long i201) {

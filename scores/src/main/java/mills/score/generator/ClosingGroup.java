@@ -14,7 +14,7 @@ import java.util.stream.Stream;
  * Date: 27.12.19
  * Time: 18:55
  */
-public class ClosingGroup extends MovingGroup<ScoreSlice> {
+public class ClosingGroup extends MovingGroup<ScoreSlices> {
 
     @Override
     public boolean closing() {
@@ -22,7 +22,7 @@ public class ClosingGroup extends MovingGroup<ScoreSlice> {
     }
 
     public ClosingGroup(PopCount pop, Player player, Stream<ScoreSet> slices) {
-        super(pop, player, slices.map(scores -> Slices.generate(scores, scores::openSlice)));
+        super(pop, player, slices.map(ScoreSlices::of));
     }
 
     public static ClosingGroup closed(PopCount pop, Player player, Function<PopCount, ? extends ScoreSet> generator) {

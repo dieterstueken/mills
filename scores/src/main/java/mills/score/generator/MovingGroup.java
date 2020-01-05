@@ -22,31 +22,31 @@ import java.util.stream.Stream;
  * Date: 27.12.19
  * Time: 18:09
  */
-public class MovingGroup<Slice extends ScoreSlice> extends SlicesGroup<Slice> {
+public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> {
 
     public boolean closing() {
         return false;
     }
 
-    public MovingGroup(PopCount pop, Player player, Stream<Slices<Slice>> slices) {
+    public MovingGroup(PopCount pop, Player player, Stream<Slices> slices) {
         super(pop, player, slices);
     }
 
-    public static MovingGroup<MapSlice> create(PopCount pop, Player player, Function<PopCount, ? extends ScoreMap> generator) {
+    public static MovingGroup<MapSlices> create(PopCount pop, Player player, Function<PopCount, ? extends ScoreMap> generator) {
         PopCount mclop = pop.mclop().min(PopCount.P99.sub(pop).swap());
 
-        Stream<Slices<MapSlice>> mapSlices = PopCount.TABLE.parallelStream()
+        Stream<MapSlices> mapSlices = PopCount.TABLE.parallelStream()
                 .filter(clop -> clop.le(mclop))
                 .map(generator)
-                .map(scores -> Slices.generate(scores, scores::openSlice));
+                .map(MapSlices::of);
 
-        return new MovingGroup<MapSlice>(pop, player, mapSlices);
+        return new MovingGroup<>(pop, player, mapSlices);
     }
 
     public IntStream propagate(Score score, ToIntBiFunction<MovingGroup<?>, ScoreSlice> processors) {
 
         List<? extends ScoreSlice> slices = group.values().stream()
-                   .flatMap(Slices::stream)
+                   .flatMap(ScoreSlices::stream)
                    .filter(slice->slice.hasScores(score))
                    .collect(Collectors.toList());
 

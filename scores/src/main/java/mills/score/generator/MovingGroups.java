@@ -22,10 +22,10 @@ import java.util.stream.IntStream;
  */
 public class MovingGroups {
     
-    final MovingGroup<? extends MapSlice> moved;
-    final MovingGroup<? extends ScoreSlice> closed;
+    final MovingGroup<? extends MapSlices> moved;
+    final MovingGroup<? extends ScoreSlices> closed;
 
-    public MovingGroups(MovingGroup<? extends MapSlice> moved, MovingGroup<? extends ScoreSlice> closed) {
+    public MovingGroups(MovingGroup<? extends MapSlices> moved, MovingGroup<? extends ScoreSlices> closed) {
         this.moved = moved;
         this.closed = closed;
     }
@@ -34,16 +34,16 @@ public class MovingGroups {
                                Function<PopCount, ? extends ScoreMap> moved,
                                Function<PopCount, ? extends ScoreSet> closed) {
 
-        ForkJoinTask<MovingGroup<? extends MapSlice>> movedTask = new RecursiveTask<>() {
+        ForkJoinTask<MovingGroup<? extends MapSlices>> movedTask = new RecursiveTask<>() {
             @Override
-            protected MovingGroup<? extends MapSlice> compute() {
+            protected MovingGroup<? extends MapSlices> compute() {
                 return MovingGroup.create(pop, player, moved);
             }
         };
 
-        ForkJoinTask<MovingGroup<? extends ScoreSlice>> closedTask = new RecursiveTask<>() {
+        ForkJoinTask<MovingGroup<? extends ScoreSlices>> closedTask = new RecursiveTask<>() {
                     @Override
-                    protected MovingGroup<? extends ScoreSlice> compute() {
+                    protected MovingGroup<? extends ScoreSlices> compute() {
                         return ClosingGroup.closed(pop, player, closed);
                     }
                 };
@@ -90,9 +90,9 @@ public class MovingGroups {
 
     void propagate(MovingGroups source, long i201, Score newScore) {
         Clops clops = Positions.clops(i201);
-        Slices<? extends MapSlice> slices = moved.group.get(clops);
+        MapSlices slices = moved.group.get(clops);
 
-        int posIndex = slices.scores.index.posIndex(i201);
+        int posIndex = slices.scores().index.posIndex(i201);
         MapSlice mapSlice = slices.get(posIndex);
         mapSlice.propagate(posIndex, i201, newScore.value);
         //ScoredPosition debug = debug(source, i201);

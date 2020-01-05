@@ -46,10 +46,6 @@ public class ScoreMap extends ScoreSet {
         return MapSlice.of(this, index);
     }
 
-    Slices<? extends MapSlice> slices() {
-        return Slices.generate(this, this::openSlice);
-    }
-
     ///////////////////////////////////////////////////////
 
     public static ScoreMap create(ScoreFile cf) {

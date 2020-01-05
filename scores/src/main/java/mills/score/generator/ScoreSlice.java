@@ -85,21 +85,6 @@ abstract public class ScoreSlice {
         this.base = SIZE * index;
     }
 
-    /**
-     * Create a read only slice from scores.
-     * @param index of this slice.
-     * @return a read only slice;
-     */
-    ScoreSlice newSlice(int index) {
-        ScoreSet scores = scores();
-        return new ScoreSlice(index) {
-            @Override
-            public ScoreSet scores() {
-                return scores;
-            }
-        };
-    }
-
     @Override
     public String toString() {
             return String.format("%s[%d]@%d", scores(), sliceIndex(), max);

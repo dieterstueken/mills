@@ -33,8 +33,4 @@ public class LostSet extends ScoreSet {
     public String toString() {
         return super.toString() + " lost";
     }
-
-    public Slices<ScoreSlice> slices() {
-        return Slices.generate(this, this::openSlice);
-    }
 }
