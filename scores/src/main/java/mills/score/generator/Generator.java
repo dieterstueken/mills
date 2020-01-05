@@ -3,8 +3,12 @@ package mills.score.generator;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
+import mills.index.PosIndex;
+import mills.score.Score;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Created by IntelliJ IDEA.
@@ -16,22 +20,93 @@ public class Generator {
 
     final IndexProvider indexes;
 
-    final File root;
+    final ScoreFiles files;
 
-    public Generator(IndexProvider indexes, File root) {
+    public Generator(IndexProvider indexes, File root) throws IOException {
         this.indexes = indexes;
-        this.root = root;
+        this.files = new ScoreFiles(root);
     }
 
-    public void generateLevel(PopCount pop) {
+    public void generateLevel(PopCount pop) throws IOException {
         if(pop.min()<3)
             throw new IllegalArgumentException();
 
-        Player player = pop.isEven() ? Player.White : Player.Black;
+        if(pop.equals(pop.swap())) {
+            generateSingle(pop);
+        } else {
+            generatePair(pop);
+        }
     }
 
-    public void openLevel(PopCount pop) {
+    private void generateSingle(PopCount pop) throws IOException {
+        MovingGroups target = MovingGroups.create(pop, Player.White,
+                clop -> moved(pop, clop, Player.White),
+                clop -> closed(pop, clop, Player.White));
 
+        System.out.format("%9s: %9d\n", target.moved, target.moved.range());
 
+        Score score = Score.LOST;
+
+        while(true) {
+            int count = target.propagate(target, score);
+
+            System.out.format("%9s: %9d\n", score, count);
+
+            if(count==0)
+                break;
+            else
+                score = score.next();
+        }
+
+        for (MapSlices slice : target.moved.group.values()) {
+            files.save(slice.scores());
+        }
+    }
+
+    private void generatePair(PopCount pop) throws IOException {
+        MovingGroups self = MovingGroups.create(pop, Player.White,
+                clop -> moved(pop, clop, Player.White),
+                clop -> closed(pop, clop, Player.White));
+
+        MovingGroups other = MovingGroups.create(pop, Player.Black,
+                clop -> moved(pop, clop, Player.Black),
+                clop -> closed(pop, clop, Player.Black));
+
+        System.out.format("%9s: %9d\n", self.moved, self.moved.range());
+
+        Score score = Score.LOST;
+
+        while(true) {
+            int count = self.propagate(other, score);
+            count += other.propagate(self, score);
+
+            System.out.format("%9s: %9d\n", score, count);
+
+            if(count==0)
+                break;
+            else
+                score = score.next();
+        }
+
+        for (MapSlices slice : self.moved.group.values()) {
+            files.save(slice.scores());
+        }
+
+        for (MapSlices slice : other.moved.group.values()) {
+            files.save(slice.scores());
+        }
+    }
+
+    ScoreMap moved(PopCount pop, PopCount clop, Player player) {
+        PosIndex index = indexes.build(pop, clop);
+        ByteBuffer buffer = ByteBuffer.allocateDirect(index.range());
+        return new ScoreMap(index, player, buffer);
+    }
+
+    ScoreSet closed(PopCount pop, PopCount clop, Player player) {
+        PosIndex index = indexes.build(pop, clop);
+        if(player.count(pop)<=3)
+            return new LostSet(index, player);
+        throw new IllegalStateException("not implemented");
     }
 }
