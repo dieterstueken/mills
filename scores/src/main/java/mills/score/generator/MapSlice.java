@@ -28,6 +28,14 @@ abstract public class MapSlice extends ScoreSlice {
     public void close() {
         super.close();
         work.finish();
+
+        var scores = scores();
+        for(int offset=0; offset<size(); ++offset) {
+            int posIndex = base+offset;
+            int value = scores.getScore(posIndex);
+            if(value>max)
+                scores.setScore(posIndex,0);
+        }
     }
 
     protected MapSlice(int index, Mover mover) {

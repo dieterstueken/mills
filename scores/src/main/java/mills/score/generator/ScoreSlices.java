@@ -53,7 +53,7 @@ abstract public class ScoreSlices implements IndexLayer {
     }
 
     public void close() {
-        slices().forEach(ScoreSlice::close);
+        slices().parallelStream().forEach(ScoreSlice::close);
         scores().close();
     }
 

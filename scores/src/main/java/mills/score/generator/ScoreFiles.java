@@ -11,8 +11,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.NotDirectoryException;
 
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -32,7 +31,7 @@ public class ScoreFiles {
                 throw new FileAlreadyExistsException("file already exist: " + root.toString());
         }
 
-        root.mkdir();
+        root.mkdirs();
 
         if (!root.isDirectory())
             throw new NotDirectoryException(root.toString());
@@ -46,7 +45,7 @@ public class ScoreFiles {
         if(file.exists())
             throw new FileAlreadyExistsException("file already exist: " + file.toString());
 
-        try(FileChannel fc = FileChannel.open(file.toPath(), WRITE)) {
+        try(FileChannel fc = FileChannel.open(file.toPath(), CREATE, WRITE)) {
             fc.write(scores.scores);
         }
     }

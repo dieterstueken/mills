@@ -58,9 +58,7 @@ public class Generator {
                 score = score.next();
         }
 
-        for (MapSlices slice : target.moved.group.values()) {
-            files.save(slice.scores());
-        }
+        save(target.moved);
     }
 
     private void generatePair(PopCount pop) throws IOException {
@@ -88,12 +86,16 @@ public class Generator {
                 score = score.next();
         }
 
-        for (MapSlices slice : self.moved.group.values()) {
-            files.save(slice.scores());
-        }
+        save(self.moved);
+        save(other.moved);
+    }
 
-        for (MapSlices slice : other.moved.group.values()) {
-            files.save(slice.scores());
+    private void save(MovingGroup<? extends MapSlices> moved) throws IOException {
+
+        moved.group.values().parallelStream().forEach(ScoreSlices::close);
+
+        for (MapSlices slices : moved.group.values()) {
+            files.save(slices.scores());
         }
     }
 
@@ -108,5 +110,15 @@ public class Generator {
         if(player.count(pop)<=3)
             return new LostSet(index, player);
         throw new IllegalStateException("not implemented");
+    }
+
+    public static void main(String ... args) throws IOException {
+        int nb = Integer.parseInt(args[0]);
+        int nw = Integer.parseInt(args[1]);
+        PopCount pop = PopCount.get(nb, nw);
+
+        Generator generator = new Generator(IndexProvider.load(), new File("build/scores"));
+        generator.generateLevel(pop);
+
     }
 }
