@@ -5,6 +5,7 @@ import mills.index.IndexProcessor;
 import mills.index.PosIndex;
 import mills.position.Position;
 import mills.position.Positions;
+import mills.util.Stat;
 
 /**
  * Created by IntelliJ IDEA.
@@ -87,6 +88,16 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
     }
 
     public void close() { }
+
+    public Stat stat() {
+        Stat stat = new Stat();
+        for(int i=0; i<index.range();++i) {
+            int score = getScore(i);
+            stat.accept(score);
+        }
+
+        return stat;
+    }
 
     ScoreSlice openSlice(int index) {
         return ScoreSlice.of(this, index);

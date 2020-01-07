@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Set;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveTask;
 import java.util.stream.Stream;
 
 /**
@@ -32,10 +34,27 @@ public class Generator {
         if (pop.min() < 3)
             throw new IllegalArgumentException();
 
-        MovingGroups self = groups(pop, Player.White);
-        MovingGroups other = pop.isSym() ? self : groups(pop, Player.Black);
+        open(pop).generate().forEach(this::save);
+    }
 
-        new GroupGenerator(this, self, other).generate().forEach(this::save);
+    GroupGenerator open(PopCount pop) {
+
+        if(pop.isSym()) {
+            MovingGroups self = groups(pop, Player.White);
+            return new GroupGenerator(self, self);
+        }
+
+        ForkJoinTask<MovingGroups> task = new RecursiveTask<MovingGroups>() {
+            @Override
+            protected MovingGroups compute() {
+                return groups(pop, Player.White);
+            }
+        }.fork();
+
+        MovingGroups other = groups(pop, Player.Black);
+        MovingGroups self = task.join();
+
+        return new GroupGenerator(self, other);
     }
 
     MovingGroups groups(PopCount pop, Player player) {

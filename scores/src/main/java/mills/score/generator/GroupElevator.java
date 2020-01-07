@@ -29,7 +29,11 @@ public class GroupElevator {
     }
 
     ClosingGroup<? extends MapSlices> generate() {
-        closed.stream().map(MapSlices::slices).flatMap(Collection::stream).parallel().forEach(this::process);
+        closed.stream()
+                .map(MapSlices::slices)
+                .flatMap(Collection::stream)
+                //.parallel()
+                .forEach(this::process);
         return closed;
     }
 
@@ -57,15 +61,17 @@ public class GroupElevator {
 
             mover.move(stay, move, mask).normalize();
 
-            int best = Score.LOST.value;
+            //  Opponent takes a stone with worst result for player.
+
+            int worsest = Score.WON.value;
             for(int i=0; i<mover.size(); ++i) {
                 long m201 = mover.get201(i);
                 int score = getScore(m201);
-                if(Score.betterThan(score, best))
-                    best = score;
+                if(Score.betterThan(worsest, score))
+                    worsest = score;
             }
 
-            slice.setScore(slice.offset(posIndex), best);
+            slice.setScore(slice.offset(posIndex), worsest);
         }
 
         int getScore(long m201) {

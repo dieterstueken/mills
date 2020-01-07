@@ -13,26 +13,31 @@ import java.util.stream.Stream;
  */
 class GroupGenerator {
 
-    private final Generator generator;
     final MovingGroups self;
 
     final MovingGroups other;
 
-    GroupGenerator(Generator generator, MovingGroups self, MovingGroups other) {
-        this.generator = generator;
+    GroupGenerator(MovingGroups self, MovingGroups other) {
         this.self = self;
         this.other = other;
     }
 
     public Stream<? extends ScoreMap> generate() {
         System.out.format("%9s: %9d\n", self.moved, self.moved.range());
+        if(other!=self)
+            System.out.format("%9s: %9d\n", other.moved, other.moved.range());
 
         for (Score score = Score.LOST; true; score = score.next()) {
 
-            IntStream tasks = MovingGroups.propagate(self, other, score);
+            IntStream tasks = self.propagate(other, score);
+            if(self!=other)
+                tasks = MovingGroups.concat(tasks, other.propagate(self, score));
+
             if (tasks == null)
                 break;
+
             int count = tasks.sum();
+
             System.out.format("%9s: %9d\n", score, count);
         }
 

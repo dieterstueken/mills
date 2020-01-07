@@ -53,15 +53,6 @@ public class MovingGroups {
         return new MovingGroups(movedTask.join(), closedTask.join());
     }
 
-    public static IntStream propagate(MovingGroups self, MovingGroups other, Score score) {
-        IntStream tasks = self.propagate(other, score);
-
-        if(self!=other)
-            tasks = concat(tasks, other.propagate(self, score));
-
-        return tasks;
-    }
-
     public IntStream propagate(MovingGroups target, Score score) {
 
         //if(score.value>3)
