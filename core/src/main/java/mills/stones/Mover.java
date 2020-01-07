@@ -61,13 +61,10 @@ public class Mover implements Moves.Process {
     }
 
     public Mover move(int stay, int move, int mask) {
-        return move(stay, move, mask, Stones.STONES ^ (stay|move));
-    }
 
-    public Mover move(int stay, int move, int mask, int free) {
         clear();
         if(mask!=0) {
-            moves.move(stay, move, mask, free, this);
+            moves.move(stay, move, mask, this);
         }
 
         return this;

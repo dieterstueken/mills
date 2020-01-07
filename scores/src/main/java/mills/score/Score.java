@@ -105,12 +105,20 @@ public class Score implements Comparable<Score> {
         assert s2>=0;
 
         // shorter win path
-        if(Score.isWon(s1))
-            return Score.isWon(s2) && s1 < s2;
+        if(Score.isWon(s1)) {
+            if(Score.isWon(s2))
+                return s1 < s2;
+            else
+                return true;
+        }
 
         // longer loss path
-        if(Score.isLost(s1))
-            return Score.isLost(s2) && s1 > s2;
+        if(Score.isLost(s1)) {
+            if(Score.isLost(s2))
+                return s1 > s2;
+            else
+                return false;
+        }
 
         assert s1==0;
 
