@@ -5,6 +5,8 @@ import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -14,36 +16,58 @@ import java.util.stream.Stream;
  * Date: 27.12.19
  * Time: 18:55
  */
-public class ClosingGroup extends MovingGroup<ScoreSlices> {
+public class ClosingGroup<Slices extends ScoreSlices> extends MovingGroup<Slices> {
 
     @Override
     public boolean closing() {
         return true;
     }
 
-    public ClosingGroup(PopCount pop, Player player, Stream<ScoreSet> slices) {
-        super(pop, player, slices.map(ScoreSlices::of));
+    public ClosingGroup(PopCount pop, Player player, Stream<Slices> slices) {
+        super(pop, player, slices);
     }
 
-    public static ClosingGroup closed(PopCount pop, Player player, Function<PopCount, ? extends ScoreSet> generator) {
-
-        // max reachable closed count plus a closed opponent mill
+    public static Set<PopCount> clops(PopCount pop, Player player) {
         PopCount mclop = pop.mclop()
                 .min(PopCount.P99.sub(pop)
-                    .add(player.pop).swap());
+                        .add(player.pop).swap());
 
-        Stream<ScoreSet> slices = PopCount.TABLE.parallelStream()
-                .filter(clop -> clop.le(mclop))
-                .filter(clop -> player.other().pop.le(clop)) // plus a closed opponent mill
-                .map(generator);
+        Set<PopCount> clops = new HashSet<>();
 
-        return new ClosingGroup(pop, player, slices);
+        for (PopCount clop : PopCount.TABLE) {
+            if(clop.le(mclop) && player.other().pop.le(clop))
+                clops.add(clop);
+        }
+
+        return clops;
     }
 
-    public static ClosingGroup lost(IndexProvider indexes, Player player) {
-        return closed(PopCount.get(3,3), player, clops-> {
-            PosIndex index = indexes.build(clops);
+    public static ClosingGroup<ScoreSlices> closed(PopCount pop, Player player, Function<PopCount, ? extends ScoreSet> generator) {
+
+        Stream<ScoreSlices> slices = clops(pop, player).parallelStream()
+                .map(generator)
+                .map(ScoreSlices::of);
+
+        return new ClosingGroup<>(pop, player, slices);
+    }
+
+    public static ClosingGroup<? extends ScoreSlices> lost(IndexProvider indexes, PopCount pop, Player player) {
+        return closed(pop, player, clop-> {
+            PosIndex index = indexes.build(pop, clop);
             return new LostSet(index, player);
         });
+    }
+
+    public static ClosingGroup<? extends ScoreSlices> build(LayerGroup<IndexLayer> layers, LayerGroup<ScoreMap> target) {
+
+        ClosingGroup<MapSlices> slices = new ClosingGroup<>(layers.pop, layers.player,
+                layers.stream().map(ScoreMap::allocate)
+                .map(MapSlices::of));
+        
+        GroupElevator elevator = new GroupElevator(target, slices);
+
+        elevator.generate();
+
+        return slices;
     }
 }

@@ -33,6 +33,15 @@ public class ScoreMap extends ScoreSet {
         scores.put(posIndex, value);
     }
 
+    public static ScoreMap allocate(IndexLayer layer) {
+        return allocate(layer.index(), layer.player());
+    }
+
+    public static ScoreMap allocate(PosIndex index, Player player) {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(index.range());
+        return new ScoreMap(index, player, buffer);
+    }
+
     MapSlice openSlice(int index) {
         return MapSlice.of(this, index);
     }

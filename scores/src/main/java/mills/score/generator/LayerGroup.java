@@ -1,6 +1,5 @@
 package mills.score.generator;
 
-import mills.bits.Clops;
 import mills.bits.Player;
 import mills.bits.PopCount;
 
@@ -22,19 +21,17 @@ public class LayerGroup<T extends IndexLayer> implements Layer {
 
     final Player player;
 
-    final Map<Clops, T> group;
+    final Map<PopCount, T> group;
 
-    public LayerGroup(PopCount pop, Player player, Map<Clops, T> group) {
+    LayerGroup(PopCount pop, Player player, Map<PopCount, T> group) {
         this.group = group;
         this.pop = pop;
         this.player = player;
     }
 
-    public LayerGroup(PopCount pop, Player player, Stream<? extends T> layers) {
-          this.group = layers.collect(Collectors.toMap(Clops::of, Function.identity()));
-          this.pop = pop;
-          this.player = player;
-      }
+    LayerGroup(PopCount pop, Player player, Stream<? extends T> layers) {
+        this(pop, player, layers.collect(Collectors.toMap(IndexLayer::clop, Function.identity())));
+    }
 
     public <R extends IndexLayer> LayerGroup<R> map(Function<? super T,? extends R> map) {
         return of(pop, player, group.values().stream().map(map));
@@ -71,7 +68,7 @@ public class LayerGroup<T extends IndexLayer> implements Layer {
 
     //////////////////////////////////////////
 
-    public static <T extends IndexLayer> LayerGroup<T> of(PopCount pop, Player player, Map<Clops, T> group) {
+    public static <T extends IndexLayer> LayerGroup<T> of(PopCount pop, Player player, Map<PopCount, T> group) {
         return new LayerGroup<>(pop, player, group);
     }
 

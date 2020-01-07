@@ -17,4 +17,19 @@ public interface IndexLayer extends ClopLayer {
     }
 
     Player player();
+
+    static IndexLayer of(PosIndex index, Player player) {
+        return new IndexLayer() {
+
+            @Override
+            public PosIndex index() {
+                return index;
+            }
+
+            @Override
+            public Player player() {
+                return player;
+            }
+        };
+    }
 }

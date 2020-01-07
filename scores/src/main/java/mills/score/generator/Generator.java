@@ -4,11 +4,12 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
-import mills.score.Score;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.io.UncheckedIOException;
+import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -27,89 +28,84 @@ public class Generator {
         this.files = new ScoreFiles(root);
     }
 
-    public void generateLevel(PopCount pop) throws IOException {
-        if(pop.min()<3)
+    private void generate(PopCount pop) {
+        if (pop.min() < 3)
             throw new IllegalArgumentException();
 
-        if(pop.equals(pop.swap())) {
-            generateSingle(pop);
-        } else {
-            generatePair(pop);
-        }
+        MovingGroups self = groups(pop, Player.White);
+        MovingGroups other = pop.isSym() ? self : groups(pop, Player.Black);
+
+        new GroupGenerator(this, self, other).generate().forEach(this::save);
     }
 
-    private void generateSingle(PopCount pop) throws IOException {
-        MovingGroups target = MovingGroups.create(pop, Player.White,
-                clop -> moved(pop, clop, Player.White),
-                clop -> closed(pop, clop, Player.White));
+    MovingGroups groups(PopCount pop, Player player) {
 
-        System.out.format("%9s: %9d\n", target.moved, target.moved.range());
+        ClosingGroup<? extends ScoreSlices> closed = closed(pop, player);
 
-        Score score = Score.LOST;
+        MovingGroup<MapSlices> moved = moved(pop, player);
 
-        while(true) {
-            int count = target.propagate(target, score);
-
-            System.out.format("%9s: %9d\n", score, count);
-
-            if(count==0)
-                break;
-            else
-                score = score.next();
-        }
-
-        save(target.moved);
+        return new MovingGroups(moved, closed);
     }
 
-    private void generatePair(PopCount pop) throws IOException {
-        MovingGroups self = MovingGroups.create(pop, Player.White,
-                clop -> moved(pop, clop, Player.White),
-                clop -> closed(pop, clop, Player.White));
+    MovingGroup<MapSlices> moved(PopCount pop, Player player) {
 
-        MovingGroups other = MovingGroups.create(pop, Player.Black,
-                clop -> moved(pop, clop, Player.Black),
-                clop -> closed(pop, clop, Player.Black));
+        Stream<MapSlices> slices = MovingGroup.clops(pop).parallelStream()
+                .map(clop -> indexes.build(pop, clop))
+                .map(index -> ScoreMap.allocate(index, player))
+                .map(MapSlices::of);
 
-        System.out.format("%9s: %9d\n", self.moved, self.moved.range());
-
-        Score score = Score.LOST;
-
-        while(true) {
-            int count = self.propagate(other, score);
-            count += other.propagate(self, score);
-
-            System.out.format("%9s: %9d\n", score, count);
-
-            if(count==0)
-                break;
-            else
-                score = score.next();
-        }
-
-        save(self.moved);
-        save(other.moved);
+        return new MovingGroup<>(pop, player, slices);
     }
 
-    private void save(MovingGroup<? extends MapSlices> moved) throws IOException {
-
-        moved.group.values().parallelStream().forEach(ScoreSlices::close);
-
-        for (MapSlices slices : moved.group.values()) {
-            files.save(slices.scores());
-        }
-    }
-
-    ScoreMap moved(PopCount pop, PopCount clop, Player player) {
-        PosIndex index = indexes.build(pop, clop);
-        ByteBuffer buffer = ByteBuffer.allocateDirect(index.range());
-        return new ScoreMap(index, player, buffer);
-    }
-
-    ScoreSet closed(PopCount pop, PopCount clop, Player player) {
-        PosIndex index = indexes.build(pop, clop);
+    ClosingGroup<? extends ScoreSlices> closed(PopCount pop, Player player) {
         if(player.count(pop)<=3)
-            return new LostSet(index, player);
-        throw new IllegalStateException("not implemented");
+            return ClosingGroup.lost(indexes, pop, player);
+
+        PopCount down = pop.sub(player.pop);
+        LayerGroup<ScoreMap> scores = load(down, down.isSym() ? Player.White : player);
+
+        LayerGroup<IndexLayer> closed = new LayerGroup<>(pop, player,
+                ClosingGroup.clops(pop, player).parallelStream()
+                        .map(clop -> indexes.build(pop, clop))
+                        .map(index -> IndexLayer.of(index, player))
+        );
+
+        return ClosingGroup.build(closed, scores);
+    }
+    
+    LayerGroup<ScoreMap> load(PopCount pop, Player player) {
+
+        Set<PopCount> clops = MovingGroup.clops(pop);
+
+        for (PopCount clop : clops) {
+            if(!files.file(pop, clop, player).isFile()) {
+                generate(pop);
+                break;
+            }
+        }
+
+        Stream<ScoreMap> scores = clops.parallelStream()
+                .map(clop -> indexes.build(pop, clop))
+                .map(index -> load(index, player));
+
+        return new LayerGroup<>(pop, player, scores);
+    }
+
+    ScoreMap load(PosIndex index, Player player) {
+        try {
+            return files.load(index, player);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private void save(ScoreMap scores) {
+
+        try {
+            files.save(scores);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public static void main(String ... args) throws IOException {
@@ -117,8 +113,11 @@ public class Generator {
         int nw = Integer.parseInt(args[1]);
         PopCount pop = PopCount.get(nb, nw);
 
-        Generator generator = new Generator(IndexProvider.load(), new File("build/scores"));
-        generator.generateLevel(pop);
+        File file = args.length<3 ? new File("build/scores") : new File(args[2]);
+        IndexProvider indexes = IndexProvider.load().lazy();
 
+        Generator generator = new Generator(indexes, file);
+
+        generator.generate(pop);
     }
 }

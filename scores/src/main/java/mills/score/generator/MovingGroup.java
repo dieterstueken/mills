@@ -8,7 +8,9 @@ import mills.stones.Mover;
 import mills.stones.Moves;
 import mills.stones.Stones;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.LongConsumer;
 import java.util.function.ToIntBiFunction;
@@ -32,11 +34,22 @@ public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> 
         super(pop, player, slices);
     }
 
-    public static MovingGroup<MapSlices> create(PopCount pop, Player player, Function<PopCount, ? extends ScoreMap> generator) {
+    public static Set<PopCount> clops(PopCount pop) {
         PopCount mclop = pop.mclop().min(PopCount.P99.sub(pop).swap());
 
-        Stream<MapSlices> mapSlices = PopCount.TABLE.parallelStream()
-                .filter(clop -> clop.le(mclop))
+        Set<PopCount> clops = new HashSet<>();
+
+        for (PopCount clop : PopCount.TABLE) {
+            if(clop.le(mclop))
+                clops.add(clop);
+        }
+
+        return clops;
+    }
+
+    public static MovingGroup<MapSlices> create(PopCount pop, Player player, Function<PopCount, ? extends ScoreMap> generator) {
+
+        Stream<MapSlices> mapSlices = clops(pop).parallelStream()
                 .map(generator)
                 .map(MapSlices::of);
 

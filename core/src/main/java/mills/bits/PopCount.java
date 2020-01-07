@@ -76,6 +76,10 @@ public class PopCount implements Indexed {
         return max()==0;
     }
 
+    public boolean isSym() {
+        return nb==nw;
+    }
+
     public PopCount remains() {
         return _of(9 - nb, 9 - nw);
     }

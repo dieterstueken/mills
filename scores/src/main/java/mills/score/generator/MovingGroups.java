@@ -1,6 +1,5 @@
 package mills.score.generator;
 
-import mills.bits.Clops;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
@@ -54,7 +53,16 @@ public class MovingGroups {
         return new MovingGroups(movedTask.join(), closedTask.join());
     }
 
-    public int propagate(MovingGroups target, Score score) {
+    public static IntStream propagate(MovingGroups self, MovingGroups other, Score score) {
+        IntStream tasks = self.propagate(other, score);
+
+        if(self!=other)
+            tasks = concat(tasks, other.propagate(self, score));
+
+        return tasks;
+    }
+
+    public IntStream propagate(MovingGroups target, Score score) {
 
         //if(score.value>3)
         //    DEBUG = true;
@@ -68,13 +76,7 @@ public class MovingGroups {
         IntStream movingTasks = moved.propagate(score, processors);
         IntStream closingTasks = closed.propagate(score, processors);
 
-        IntStream tasks = concat(closingTasks, movingTasks);
-        if(tasks==null)
-            return 0;
-
-        long count = tasks.sum();
-
-        return (int) count;
+        return concat(closingTasks, movingTasks);
     }
 
     static IntStream concat(IntStream a, IntStream b) {
@@ -89,8 +91,8 @@ public class MovingGroups {
     }
 
     void propagate(MovingGroups source, long i201, Score newScore) {
-        Clops clops = Positions.clops(i201);
-        MapSlices slices = moved.group.get(clops);
+        PopCount clop = Positions.clop(i201);
+        MapSlices slices = moved.group.get(clop);
 
         int posIndex = slices.scores().index.posIndex(i201);
         MapSlice mapSlice = slices.get(posIndex);

@@ -1,6 +1,8 @@
 package mills.score.generator;
 
+import mills.bits.Clops;
 import mills.bits.Player;
+import mills.bits.PopCount;
 import mills.index.PosIndex;
 
 import java.io.File;
@@ -10,6 +12,8 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.NotDirectoryException;
+import java.nio.file.OpenOption;
+import java.util.Set;
 
 import static java.nio.file.StandardOpenOption.*;
 
@@ -37,28 +41,38 @@ public class ScoreFiles {
             throw new NotDirectoryException(root.toString());
     }
 
+    public File file(Clops clops, Player player) {
+        return file(clops.pop(), clops.clop(), player);
+    }
+
+    public File file(PopCount pop, PopCount clop, Player player) {
+        String name = String.format("m%d%d%c%d%d.scores", pop.nb(), pop.nw(), player.key(), clop.nb(), clop.nw());
+        return new File(root, name);
+    }
+
+    static final Set<OpenOption> LOAD = Set.of(READ);
+    static final Set<OpenOption> SAVE = Set.of(CREATE, WRITE);
+
     void save(ScoreMap scores) throws IOException {
 
-        String name = String.format("%s%c%s.scores", scores.pop(), scores.player().key(), scores.clop());
-        File file = new File(root, name);
+        File file = file(scores.index(), scores.player());
 
         if(file.exists())
             throw new FileAlreadyExistsException("file already exist: " + file.toString());
 
-        try(FileChannel fc = FileChannel.open(file.toPath(), CREATE, WRITE)) {
+        try(FileChannel fc = FileChannel.open(file.toPath(), SAVE)) {
             fc.write(scores.scores);
         }
     }
 
     public ScoreMap load(PosIndex index, Player player) throws IOException {
 
-        String name = String.format("%s%c%s.scores", index.pop(), player.key(), index.clop());
-        File file = new File(root, name);
+        File file = file(index, player);
 
         if(file.length() != index.range())
             throw new IOException("unexpected file size: " + file.toString());
 
-        try(FileChannel fc = FileChannel.open(file.toPath(), READ)) {
+        try(FileChannel fc = FileChannel.open(file.toPath(), LOAD)) {
             int size = index.range();
             ByteBuffer scores = ByteBuffer.allocateDirect(size);
             size -= fc.read(scores);
@@ -72,8 +86,7 @@ public class ScoreFiles {
 
     public ScoreMap map(PosIndex index, Player player, boolean readonly) throws IOException {
 
-        String name = String.format("%s%c%s.scores", index.pop(), player.key(), index.clop());
-        File file = new File(root, name);
+        File file = file(index, player);
         int size = index.range();
 
         if (file.length() != size)

@@ -8,6 +8,7 @@ import mills.score.Score;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
+import java.util.stream.IntStream;
 
 public class MovedGroupTest {
     static final IndexProvider indexes = IndexProvider.load().lazy();
@@ -21,17 +22,15 @@ public class MovedGroupTest {
 
         System.out.format("%9s: %9d\n", target.moved, target.moved.range());
 
-        Score score = Score.LOST;
+        for(Score score = Score.LOST;true; score = score.next()) {
 
-        while(true) {
-            int count = target.propagate(target, score);
+            IntStream tasks = target.propagate(target, score);
+            if(tasks==null)
+                break;
+
+            int count = tasks.sum();
 
             System.out.format("%9s: %9d\n", score, count);
-
-            if(count==0)
-                break;
-            else
-                score = score.next();
         }
 
         //MovedPosition pos = target.position(target, 562950021120016L);
