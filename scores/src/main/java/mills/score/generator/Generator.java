@@ -8,9 +8,10 @@ import mills.index.PosIndex;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.RecursiveTask;
 import java.util.stream.Stream;
 
 /**
@@ -25,50 +26,40 @@ public class Generator {
 
     final ScoreFiles files;
 
+    final Map<PopCount, GroupGenerator> generated = new ConcurrentHashMap<>();
+
     public Generator(IndexProvider indexes, File root) throws IOException {
         this.indexes = indexes;
         this.files = new ScoreFiles(root);
     }
 
-    private void generate(PopCount pop) {
+    private GroupGenerator generate(PopCount pop) {
         if (pop.min() < 3)
             throw new IllegalArgumentException();
 
-        open(pop).generate().forEach(this::save);
+        return generated.computeIfAbsent(pop, this::generator);
     }
 
-    GroupGenerator open(PopCount pop) {
-
-        if(pop.isSym()) {
-            MovingGroups self = groups(pop, Player.White);
-            return new GroupGenerator(self, self);
-        }
-
-        ForkJoinTask<MovingGroups> task = new RecursiveTask<MovingGroups>() {
-            @Override
-            protected MovingGroups compute() {
-                return groups(pop, Player.White);
-            }
-        }.fork();
-
-        MovingGroups other = groups(pop, Player.Black);
-        MovingGroups self = task.join();
-
-        return new GroupGenerator(self, other);
+    public void close() {
+        generated.values().forEach(ForkJoinTask::join);
     }
 
-    MovingGroups groups(PopCount pop, Player player) {
-
-        ClosingGroup<? extends ScoreSlices> closed = closed(pop, player);
-
-        MovingGroup<MapSlices> moved = moved(pop, player);
-
-        return new MovingGroups(moved, closed);
+    private GroupGenerator generator(PopCount pop) {
+        GroupGenerator generator = new GroupGenerator(this, pop);
+        generator.fork();
+        return generator;
     }
 
     MovingGroup<MapSlices> moved(PopCount pop, Player player) {
 
-        Stream<MapSlices> slices = MovingGroup.clops(pop).parallelStream()
+        Set<PopCount> clops = MovingGroup.clops(pop);
+        for (PopCount clop : clops) {
+            File file = files.file(pop, clop, player);
+            if(file.exists())
+                throw new IllegalStateException("score file already exists: " + file);
+        }
+
+        Stream<MapSlices> slices = clops.parallelStream()
                 .map(clop -> indexes.build(pop, clop))
                 .map(index -> ScoreMap.allocate(index, player))
                 .map(MapSlices::of);
@@ -93,21 +84,7 @@ public class Generator {
     }
     
     LayerGroup<ScoreMap> load(PopCount pop, Player player) {
-
-        Set<PopCount> clops = MovingGroup.clops(pop);
-
-        for (PopCount clop : clops) {
-            if(!files.file(pop, clop, player).isFile()) {
-                generate(pop);
-                break;
-            }
-        }
-
-        Stream<ScoreMap> scores = clops.parallelStream()
-                .map(clop -> indexes.build(pop, clop))
-                .map(index -> load(index, player));
-
-        return new LayerGroup<>(pop, player, scores);
+        return generator(pop).join().get(player);
     }
 
     ScoreMap load(PosIndex index, Player player) {
@@ -118,7 +95,7 @@ public class Generator {
         }
     }
 
-    private void save(ScoreMap scores) {
+    void save(ScoreMap scores) {
 
         try {
             files.save(scores);
@@ -133,10 +110,12 @@ public class Generator {
         PopCount pop = PopCount.get(nb, nw);
 
         File file = args.length<3 ? new File("build/scores") : new File(args[2]);
-        IndexProvider indexes = IndexProvider.load().lazy();
+        IndexProvider indexes = IndexProvider.load();
 
         Generator generator = new Generator(indexes, file);
 
-        generator.generate(pop);
+        generator.generate(pop).join();
+        
+        generator.close();
     }
 }

@@ -95,4 +95,12 @@ public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> 
             mover.move(stay, move, mask).normalize().analyze(analyzer::accept);
         };
     }
+
+    public int count() {
+        int count = 0;
+        for (Slices slices : group.values()) {
+            count += slices.slices().size();
+        }
+        return count;
+    }
 }

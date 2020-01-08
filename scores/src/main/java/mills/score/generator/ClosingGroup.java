@@ -66,8 +66,6 @@ public class ClosingGroup<Slices extends ScoreSlices> extends MovingGroup<Slices
         
         GroupElevator elevator = new GroupElevator(target, slices);
 
-        System.out.format("%9s: elevate\n", target);
-
         elevator.generate();
 
         //for (MapSlices slice : slices.group.values()) {

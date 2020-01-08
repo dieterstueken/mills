@@ -29,11 +29,15 @@ public class GroupElevator {
     }
 
     ClosingGroup<? extends MapSlices> generate() {
+
+        System.out.format("%9s: elevate %d\n", moved, closed.count());
+
         closed.stream()
+                .parallel()
                 .map(MapSlices::slices)
                 .flatMap(Collection::stream)
-                //.parallel()
                 .forEach(this::process);
+        
         return closed;
     }
 
