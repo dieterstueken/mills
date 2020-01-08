@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -21,6 +23,8 @@ import java.util.stream.Stream;
  */
 class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
 
+    static final Logger LOGGER = Logger.getLogger(GroupGenerator.class.getName());
+
     final Generator generator;
 
     final PopCount pop;
@@ -31,6 +35,8 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
         this.generator = generator;
         this.pop = pop;
         this.clops = MovingGroup.clops(pop);
+
+        LOGGER.log(Level.FINER, ()->String.format("generate: %s", pop));
     }
 
     private Stream<Player> players() {
@@ -40,6 +46,15 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
             return Stream.of(Player.White, Player.Black);
     }
 
+    public GroupGenerator submit() {
+        if(getForkJoinTaskTag()==0) {
+            if(setForkJoinTaskTag((short) 1) != 1)
+                this.fork();
+        }
+
+        return this;
+    }
+
     @Override
     protected Map<Player, LayerGroup<ScoreMap>> compute() {
 
@@ -47,8 +62,6 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
             return load();
         else
             return generate();
-
-        //generate().forEach(generator::save);
     }
 
     boolean exists() {
@@ -91,11 +104,13 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
         return new LayerGroup<>(pop, player, scores);
     }
 
+    private void log(Score score, int count) {
+        LOGGER.log(Level.FINER, ()->String.format("%9s: %9d", score, count));
+    }
+
     private Stream<? extends ScoreMap> generate(MovingGroups self, MovingGroups other) {
 
-        System.out.format("%9s: %9d\n", self.moved, self.moved.range());
-        if(other!=self)
-            System.out.format("%9s: %9d\n", other.moved, other.moved.range());
+        LOGGER.log(Level.FINER, ()->String.format("generate: %s (%d)", self.moved, self.moved.range()));
 
         for (Score score = Score.LOST; true; score = score.next()) {
 
@@ -108,7 +123,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
 
             int count = tasks.parallel().sum();
 
-            System.out.format("%9s: %9d\n", score, count);
+            log(score, count);
         }
 
         Stream<? extends MapSlices> slices = self.moved.group.values().parallelStream();
@@ -122,14 +137,13 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
     Map<Player, LayerGroup<ScoreMap>> generate() {
         EnumMap<Player, MovingGroups> movings = new EnumMap<>(Player.class);
 
-        ForkJoinTask.invokeAll(players().map(this::groupTask).collect(Collectors.toList()))
+        ForkJoinTask.invokeAll(players()
+                .map(this::groupTask).collect(Collectors.toList()))
                 .stream().map(ForkJoinTask::join)
                 .forEach(groups -> movings.put(groups.moved.player, groups));
 
         MovingGroups white = movings.get(Player.White);
-        MovingGroups black = movings.get(Player.Black);
-        if(black==null)
-            black = white;
+        MovingGroups black = movings.getOrDefault(Player.Black, white);
 
         generate(black, white).forEach(generator::save);
 

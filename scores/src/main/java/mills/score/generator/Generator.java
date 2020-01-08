@@ -37,17 +37,15 @@ public class Generator {
         if (pop.min() < 3)
             throw new IllegalArgumentException();
 
-        return generated.computeIfAbsent(pop, this::generator);
+        return generated.computeIfAbsent(pop, this::newGenerator).submit();
     }
 
     public void close() {
         generated.values().forEach(ForkJoinTask::join);
     }
 
-    private GroupGenerator generator(PopCount pop) {
-        GroupGenerator generator = new GroupGenerator(this, pop);
-        generator.fork();
-        return generator;
+    private GroupGenerator newGenerator(PopCount pop) {
+        return new GroupGenerator(this, pop);
     }
 
     MovingGroup<MapSlices> moved(PopCount pop, Player player) {
@@ -72,7 +70,7 @@ public class Generator {
             return ClosingGroup.lost(indexes, pop, player);
 
         PopCount down = pop.sub(player.pop);
-        LayerGroup<ScoreMap> scores = load(down, down.isSym() ? Player.White : player);
+        GroupGenerator generator = generate(down);
 
         LayerGroup<IndexLayer> closed = new LayerGroup<>(pop, player,
                 ClosingGroup.clops(pop, player).parallelStream()
@@ -80,11 +78,9 @@ public class Generator {
                         .map(index -> IndexLayer.of(index, player))
         );
 
+        LayerGroup<ScoreMap> scores = generator.join().get(down.isSym() ? Player.White : player);
+
         return ClosingGroup.build(closed, scores);
-    }
-    
-    LayerGroup<ScoreMap> load(PopCount pop, Player player) {
-        return generator(pop).join().get(player);
     }
 
     ScoreMap load(PosIndex index, Player player) {

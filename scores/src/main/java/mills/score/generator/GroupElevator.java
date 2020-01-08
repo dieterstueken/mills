@@ -10,6 +10,8 @@ import mills.stones.Moves;
 import mills.stones.Stones;
 
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by IntelliJ IDEA.
@@ -18,6 +20,8 @@ import java.util.Collection;
  * Time: 14:44
  */
 public class GroupElevator {
+
+    static final Logger LOGGER = Logger.getLogger(GroupElevator.class.getName());
 
     final LayerGroup<? extends ScoreSet> moved;
 
@@ -30,7 +34,7 @@ public class GroupElevator {
 
     ClosingGroup<? extends MapSlices> generate() {
 
-        System.out.format("%9s: elevate %d\n", moved, closed.count());
+        LOGGER.log(Level.FINER, ()->String.format(" elevate: %s -> %s(%d)", moved, closed, closed.count()));
 
         closed.stream()
                 .parallel()
