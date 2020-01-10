@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveTask;
 import java.util.stream.Stream;
 
 /**
@@ -65,27 +66,45 @@ public class Generator {
         return new MovingGroup<>(pop, player, slices);
     }
 
-    ClosingGroup<? extends ScoreSlices> closed(PopCount pop, Player player) {
-        if(player.count(pop)<=3)
-            return ClosingGroup.lost(indexes, pop, player);
+    ForkJoinTask<ClosingGroup<? extends ScoreSlices>> closingTask(PopCount pop, Player player) {
+        if(player.count(pop)<=3) {
+            return new RecursiveTask<>() {
 
+                @Override
+                protected ClosingGroup<? extends ScoreSlices> compute() {
+                    return ClosingGroup.lost(indexes, pop, player);
+                }
+            };
+        }
+
+        // calculate in background
+        ForkJoinTask<LayerGroup<IndexLayer>> closedTask = new RecursiveTask<>() {
+            @Override
+            protected LayerGroup<IndexLayer> compute() {
+                return new LayerGroup<>(pop, player,
+                        ClosingGroup.clops(pop, player).parallelStream()
+                                .map(clop -> indexes.build(pop, clop))
+                                .map(index -> IndexLayer.of(index, player)));
+            }
+        };
+        closedTask.fork();
+
+        // must be calculated directly
         PopCount down = pop.sub(player.pop);
         GroupGenerator generator = generate(down);
-
-        LayerGroup<IndexLayer> closed = new LayerGroup<>(pop, player,
-                ClosingGroup.clops(pop, player).parallelStream()
-                        .map(clop -> indexes.build(pop, clop))
-                        .map(index -> IndexLayer.of(index, player))
-        );
-
         LayerGroup<ScoreMap> scores = generator.join().get(down.isSym() ? Player.White : player);
 
-        return ClosingGroup.build(closed, scores);
+        return new RecursiveTask<>() {
+            @Override
+            protected ClosingGroup<? extends ScoreSlices> compute() {
+                return ClosingGroup.build(closedTask.join(), scores);
+            }
+        };
     }
 
     ScoreMap load(PosIndex index, Player player) {
         try {
-            return files.load(index, player);
+            return files.map(index, player, true);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

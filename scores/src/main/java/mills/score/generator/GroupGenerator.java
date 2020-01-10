@@ -158,27 +158,17 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
     }
 
     ForkJoinTask<MovingGroups> groupTask(Player player) {
+        // create task immediately since down group must be calculated synchronously
+        ForkJoinTask<ClosingGroup<? extends ScoreSlices>> closingTask = generator.closingTask(pop, player);
+
         return new RecursiveTask<>() {
             @Override
             protected MovingGroups compute() {
+                closingTask.fork();
 
-                ForkJoinTask<ClosingGroup<? extends ScoreSlices>> closed = new RecursiveTask<>() {
-                    @Override
-                    protected ClosingGroup<? extends ScoreSlices> compute() {
-                        return generator.closed(pop, player);
-                    }
-                };
+                MovingGroup<MapSlices> moving = generator.moved(pop, player);
 
-                ForkJoinTask<MovingGroup<MapSlices>> moved = new RecursiveTask<>() {
-                    @Override
-                    protected MovingGroup<MapSlices> compute() {
-                        return generator.moved(pop, player);
-                    }
-                };
-
-                ForkJoinTask.invokeAll(closed, moved);
-
-                return new MovingGroups(moved.join(), closed.join());
+                return new MovingGroups(moving, closingTask.join());
             }
         };
     }
