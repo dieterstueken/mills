@@ -10,8 +10,11 @@ import mills.stones.Moves;
 import mills.stones.Stones;
 
 import java.util.Collection;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveAction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Created by IntelliJ IDEA.
@@ -36,17 +39,17 @@ public class GroupElevator {
 
         LOGGER.log(Level.FINER, ()->String.format(" elevate: %s -> %s(%d)", moved, closed, closed.count()));
 
-        closed.stream()
-                .parallel()
+        ForkJoinTask.invokeAll(closed.stream()
                 .map(MapSlices::slices)
                 .flatMap(Collection::stream)
-                .forEach(this::process);
-        
-        return closed;
-    }
+                .map(slice->new RecursiveAction() {
+                    @Override
+                    protected void compute() {
+                        slice.process(new Processor(slice));
+                    }
+                }).collect(Collectors.toList()));
 
-    void process(MapSlice slice) {
-        slice.process(new Processor(slice));
+        return closed;
     }
 
     class Processor implements IndexProcessor {
