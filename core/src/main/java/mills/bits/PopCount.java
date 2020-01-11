@@ -277,6 +277,8 @@ public class PopCount implements Indexed {
     public static final ListSet<PopCount> TABLE = ListSet.of(root());
 
     public static final PopCount EMPTY = get(0,0);
+    public static final PopCount P11 = get(1,1);
+    public static final PopCount P33 = get(3,3);
     public static final PopCount P44 = get(4,4);
     public static final PopCount P88 = get(8,8);
     public static final PopCount P99 = get(9,9);

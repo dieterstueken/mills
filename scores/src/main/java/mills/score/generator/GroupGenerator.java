@@ -2,8 +2,10 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
+import mills.index.PosIndex;
 import mills.score.Score;
 
+import java.io.File;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +26,10 @@ import java.util.stream.Stream;
 class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
 
     static final Logger LOGGER = Logger.getLogger(GroupGenerator.class.getName());
+
+    private void log(Score score, int count) {
+        LOGGER.log(Level.FINER, ()->String.format("%9s: %9d", score, count));
+    }
 
     final Generator generator;
 
@@ -46,10 +52,16 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
             return Stream.of(Player.White, Player.Black);
     }
 
+    PosIndex buildIndex(PopCount clop) {
+        return generator.indexes.build(pop, clop);
+    }
+
     public GroupGenerator submit() {
         if(getForkJoinTaskTag()==0) {
-            if(setForkJoinTaskTag((short) 1) != 1)
-                this.fork();
+            if(setForkJoinTaskTag((short) 1) != 1) {
+                LOGGER.log(Level.FINER, ()->String.format("compute: %s", pop));
+                this.invoke();
+            }
         }
 
         return this;
@@ -78,6 +90,8 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
     }
 
     Map<Player, LayerGroup<ScoreMap>> load() {
+        LOGGER.log(Level.FINER, ()->String.format("load: %s", pop));
+
         EnumMap<Player, LayerGroup<ScoreMap>> result = new EnumMap<>(Player.class);
 
         ForkJoinTask.invokeAll(players().map(this::loadTask).collect(Collectors.toList()))
@@ -98,14 +112,10 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
 
     LayerGroup<ScoreMap> load(Player player) {
         Stream<ScoreMap> scores = clops.parallelStream()
-                .map(clop -> generator.indexes.build(pop, clop))
+                .map(this::buildIndex)
                 .map(index -> generator.load(index, player));
 
         return new LayerGroup<>(pop, player, scores);
-    }
-
-    private void log(Score score, int count) {
-        LOGGER.log(Level.FINER, ()->String.format("%9s: %9d", score, count));
     }
 
     private Stream<? extends ScoreMap> generate(MovingGroups self, MovingGroups other) {
@@ -135,6 +145,13 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
     }
 
     Map<Player, LayerGroup<ScoreMap>> generate() {
+        LOGGER.log(Level.FINER, ()->String.format("generating: %s", pop));
+
+        PopCount ahead = pop.sub(PopCount.P11);
+        if(ahead.sub(PopCount.P33)!=null) {
+            generator.generate(ahead).join();
+        }
+
         EnumMap<Player, MovingGroups> movings = new EnumMap<>(Player.class);
 
         ForkJoinTask.invokeAll(players()
@@ -158,18 +175,78 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
     }
 
     ForkJoinTask<MovingGroups> groupTask(Player player) {
-        // create task immediately since down group must be calculated synchronously
-        ForkJoinTask<ClosingGroup<? extends ScoreSlices>> closingTask = generator.closingTask(pop, player);
 
         return new RecursiveTask<>() {
             @Override
             protected MovingGroups compute() {
+                
+                LOGGER.log(Level.FINER, ()->String.format("MovingGroups: %s%c", pop, player.key()));
+
+                ForkJoinTask<ClosingGroup<? extends ScoreSlices>> closingTask = closingTask(player);
                 closingTask.fork();
 
-                MovingGroup<MapSlices> moving = generator.moved(pop, player);
+                MovingGroup<MapSlices> moving = moved(player);
 
                 return new MovingGroups(moving, closingTask.join());
             }
         };
+    }
+
+    ForkJoinTask<ClosingGroup<? extends ScoreSlices>> closingTask(Player player) {
+        if (player.count(pop) <= 3) {
+            return new RecursiveTask<>() {
+
+                @Override
+                protected ClosingGroup<? extends ScoreSlices> compute() {
+                    return ClosingGroup.lost(generator.indexes, pop, player);
+                }
+            };
+        }
+
+        return new RecursiveTask<>() {
+
+            @Override
+            protected ClosingGroup<? extends ScoreSlices> compute() {
+                
+                LOGGER.log(Level.FINER, ()->String.format("closing group: %s%c", pop, player.key()));
+
+                ForkJoinTask<LayerGroup<IndexLayer>> closedTask = new RecursiveTask<>() {
+                    @Override
+                    protected LayerGroup<IndexLayer> compute() {
+                        LOGGER.log(Level.FINER, ()->String.format("closedTask: %s%c", pop, player.key()));
+                        return new LayerGroup<>(pop, player,
+                                ClosingGroup.clops(pop, player).parallelStream()
+                                        .map(GroupGenerator.this::buildIndex)
+                                        .map(index -> IndexLayer.of(index, player)));
+                    }
+                };
+                closedTask.fork();
+
+                PopCount down = pop.sub(player.pop);
+                GroupGenerator groups = generator.generate(down);
+                LayerGroup<ScoreMap> scores = groups.join().get(down.isSym() ? Player.White : player);
+
+                return ClosingGroup.build(closedTask.join(), scores);
+            }
+        };
+    }
+
+    MovingGroup<MapSlices> moved(Player player) {
+
+        LOGGER.log(Level.FINER, ()->String.format("moving: %s%c", pop, player.key()));
+
+        Set<PopCount> clops = MovingGroup.clops(pop);
+        for (PopCount clop : clops) {
+            File file = generator.files.file(pop, clop, player);
+            if(file.exists())
+                throw new IllegalStateException("score file already exists: " + file);
+        }
+
+        Stream<MapSlices> slices = clops.parallelStream()
+                .map(this::buildIndex)
+                .map(index -> ScoreMap.allocate(index, player))
+                .map(MapSlices::of);
+
+        return new MovingGroup<>(pop, player, slices);
     }
 }
