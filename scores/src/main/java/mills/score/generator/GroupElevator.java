@@ -37,7 +37,7 @@ public class GroupElevator {
 
     ClosingGroup<? extends MapSlices> generate() {
 
-        LOGGER.log(Level.FINER, ()->String.format(" elevate: %s -> %s(%d)", moved, closed, closed.count()));
+        LOGGER.log(Level.INFO, ()->String.format(" elevate: %s -> %s(%d)", moved, closed, closed.count()));
 
         ForkJoinTask.invokeAll(closed.stream()
                 .map(MapSlices::slices)

@@ -11,6 +11,8 @@ import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,6 +21,8 @@ import java.util.concurrent.ForkJoinTask;
  * Time: 17:31
  */
 public class Generator {
+
+    static final Logger LOGGER = Logger.getLogger(Generator.class.getName());
 
     final IndexProvider indexes;
 
@@ -43,9 +47,10 @@ public class Generator {
     }
 
     private GroupGenerator newGenerator(PopCount pop) {
+        if(pop.nb()>pop.nw())
+            pop.toString();
         return new GroupGenerator(this, pop);
     }
-
 
     ScoreMap load(PosIndex index, Player player) {
         try {
@@ -64,17 +69,32 @@ public class Generator {
         }
     }
 
-    public static void main(String ... args) throws IOException {
-        int nb = Integer.parseInt(args[0]);
-        int nw = Integer.parseInt(args[1]);
-        PopCount pop = PopCount.get(nb, nw);
+    public void generateAll() {
+        for(int nw=3; nw<10; ++nw) {
+            for(int nb=3; nb<=nw; ++nb) {
+                PopCount pop = PopCount.get(nb, nw);
+                GroupGenerator group = newGenerator(pop);
+                generated.put(pop, group);
+                if(group.exists()) {
+                    LOGGER.log(Level.INFO, ()->String.format("exists: %s", pop));
+                } else {
+                    group.submit().join();
+                }
+            }
+        }
+    }
 
-        File file = args.length<3 ? new File("build/scores") : new File(args[2]);
+    public static void main(String ... args) throws IOException {
+        //int nb = Integer.parseInt(args[0]);
+        //int nw = Integer.parseInt(args[1]);
+        //PopCount pop = PopCount.get(nb, nw);
+
+        File file = args.length<1 ? new File("build/scores") : new File(args[0]);
         IndexProvider indexes = IndexProvider.load();
 
         Generator generator = new Generator(indexes, file);
 
-        generator.generate(pop).join();
+        generator.generateAll();
         
         generator.close();
     }
