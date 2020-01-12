@@ -84,11 +84,12 @@ public class MovingGroups {
     void propagate(MovingGroups source, long i201, Score newScore) {
         PopCount clop = Positions.clop(i201);
         MapSlices slices = moved.group.get(clop);
-
-        int posIndex = slices.scores().index.posIndex(i201);
-        MapSlice mapSlice = slices.get(posIndex);
-        mapSlice.propagate(posIndex, i201, newScore.value);
-        //ScoredPosition debug = debug(source, i201);
+        if(slices!=null) {
+            int posIndex = slices.scores().index.posIndex(i201);
+            MapSlice mapSlice = slices.get(posIndex);
+            mapSlice.propagate(posIndex, i201, newScore.value);
+            //ScoredPosition debug = debug(source, i201);
+        }
     }
 
     //protected MovedPosition position(MovingGroups source, long i201) {

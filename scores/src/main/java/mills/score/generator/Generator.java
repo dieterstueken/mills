@@ -11,6 +11,7 @@ import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinTask;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,8 +48,6 @@ public class Generator {
     }
 
     private GroupGenerator newGenerator(PopCount pop) {
-        if(pop.nb()>pop.nw())
-            pop.toString();
         return new GroupGenerator(this, pop);
     }
 
@@ -70,18 +69,32 @@ public class Generator {
     }
 
     public void generateAll() {
-        for(int nw=3; nw<10; ++nw) {
-            for(int nb=3; nb<=nw; ++nb) {
-                PopCount pop = PopCount.get(nb, nw);
-                GroupGenerator group = newGenerator(pop);
+        for(int nb=3; nb<10; ++nb) {
+            for(int nw=3; nw<=nb; ++nw) {
+                    PopCount pop = PopCount.get(nb, nw);
+                GroupGenerator group = new GroupGenerator(this, pop);
                 generated.put(pop, group);
                 if(group.exists()) {
                     LOGGER.log(Level.INFO, ()->String.format("exists: %s", pop));
                 } else {
                     group.submit().join();
                 }
+
+                generated.keySet().removeIf(cleanup(pop));
             }
         }
+    }
+
+    private Predicate<? super PopCount> cleanup(PopCount pop) {
+        return key -> {
+            PopCount diff = pop.sub(key);
+            if(diff==null || diff.nb()<1 || diff.nw()<2)
+                return false;
+
+            LOGGER.log(Level.INFO, ()->String.format("drop: %s", key));
+
+            return true;
+        };
     }
 
     public static void main(String ... args) throws IOException {
@@ -96,6 +109,6 @@ public class Generator {
 
         generator.generateAll();
         
-        generator.close();
+        //generator.close();
     }
 }
