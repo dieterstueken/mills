@@ -188,7 +188,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
                 ForkJoinTask<ClosingGroup<? extends ScoreSlices>> closingTask = closingTask(player);
                 closingTask.fork();
 
-                MovingGroup<MapSlices> moving = moved(player);
+                MovingGroup<MapSlices> moving = moving(player);
 
                 return new MovingGroups(moving, closingTask.join());
             }
@@ -234,7 +234,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
         };
     }
 
-    MovingGroup<MapSlices> moved(Player player) {
+    MovingGroup<MapSlices> moving(Player player) {
 
         LOGGER.log(Level.INFO, ()->String.format("moving: %s%c", pop, player.key()));
 
@@ -248,7 +248,8 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
         Stream<MapSlices> slices = clops.parallelStream()
                 .map(this::buildIndex)
                 .map(index -> ScoreMap.allocate(index, player))
-                .map(MapSlices::of);
+                .map(MapSlices::of)
+                .peek(MapSlices::init);
 
         return new MovingGroup<>(pop, player, slices);
     }

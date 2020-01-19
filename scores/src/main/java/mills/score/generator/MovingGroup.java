@@ -82,7 +82,7 @@ public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> 
 
         // backtrace moves: move Black
         boolean swap = target.moved.player()!=Player.White;
-        Mover mover = Moves.moves(jumps()).mover(swap);
+        Mover mover = Moves.moves(canJump()).mover(swap);
 
         return (posIndex, i201) -> {
             // reversed move

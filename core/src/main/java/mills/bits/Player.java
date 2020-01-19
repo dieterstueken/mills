@@ -24,6 +24,10 @@ public enum Player {
             return 8 - pop.nb() - pop.nw();
         }
 
+        public boolean canJump(PopCount pop) {
+            throw new IllegalArgumentException("can't jump");
+        }
+
         @Override
         public Player other() {
             throw new IllegalStateException();
@@ -77,6 +81,10 @@ public enum Player {
     }
 
     abstract public int count(PopCount pop);
+
+    public boolean canJump(PopCount pop) {
+        return count(pop)<=3;
+    }
 
     abstract public Player other();
 

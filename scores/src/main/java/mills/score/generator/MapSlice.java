@@ -1,6 +1,7 @@
 package mills.score.generator;
 
 import mills.bits.Player;
+import mills.index.IndexProcessor;
 import mills.score.Score;
 import mills.stones.Mover;
 import mills.stones.Moves;
@@ -46,7 +47,7 @@ abstract public class MapSlice extends ScoreSlice {
 
     static MapSlice of(ScoreMap scores, int index) {
 
-        Mover mover = Moves.moves(scores.jumps()).mover(true);
+        Mover mover = Moves.moves(scores.canJump()).mover(true);
 
         return new MapSlice(index, mover) {
 
@@ -166,7 +167,21 @@ abstract public class MapSlice extends ScoreSlice {
         int move = Stones.stones(i201, player);
         //int closed = Stones.closed(move);
         // include closed, too
+
         mover.move(stay, move, move);
         return mover.normalize().size();
+    }
+
+    void init() {
+
+        IndexProcessor init = (posIndex, i201) -> {
+            int unresolved = unresolved(i201);
+            if(unresolved==0) {
+                short offset = offset(posIndex);
+                setScore(offset, Score.LOST.value);
+            }
+        };
+
+        process(init);
     }
 }

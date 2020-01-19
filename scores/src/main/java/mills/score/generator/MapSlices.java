@@ -36,4 +36,9 @@ public abstract class MapSlices extends ScoreSlices {
             }
         };
     }
+
+    void init() {
+        if(!scores().canJump())
+            slices().parallelStream().forEach(MapSlice::init);
+    }
 }

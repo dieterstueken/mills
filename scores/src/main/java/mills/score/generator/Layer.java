@@ -15,7 +15,7 @@ public interface Layer {
 
     Player player();
 
-    default boolean jumps() {
-        return player().count(pop())<=3;
+    default boolean canJump() {
+        return player().canJump(pop());
     }
 }
