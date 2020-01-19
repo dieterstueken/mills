@@ -172,16 +172,27 @@ abstract public class MapSlice extends ScoreSlice {
         return mover.normalize().size();
     }
 
-    void init() {
+    class Initializer implements IndexProcessor {
 
-        IndexProcessor init = (posIndex, i201) -> {
+        int count = 0;
+
+        @Override
+        public void process(int posIndex, long i201) {
             int unresolved = unresolved(i201);
             if(unresolved==0) {
                 short offset = offset(posIndex);
                 setScore(offset, Score.LOST.value);
+                ++count;
             }
-        };
+        }
 
-        process(init);
+        int initialize() {
+            MapSlice.this.process(this);
+            return count;
+        }
+    }
+
+    int init() {
+        return new Initializer().initialize();
     }
 }

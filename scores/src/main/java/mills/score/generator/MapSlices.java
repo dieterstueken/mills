@@ -37,8 +37,10 @@ public abstract class MapSlices extends ScoreSlices {
         };
     }
 
-    void init() {
-        if(!scores().canJump())
-            slices().parallelStream().forEach(MapSlice::init);
+    int init() {
+        if(!scores().canJump()) {
+            return slices().parallelStream().mapToInt(MapSlice::init).sum();
+        } else
+            return 0;
     }
 }
