@@ -4,13 +4,17 @@ import mills.bits.Perm;
 import mills.bits.PopCount;
 import mills.index.builder.IndexBuilder;
 import mills.index.tables.C2Table;
+import mills.index.tables.R0Table;
+import mills.index.tables.R2Table;
 import mills.position.Position;
 import mills.position.Positions;
 import mills.ring.Entries;
 import mills.ring.EntryTables;
+import mills.ring.IndexedMap;
 import mills.util.IntegerDigest;
 import org.junit.Test;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
@@ -268,5 +272,20 @@ public class IndexTests {
         PopCount pop = PopCount.of(0,2);
         PosIndex posIndex = builder.build(pop);
         testIndex(posIndex);
+    }
+
+    @Test
+    public void testIndexSizes() {
+        testIndexSizes(PopCount.of(8, 8));
+    }
+
+    public void testIndexSizes(PopCount pop) {
+        R2Table table = builder.build(pop);
+
+        Comparator<R0Table> range = Comparator.comparingInt(IndexedMap::range);
+
+        R0Table max = table.values().stream().max(range).get();
+        System.out.format("max %d,%d : %,d / %,d / %d\n", pop.nb, pop.nw, table.range(),
+                max.range(), max.size());
     }
 }

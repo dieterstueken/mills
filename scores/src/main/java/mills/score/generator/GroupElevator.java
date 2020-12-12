@@ -74,15 +74,15 @@ public class GroupElevator {
 
             //  Opponent takes a stone with worst result for player.
 
-            int worsest = Score.WON.value;
+            int worst = Score.WON.value;
             for(int i=0; i<mover.size(); ++i) {
                 long m201 = mover.get201(i);
                 int score = getScore(m201);
-                if(Score.betterThan(worsest, score))
-                    worsest = score;
+                if(Score.betterThan(worst, score))
+                    worst = score;
             }
 
-            slice.setScore(slice.offset(posIndex), worsest);
+            slice.setScore(slice.offset(posIndex), worst);
         }
 
         int getScore(long m201) {

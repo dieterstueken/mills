@@ -96,7 +96,7 @@ public class Partition {
         return new Partition(root, List.of(fragments)) {
             @Override
             public String toString() {
-                return pop.toString();
+                return String.format("%s [%d,%d]", pop.toString(), root.size(), fragments.size());
             }
         };
     }

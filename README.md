@@ -122,10 +122,10 @@ An important information is how one of the eight permutations affect the RingEnt
 Especially if the entry (resp. its index) can be reduced by any of the eight permutations.  
 
 This is represented by a mask of bits (represented by a byte) like 
-[RimgEntry.mlt](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/ring/RingEntry.java#L37).
+[RingEntry.mlt](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/ring/RingEntry.java#L37).
 
 Several other mask are representing other questions, i.e if the index stays stable
- ([RimgEntry.meq](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/ring/RingEntry.java#L34)).   
+ ([RingEntry.meq](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/ring/RingEntry.java#L34)).   
 
    
   

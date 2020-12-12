@@ -4,5 +4,5 @@ apply plugin: 'java'
 dependencies {
     implementation project(':core')
 
-    runtime project(':index')
+    runtimeOnly project(':index')
 }
