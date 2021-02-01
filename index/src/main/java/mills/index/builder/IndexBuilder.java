@@ -6,6 +6,7 @@ import mills.index.tables.C2Table;
 import mills.index.tables.R0Table;
 import mills.index.tables.R2Entry;
 import mills.index.tables.R2Table;
+import mills.position.Positions;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.EntryTables;
@@ -173,7 +174,7 @@ public class IndexBuilder implements IndexProvider {
                     continue;
             }
 
-            int meq = meq(e2, e0);
+            int meq = Positions.meq(e2, e0);
             if(meq==0)
                 continue;
 
@@ -193,55 +194,6 @@ public class IndexBuilder implements IndexProvider {
         }
 
         return builder.build();
-    }
-
-    /**
-     * Return a perm mask of all stable permutations.
-     * If any permutation reduces r20 return 0.
-     * Else bit #0 is set.
-     * @param e2 entry on ring 0 (minimized).
-     * @param e0 entry on ring 2.
-     * @return a perm mask of all stable permutations or 0.
-     */
-    public static int meq(RingEntry e2, RingEntry e0) {
-
-        int meq = e2.pmeq();
-
-        // no further analysis necessary.
-        if(e2==e0)
-            return meq;
-
-        // may be reduced easily
-        int mlt = meq & e0.mlt;
-        if (mlt != 0) // unstable anyway
-            return 0;
-
-        // ether both are stable
-        meq &= e0.meq;
-
-        // no swap possible since e0 has an other (bigger) minimum
-        if (e2.index != e0.min())
-            return meq;
-
-        // analyze all minima
-        int min = e0.min & 0xff;
-        while (min != 0) {
-            int mi = Integer.lowestOneBit(min);
-            min ^= mi;
-            int i = Integer.numberOfTrailingZeros(mi);
-
-            // even reduces
-            if (e2.perm(i) < e0.index) {
-                return 0;
-            }
-
-            // also stable with swap
-            if (e2.perm(i) == e0.index) {
-                meq |= mi;
-            }
-        }
-
-        return meq;
     }
 
     class T0Builder {

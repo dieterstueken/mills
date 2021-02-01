@@ -13,9 +13,7 @@ import mills.stones.Stones;
  * User: stueken
  * Date: 14.08.11
  * Time: 11:02
- */
-
-/**
+ *
  * Class Positions manages compacted bit masks representing a position of two or three rings.
  *
  * A single ring fits into a short. Since MAX_INDEX < 1<<13 bits 13-15 are void.
@@ -140,9 +138,9 @@ public interface Positions {
 
     /**
      * Compose two operations including swap bit.
-     * @param pm1
-     * @param pm2
-     * @return
+     * @param pm1 first permutation
+     * @param pm2 second permutation
+     * @return composed permutation
      */
     static int compose(int pm1, int pm2) {
         int result = Perm.get(pm1).compose(pm2);
@@ -242,5 +240,73 @@ public interface Positions {
         n201 ^= p201;
 
         return n201 | NORMALIZED;
+    }
+
+    /**
+     * Return a perm mask of all stable permutations.
+     * If any permutation (with possible swap) reduces r20 return 0.
+     * Else at least bit #0 is set.
+     * @param e2 entry on ring 0 (minimized).
+     * @param e0 entry on ring 2.
+     * @return a perm mask of all stable permutations or 0.
+     */
+    static int meq(RingEntry e2, RingEntry e0) {
+
+        assert e2.isMin();
+
+        int e0min = e0.min();
+        int e2index = e2.index;
+
+        // some e0 is smaller, abort
+        if(e0min<e2index)
+            return 0;
+
+        int meq = e2.pmeq();
+
+        // no further analysis necessary.
+        if(e2==e0)
+            return meq;
+
+        // check if any e0 reduces while e2 remains stable
+        if ((meq & e0.mlt) != 0)
+            return 0;
+
+        // e0 must stay stable, too.
+        meq &= e0.meq;
+
+        // if e0 is always bigger than e2 no further swaps or minima are expected.
+        if (e0min > e2index)
+            return meq;
+
+        int e0index = e0.index;
+
+        // by now: e0min == e2index (== e2min).
+        // but still e0index > e2index.
+        // Analyze stability after swapping e2 and e0:
+        // Search for possible permutations of e2 with e2.perm(i) >= e0min.
+        // e0index == e2.perm(i): additional stable permutation if swapped.
+        // e0index < e2.perm(i): unstable (smaller) permutation after swap.
+        // search all minima permutations of e0 excluding already verified meq.
+
+
+        int msk = 0xff & e0.min & ~meq;
+        while (msk != 0) {
+            int mi = Integer.lowestOneBit(msk);
+            msk ^= mi;
+            int i = Integer.numberOfTrailingZeros(mi);
+            int p2 = e2.perm(i);
+
+            // even reduces
+            if (p2 < e0index) {
+                return 0;
+            }
+
+            // stable if swapped
+            if (p2 == e0index) {
+                meq |= mi;
+            }
+        }
+
+        return meq;
     }
 }
