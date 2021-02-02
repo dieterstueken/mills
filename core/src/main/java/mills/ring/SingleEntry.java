@@ -37,7 +37,7 @@ class SingleEntry extends EntryList {
         if (predicate.test(entry))
             return this;
         else
-            return EMPTY;
+            return EntryTable.EMPTY;
     }
 
     @Override

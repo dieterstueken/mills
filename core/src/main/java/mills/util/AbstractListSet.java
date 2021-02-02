@@ -149,7 +149,7 @@ abstract public class AbstractListSet<T> extends AbstractList<T> implements List
         };
     }
 
-    protected static final AbstractListSet<Object> EMPTY = new AbstractListSet<Object>() {
+    private static final AbstractListSet<Object> EMPTY = new AbstractListSet<>() {
 
         @Override
         public Object get(int index) {

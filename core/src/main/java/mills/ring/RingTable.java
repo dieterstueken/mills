@@ -14,7 +14,7 @@ import static mills.ring.RingEntry.MAX_INDEX;
 /**
  * Class RingTable is the complete EntryTable of 6561 RingEntries.
  */
-class RingTable extends EntryTable {
+class RingTable extends AbstractEntryTable {
 
     private final RingEntry[] entries;
 
@@ -36,7 +36,7 @@ class RingTable extends EntryTable {
     }
 
     @Override
-    RingEntry getEntry(int index) {
+    public RingEntry getEntry(int index) {
         return get(index);
     }
 

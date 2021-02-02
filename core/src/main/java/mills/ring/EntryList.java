@@ -6,7 +6,7 @@ package mills.ring;
  * Date: 04.10.19
  * Time: 01:01
  */
-abstract public class EntryList extends EntryTable {
+abstract class EntryList extends AbstractEntryTable {
 
     public RingEntry getEntry(int index) {
         return Entries.of(index);
