@@ -11,7 +11,7 @@ import java.util.stream.Stream;
  * Date: 13.08.11
  * Time: 18:16
  */
-class SingleEntry extends EntryList {
+class SingleEntry extends AbstractEntryTable implements IndexedEntryTable {
 
     final RingEntry entry;
 
@@ -30,6 +30,11 @@ class SingleEntry extends EntryList {
     @Override
     public int size() {
         return 1;
+    }
+
+    @Override
+    public int getIndex() {
+        return entry.index;
     }
 
     @Override
@@ -76,6 +81,6 @@ class SingleEntry extends EntryList {
 
     @Override
     public int hashCode() {
-        return 31 + entry.hashCode();
+        return entry.hashCode();
     }
 }

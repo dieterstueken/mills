@@ -3,6 +3,7 @@ package mills.index.builder;
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
+import mills.util.AbstractListSet;
 
 import java.util.Collections;
 import java.util.Map;
@@ -31,7 +32,7 @@ public class Fragments {
 
     private Fragments() {
         this.fragments = Collections.emptyMap();
-        this.roots = EntryTable.EMPTY.singleton();
+        this.roots = AbstractListSet.singleton(EntryTable.EMPTY);
         this.root =  EntryTable.EMPTY;
     }
 

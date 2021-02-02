@@ -7,7 +7,7 @@ package mills.ring;
  * modified by: $Author$
  * modified on: $Date$
  */
-public class SubTable extends EntryList {
+public class SubTable extends AbstractEntryTable {
 
     final EntryTable parent;
     final int offset;
@@ -20,11 +20,6 @@ public class SubTable extends EntryList {
 
         assert offset >= 0;
         assert size > 1;    // should be empty or a singleton instead
-    }
-
-    @Override
-    public RingEntry getEntry(int index) {
-        return parent.getEntry(index);
     }
 
     @Override

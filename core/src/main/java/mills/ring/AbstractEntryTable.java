@@ -4,7 +4,6 @@ package mills.ring;
 import mills.util.AbstractListSet;
 import mills.util.Indexed;
 import mills.util.Indexer;
-import mills.util.ListSet;
 
 import java.util.Comparator;
 import java.util.function.Predicate;
@@ -23,22 +22,18 @@ import java.util.function.Predicate;
  */
 abstract public class AbstractEntryTable extends AbstractListSet<RingEntry> implements EntryTable {
 
-    private final ListSet<EntryTable> singleton = AbstractListSet.singleton(this);
-
-    public ListSet<EntryTable> singleton() {
-        return singleton;
-    }
-
     @Override
     public Comparator<Indexed> comparator() {
         return Indexer.INDEXED;
     }
 
-    // fast lookup of table index of a given ring index
-    abstract public int findIndex(int ringIndex);
-
     public int indexOf(RingEntry entry) {
         return findIndex(entry.index);
+    }
+
+    @Override
+    public boolean contains(Object obj) {
+        return indexOf(obj) >= 0;
     }
 
     /**

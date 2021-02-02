@@ -12,7 +12,7 @@ import java.util.stream.Stream;
  * Time: 18:15
  */
 
-class EmptyTable extends EntryList {
+class EmptyTable extends AbstractEntryTable implements IndexedEntryTable {
 
     public static EmptyTable of() {
         return new EmptyTable();
@@ -26,6 +26,11 @@ class EmptyTable extends EntryList {
     @Override
     public int size() {
         return 0;
+    }
+
+    @Override
+    public int getIndex() {
+        return -1;
     }
 
     @Override
@@ -56,7 +61,7 @@ class EmptyTable extends EntryList {
         return Collections.emptyIterator();
     }
 
-    public final RingEntry[] empty = new RingEntry[0];
+    public static final RingEntry[] empty = new RingEntry[0];
 
     @Override
     public RingEntry[] toArray() {

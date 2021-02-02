@@ -14,30 +14,30 @@ import static mills.ring.RingEntry.MAX_INDEX;
 /**
  * Class RingTable is the complete EntryTable of 6561 RingEntries.
  */
-class RingTable extends AbstractEntryTable {
+class RingTable extends AbstractEntryTable implements IndexedEntryTable {
 
-    private final RingEntry[] entries;
+    private final RingEntry[] entries = RingEntry.table();
 
     private final int hashCode;
 
-    RingTable(RingEntry[] entries) {
-        this.entries = entries;
+    RingTable() {
+        assert entries.length == MAX_INDEX;
         this.hashCode = Arrays.hashCode(entries);
     }
 
     @Override
     public int size() {
-        return entries.length;
+        return MAX_INDEX;
+    }
+
+    @Override
+    public int getIndex() {
+        return MAX_INDEX;
     }
 
     @Override
     public RingEntry get(int index) {
         return entries[index];
-    }
-
-    @Override
-    public RingEntry getEntry(int index) {
-        return get(index);
     }
 
     boolean inRange(int index) {return index>=0 && index<MAX_INDEX;}

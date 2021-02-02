@@ -21,8 +21,6 @@ import java.util.function.Predicate;
  * to find the table indexOf a given RingEntry and to generate filtered subsets of itself.
  */
 public interface EntryTable extends ListSet<RingEntry> {
-    
-    ListSet<EntryTable> singleton();
 
     // fast lookup of table index of a given ring index
     int findIndex(int ringIndex);
@@ -45,42 +43,30 @@ public interface EntryTable extends ListSet<RingEntry> {
      */
     int upperBound(int ringIndex);
 
-    @Override
-    default boolean contains(Object obj) {
-        return indexOf(obj) >= 0;
+    // shortcut
+    default short ringIndex(int index) {
+        return get(index).index;
     }
 
-    // shortcut
-    short ringIndex(int index);
-
-    RingEntry getEntry(int index);
+    //RingEntry getEntry(int index);
 
     @Override
     EntryTable subList(int fromIndex, int toIndex);
 
-    EntryTable partition(int fromIndex, int size);
-
-
-    default EntryTable subSet(RingEntry fromElement, RingEntry toElement) {
-        return subList(lowerBound(fromElement.index), lowerBound(toElement.index));
-    }
+    EntryTable subSet(RingEntry fromElement, RingEntry toElement);
 
     @Override
-    default EntryTable headSet(RingEntry toElement) {
-        return subList(0, lowerBound(toElement.index));
-    }
+    EntryTable headSet(RingEntry toElement);
 
     @Override
-    default EntryTable tailSet(RingEntry fromElement) {
-        return subList(lowerBound(fromElement.index), size());
-    }
+    EntryTable tailSet(RingEntry fromElement);
 
     EntryTable filter(Predicate<? super RingEntry> predicate);
 
     ////////////////////////////////////////////////////////////////////////////////////////////
 
     // an empty table template
-    EntryTable EMPTY = EmptyTable.of();
+    IndexedEntryTable EMPTY = EmptyTable.of();
 
     static EntryTable of(Iterator<? extends RingEntry> entries, int size) {
 

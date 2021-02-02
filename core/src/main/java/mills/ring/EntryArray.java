@@ -8,7 +8,7 @@ import java.util.Arrays;
  * Date: 22.10.11
  * Time: 20:14
  */
-class EntryArray extends EntryList {
+class EntryArray extends AbstractEntryTable {
 
     final short[] indices;
 
@@ -31,7 +31,7 @@ class EntryArray extends EntryList {
     @Override
     public RingEntry get(int i) {
         final int index = ringIndex(i);
-        return getEntry(index);
+        return Entries.of(index);
     }
 
     @Override
