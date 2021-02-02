@@ -48,7 +48,10 @@ public interface EntryTable extends ListSet<RingEntry> {
         return get(index).index;
     }
 
-    //RingEntry getEntry(int index);
+    default RingEntry max() {
+        int n = size();
+        return n>0 ? get(n-1) : null;
+    }
 
     @Override
     EntryTable subList(int fromIndex, int toIndex);

@@ -2,6 +2,8 @@ package mills.ring;
 
 import mills.util.Indexed;
 
+import java.util.List;
+
 /**
  * version:     $
  * created by:  d.stueken
@@ -10,4 +12,16 @@ import mills.util.Indexed;
  * modified on: $
  */
 public interface IndexedEntryTable extends EntryTable, Indexed {
+
+    static IndexedEntryTable of(List<RingEntry> entries, int key) {
+        int size = entries.size();
+
+        if(size==0)
+            return EntryTable.EMPTY;
+
+        if(size==1)
+            return entries.get(0).singleton;
+
+        return IndexedEntryArray.of(entries, key);
+    }
 }

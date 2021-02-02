@@ -15,20 +15,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
  */
 public class EntryTables {
 
-    static class IndexedEntryArray extends EntryArray implements IndexedEntryTable {
-
-        final int index;
-
-        public int getIndex() {
-            return index;
-        }
-
-        IndexedEntryArray(short[] indices, int index) {
-            super(indices);
-            this.index = index;
-        }
-    }
-
     static final short OFFSET = RingEntry.MAX_INDEX+1;
     static final int MAX_VALUE = 0xffff - OFFSET - 2;
 

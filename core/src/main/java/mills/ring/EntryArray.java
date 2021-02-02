@@ -8,7 +8,7 @@ import java.util.Arrays;
  * Date: 22.10.11
  * Time: 20:14
  */
-class EntryArray extends AbstractEntryTable {
+public class EntryArray extends AbstractEntryTable {
 
     final short[] indices;
 

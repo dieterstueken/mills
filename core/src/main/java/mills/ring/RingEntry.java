@@ -84,6 +84,11 @@ public class RingEntry extends BW {
         return and(rad).radials().pop.add(clop());
     }
 
+    // reversed
+    public PopCount clops(RingEntry rad) {
+        return and(rad).radials().pop.add(rad.clop());
+    }
+
     // get radial index
     public final int radix() {
         return index%81;
@@ -110,6 +115,11 @@ public class RingEntry extends BW {
     // return stable permutation mask
     public int pmlt() {
         return 0xff & mlt;  // convert to positive int [0, 256[
+    }
+
+    // return if this is stable for all permutations given.
+    public boolean stable(Perms perms) {
+        return (mlt & perms.getIndex())==0;
     }
 
     // return minimum permutation mask
