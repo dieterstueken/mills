@@ -5,6 +5,8 @@ import mills.util.Indexed;
 import mills.util.ListSet;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -129,6 +131,6 @@ public class Perms extends AbstractSet<Perm> implements Indexed {
     }
 
     public static List<Perms> listOf(int ... perms) {
-        return AbstractRandomList.virtual(perms.length, Perms::of).copyOf();
+        return IntStream.of(perms).mapToObj(Perms::of).collect(Collectors.toUnmodifiableList());
     }
 }
