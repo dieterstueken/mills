@@ -1,4 +1,4 @@
-package mills.index2.builder;
+package mills.index.builder2;
 
 import mills.bits.PopCount;
 

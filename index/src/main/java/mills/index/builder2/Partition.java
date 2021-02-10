@@ -1,4 +1,4 @@
-package mills.index2.builder;
+package mills.index.builder2;
 
 import mills.bits.Perms;
 import mills.bits.PopCount;
@@ -34,7 +34,12 @@ public class Partition {
         return String.format("p[%d]", root.size());
     }
 
-    public IndexedEntryTable filter(Predicate<? super RingEntry> predicate) {
+    public Fragments getFragments(int meq2) {
+        int index = ROOT_INDEX.get(meq2/2);
+        return index<0 ? null : fragments.get(index);
+    }
+
+    IndexedEntryTable filter(Predicate<? super RingEntry> predicate) {
         return tables.get(root.filter(predicate));
     }
 
@@ -72,7 +77,18 @@ public class Partition {
         return Fragments.of(table, tables);
     }
 
-    public static final List<Perms> ROOTS = Perms.listOf(0x01, 0x05, 0x0f, 0x11, 0x21, 0x41, 0x55, 0x81, 0xa5, 0xff);
+    public static final List<Perms> ROOTS;
+    public static final List<Integer> ROOT_INDEX;
+
+    static  {
+        ROOTS = Perms.listOf(0x01, 0x05, 0x0f, 0x11, 0x21, 0x41, 0x55, 0x81, 0xa5, 0xff);
+        List<Integer> lookup = AbstractRandomList.preset(128, -1);
+        for (int i = 0; i < ROOTS.size(); i++) {
+            Perms p = ROOTS.get(i);
+            lookup.set(p.getIndex()/2, i);
+        }
+        ROOT_INDEX = List.copyOf(lookup);
+    }
 
     public static Partition EMPTY = new Partition(EntryTable.EMPTY);
             // AbstractRandomList.constant(ROOTS.size(), AbstractRandomList.constant(Entries.RADIALS.size(), EntryTable.EMPTY)));

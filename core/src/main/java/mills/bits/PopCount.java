@@ -99,13 +99,29 @@ public class PopCount implements Indexed {
     }
 
     // maximum possible closed population
-    public PopCount mclop() {
+
+    /**
+     * Maximum possible closed population.
+     * Since each closed mill takes an opponent stone
+     * the closed count + opponents count is limited to 9.
+     * @param limited if the # closed mills is limited by the opponents count.
+     * @return the maximum count of closed mills possible.
+     */
+    public PopCount mclop(boolean limited) {
         // limit by given stones
         PopCount mclop = PopCount.get(mclop(nb), mclop(nw));
-        // limit by missing stones.
-        //PopCount nclop = P99.sub(this).swap();
-        //return mclop.min(nclop);
+
+        if(limited) {
+            // limit by missing stones.
+            PopCount limit = PopCount.P99.sub(this).swap();
+            mclop = mclop.min(limit);
+        }
+
         return mclop;
+    }
+
+    public PopCount mclop() {
+        return mclop(false);
     }
 
     /**
@@ -118,6 +134,10 @@ public class PopCount implements Indexed {
 
     public boolean le(PopCount other) {
         return other != null && nb <= other.nb && nw <= other.nw;
+    }
+
+    public boolean ge(PopCount other) {
+        return other != null && nb >= other.nb && nw >= other.nw;
     }
 
     /**

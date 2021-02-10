@@ -1,9 +1,14 @@
-package mills.index2.builder;
+package mills.index.builder2;
 
-import mills.ring.*;
+import mills.ring.Entries;
+import mills.ring.EntryTable;
+import mills.ring.IndexedEntryTable;
+import mills.ring.RingEntry;
 import mills.util.AbstractRandomArray;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -71,6 +76,9 @@ public class Tables {
         int index = fragments.size() + MAX_INDEX;
         table = IndexedEntryTable.of(entries, index);
         fragments.add(table);
+
+        assert table.size()>1;
+
         fragMap.put(table, table);
 
         return table;
@@ -93,7 +101,7 @@ public class Tables {
 
         for(int i=0; i<tables.size(); ++i) {
             List<RingEntry> entries = tables.get(i);
-            IndexedEntryTable table = register(entries);
+            IndexedEntryTable table = get(entries);
             index[i] = (short) table.getIndex();
         }
 
@@ -108,5 +116,21 @@ public class Tables {
 
     public String toString() {
         return String.format("T[%d]", fragments.size());
+    }
+
+    public void stat() {
+        int count = 0;
+        int len = 0;
+        for (IndexedEntryTable table : fragMap.values()) {
+            int size = table.size();
+            if(size!=len && count>0) {
+                System.out.format("%3d: %4d\n", len, count);
+                count = 0;
+                len = size;
+            }
+            ++count;
+        }
+
+        System.out.format("%3d: %4d\n", len, count);
     }
 }

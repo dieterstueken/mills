@@ -1,11 +1,14 @@
-package mills.index2.builder;
+package mills.index.builder2;
 
 import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.IndexedEntryTable;
+import mills.ring.RingEntry;
 import mills.util.AbstractRandomArray;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -24,6 +27,10 @@ public class Fragments {
     Fragments(IndexedEntryTable root, List<List<IndexedEntryTable>> fragments) {
         this.root = root;
         this.fragments = fragments;
+    }
+
+    public List<IndexedEntryTable> get(RingEntry rad) {
+        return fragments.get(rad.radix());
     }
 
     public String toString() {

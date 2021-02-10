@@ -44,7 +44,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         if(value!=null)
             Arrays.fill(values, value);
 
-        return AbstractRandomArray.asList(values);
+        return AbstractRandomArray._asList(values);
     }
 
     public static <T> AbstractRandomArray<T> virtual(int size, IntFunction<? extends T> generate) {
@@ -108,6 +108,10 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
          };
     }
 
+    public static <T> List<T> asList(T[] values) {
+        return AbstractRandomArray._asList(values);
+    }
+
     public static <T> List<T> generate(int size, IntFunction<? extends T> generate) {
 
         if(size==0)
@@ -118,7 +122,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
 
         Object[] values = new Object[size];
         Arrays.setAll(values, generate);
-        return AbstractRandomArray.asList(values);
+        return AbstractRandomArray._asList(values);
     }
 
     @SuppressWarnings("unchecked")
@@ -136,7 +140,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         for(int i=size-1; i>=0; --i)
             values[i] = mapper.apply(source.get(i));
 
-        return AbstractRandomArray.asList(values);
+        return AbstractRandomArray._asList(values);
     }
 
     @SuppressWarnings("unchecked")
@@ -155,7 +159,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
             values[i++] = v;
         }
 
-        return AbstractRandomArray.asList(values);
+        return AbstractRandomArray._asList(values);
     }
 
     // check sizes first

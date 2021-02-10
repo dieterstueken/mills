@@ -1,6 +1,7 @@
 package mills.util;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 
 /**
@@ -19,6 +20,10 @@ public class ArraySet<K extends Indexed, V> extends AbstractSet<Map.Entry<K, V>>
 
     public static <K extends Indexed, V> Map<K,V> mapOf(IntFunction<K> keys, List<V> values, V defaultValue) {
         return of(keys, values, defaultValue).asMap();
+    }
+
+    public static <K extends Indexed, V> Map<K,V> mapOf(List<V> values, Function<V, K> getKey, V defaultValue) {
+        return of(i->getKey.apply(values.get(i)), values, defaultValue).asMap();
     }
 
     public static <K extends Indexed, V> Map<K,V> mapOf(List<K> keys, V defaultValue) {
@@ -130,6 +135,10 @@ public class ArraySet<K extends Indexed, V> extends AbstractSet<Map.Entry<K, V>>
     }
 
     class ArrayMap extends AbstractMap<K,V> {
+        @Override
+        public Set<K> keySet() {
+            return super.keySet();
+        }
 
         @Override
         public Set<Entry<K, V>> entrySet() {

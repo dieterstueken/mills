@@ -104,7 +104,8 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
 
     @Override
     default Spliterator<T> spliterator() {
-        return Spliterators.spliterator(this, Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.ORDERED | Spliterator.IMMUTABLE);
+        // prefer RandomAccessSpliterator
+        return List.super.spliterator();
     }
 
     default <E> ListSet<E> transform(Function<? super T, ? extends E> mapper, Comparator<? super E> comparator) {
@@ -125,7 +126,7 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
     }
 
     static <T extends Comparable<T>> ListSet<T> of() {
-        return AbstractListSet.<T>of(new ArrayList<T>(), Comparator.naturalOrder());
+        return AbstractListSet.<T>of(new ArrayList<>(), Comparator.naturalOrder());
     }
 
     static <T> ListSet<T> empty(Comparator<? super T> comparator) {

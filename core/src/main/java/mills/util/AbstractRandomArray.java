@@ -22,10 +22,10 @@ public abstract class AbstractRandomArray<T> extends AbstractRandomList<T> {
     }
 
     public static <T> AbstractRandomArray<T> virtual(T[] data) {
-        return asList(data);
+        return _asList(data);
     }
 
-    static <T> AbstractRandomArray<T> asList(Object[] data) {
+    static <T> AbstractRandomArray<T> _asList(Object[] data) {
 
         return new AbstractRandomArray<T>(data.length) {
 
