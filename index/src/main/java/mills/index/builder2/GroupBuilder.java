@@ -13,6 +13,8 @@ import mills.util.ListSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Collectors;
 
 import static java.util.function.Predicate.not;
@@ -111,7 +113,7 @@ public class GroupBuilder {
 
         T0Builders getBuilder() {
             T0Builders builders = cache.poll();
-            
+
             if(builders==null)
                 builders = new T0Builders();
 
@@ -139,7 +141,7 @@ public class GroupBuilder {
                 clops.parallelStream()
                         .map(builders::get)
                         .forEach(builder -> {
-                            R0Table result = builder.build(t0, pop0);
+                            R0Table result = builder.build(pop0);
                             getC2Builder(builder.clop).put(r2, result);
                         });
 
@@ -169,50 +171,35 @@ public class GroupBuilder {
                     this.clop = clop;
                 }
 
-                final IndexedEntryTable[] t1Table = new IndexedEntryTable[RingEntry.MAX_INDEX];
-
-                IndexedEntryTable get(RingEntry r0) {
-                    return t1Table[r0.index];
-                }
-
-                IndexedEntryTable pop(RingEntry r0) {
-                    int index = r0.index;
-                    IndexedEntryTable table = t1Table[index];
-                    t1Table[index] = null;
-                    return table;
-                }
+                final ConcurrentNavigableMap<RingEntry, IndexedEntryTable> t1Map = new ConcurrentSkipListMap<>();
 
                 void put(RingEntry r0, IndexedEntryTable t1) {
-                    t1Table[r0.index] = t1;
+                    t1Map.put(r0, t1);
                 }
 
-                boolean isEmpty(RingEntry r0) {
-                    IndexedEntryTable t1 = get(r0);
-                    return t1==null || t1.isEmpty();
-                }
-
-                R0Table build(EntryTable t0, PopCount pop0) {
-
-                    // filter relevant entries.
-                    t0 = t0.filter(not(this::isEmpty));
-                    int size = t0.size();
+                R0Table build(PopCount pop0) {
+                    int size = t1Map.size();
 
                     if(size==0)
                         return R0Table.EMPTY;
 
                     if(size==1) {
-                        RingEntry r0 = t0.get(0);
-                        IndexedEntryTable t1 = pop(r0);
-                        return R0Table.of(t0, List.of(t1));
+                        var entry = t1Map.entrySet().iterator().next();
+                        RingEntry r0 = entry.getKey();
+                        IndexedEntryTable t1 = entry.getValue();
+                        t1Map.clear();
+                        return R0Table.of(r0.singleton, List.of(t1));
                     }
+
+                    EntryTable t0 = EntryTable.of(t1Map.keySet());
 
                     short[] indexes = new short[size];
-                    for (int i = 0; i < size; i++) {
-                        RingEntry r0 = t0.get(i);
-                        IndexedEntryTable value = pop(r0);
-                        indexes[i] = (short) value.getIndex();
+                    int i=0;
+                    for (var entry : t1Map.entrySet()) {
+                        indexes[i++] = (short) entry.getValue().getIndex();
                     }
 
+                    t1Map.clear();
                     return r0Table(partitions, t0, pop0, indexes);
                 }
             }
