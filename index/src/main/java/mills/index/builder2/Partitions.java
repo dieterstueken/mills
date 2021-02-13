@@ -23,8 +23,8 @@ public class Partitions {
         Partition[] fragments = new Partition[PopCount.SIZE];
         Arrays.fill(fragments, Partition.EMPTY);
 
-        PopCount.TABLE.parallelStream()
-                .filter(pop->pop.sum()<=8)
+        PopCount.TABLE.stream().filter(pop->pop.sum()<=8)
+                .parallel()
                 .forEach(pop -> fragments[pop.index] = Partition.of(pop));
 
         return List.of(fragments);
