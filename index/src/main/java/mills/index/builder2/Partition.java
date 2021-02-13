@@ -30,6 +30,10 @@ public class Partition {
         this.fragments = fragments();
     }
 
+    public boolean isEmpty() {
+        return root.isEmpty();
+    }
+
     public String toString() {
         return String.format("p[%d]", root.size());
     }

@@ -5,17 +5,15 @@ import mills.index.tables.C2Table;
 import mills.index.tables.R0Table;
 import mills.position.Positions;
 import mills.ring.*;
-import mills.util.AbstractRandomList;
+import mills.util.AbstractRandomArray;
 import mills.util.ArraySet;
 import mills.util.ListSet;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ForkJoinTask;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static java.util.function.Predicate.not;
 
@@ -114,228 +112,210 @@ public class GroupBuilder {
         }
 
         void build(RingEntry r2) {
-            final T0Builders builder = getBuilder();
+            PopCount pop0 = pop.sub(r2.pop);
+
+            if(pop0.sum()>16)
+                return;
+
+            EntryTable t0 = lePops.get(pop0).tailSet(r2);
+
+            T0Builder builder = getBuilder();
             try {
-                builder.build(r2);
+                builder.build(r2, pop0, t0);
             } finally {
+                builder.clear();
                 release(builder);
             }
         }
 
-        private final ConcurrentLinkedQueue<T0Builders> cache = new ConcurrentLinkedQueue<>();
+        private final ConcurrentLinkedQueue<T0Builder> cache = new ConcurrentLinkedQueue<>();
 
-        T0Builders getBuilder() {
-            T0Builders builders = cache.poll();
+        T0Builder getBuilder() {
+            T0Builder builders = cache.poll();
 
             if(builders==null)
-                builders = new T0Builders();
+                builders = new T0Builder();
 
             return builders;
         }
 
-        void release(T0Builders builders) {
-            //cache.offer(builders);
+        void release(T0Builder builder) {
+            cache.offer(builder);
         }
 
-        class T0Builders {
+        class T0Builder {
 
-            final PopMap<T0Builder> builders = PopMap.allocate(PopCount.NCLOPS);
+            static final int S = 14;
 
-            T0Builders() {
-                clops.forEach(clop -> builders.put(clop, new T0Builder(clop)));
+            int[] table;
+            int size = 0;
+            int maxSize = 0;
+
+            int size() {
+                return size;
             }
 
-            void build(RingEntry r2) {
-                PopCount pop0 = pop.sub(r2.pop);
-                EntryTable t0 = lePops.get(pop0).tailSet(r2);
+            void clear() {
+                if(size>maxSize)
+                    maxSize = size;
+                
+                size = 0;
+            }
+
+            short getKey(int index) {
+                int pattern = table[index];
+                return (short)(pattern&((1<<S)-1));
+            }
+
+            RingEntry getEntry(int index) {
+                int pattern = table[index];
+                int i1 = (pattern>>>S)%RingEntry.MAX_INDEX;
+                return Entries.of(i1);
+            }
+
+            int getClopIndex(int index) {
+                int pattern = table[index];
+                return (pattern>>>S)/RingEntry.MAX_INDEX;
+            }
+
+            void add(int index) {
+                if(table==null)
+                    table = new int[1024];
+                else
+                if(size >= table.length)
+                    table = Arrays.copyOf(table, table.length*2);
+
+                table[size++] = index;
+            }
+
+            void add(PopCount clop, RingEntry r0, IndexedEntryTable t1) {
+                int index = t1.getIndex();
+                if(index>=(1<<S))
+                    throw new IndexOutOfBoundsException("IndexedEntryTable to big");
+
+                index += (r0.index + RingEntry.MAX_INDEX*clop.index) << S;
+               
+                add(index);
+            }
+
+            void build(RingEntry r2, PopCount pop0, EntryTable t0) {
+                clear();
+
                 if(t0.isEmpty())
                     return;
 
-                clops.forEach(clop -> builders.get(clop).setup(t0));
+                for (RingEntry r0 : t0) {
+                    PopCount pop1 = pop0.sub(r0.pop);
+                    final Partition partition = partitions.get(pop1);
 
-                IntStream.range(0, t0.size()).parallel().forEach(i0 -> process(r2, t0, i0, pop0));
+                    if(r0.pop().ge(PopCount.of(4,5)))
+                        r0.pop();
 
-                clops.parallelStream()
-                        .map(builders::get)
-                        .forEach(builder -> {
-                            R0Table result = builder.build(pop0, t0.size());
-                            getC2Builder(builder.clop).put(r2, result);
-                        });
-            }
+                    if(partition.isEmpty())
+                        continue;
 
-            void process(RingEntry r2, EntryTable t0, int i0, PopCount pop0) {
-                RingEntry r0 = t0.get(i0);
-                PopCount pop1 = pop0.sub(r0.pop);
+                    int meq2 = Positions.meq(r2, r0);
+                    if (meq2 == 0)
+                        continue;
 
-                int meq2 = Positions.meq(r2, r0);
-                if (meq2 != 0) {
                     RingEntry rad = r2.radials().and(r0);
                     PopCount clop20 = r2.clop().add(r0.clop());
-                    partitions.get(pop1).getFragments(meq2).get(rad).forEach(t1 -> {
-                        PopCount clops = t1.get(0).clop(rad).add(clop20);
-                        T0Builder builder = builders.get(clops);
-                        if(builder!=null)
-                            builder.put(i0, t1);
-                    });
+
+                    final List<IndexedEntryTable> t1tables = partition.getFragments(meq2).get(rad);
+                    for (IndexedEntryTable t1 : t1tables) {
+                        PopCount clop = t1.get(0).clop(rad).add(clop20);
+                        add(clop, r0, t1);
+                    }
                 }
+
+                if(size==0)
+                    return;
+
+                Arrays.sort(table, 0, size);
+                add(-1); // terminal dummy index
+
+                int offt=0;
+                int clop=getClopIndex(0);
+
+                for(int i=1; i<size; ++i) {
+                    int iclop = getClopIndex(i);
+                    if(iclop!=clop) {
+                        C2Builder c2Builder = getC2Builder(PopCount.get(clop));
+                        if(c2Builder!=null) {
+                            R0Table r0t = build(pop0, offt, i - offt);
+                            c2Builder.put(r2, r0t);
+                        }
+                        offt = i;
+                        clop = iclop;
+                    }
+                }
+
+                clear();
             }
 
-            class T0Builder {
+            private R0Table build(PopCount pop0, int offt, int size) {
 
-                final PopCount clop;
+                if(size==0)
+                    return R0Table.EMPTY;
 
-                int size;
-                int[] table;
-
-                boolean empty = true;
-
-                T0Builder(PopCount clop) {
-                    this.clop = clop;
+                if(size==1) {
+                    RingEntry r0 = getEntry(offt);
+                    int key = getKey(offt);
+                    PopCount pop1 = pop0.sub(r0.pop);
+                    IndexedEntryTable t1 = partitions.get(pop1).tables.get(key);
+                    return R0Table.of(r0.singleton, List.of(t1));
                 }
 
-                RingEntry r0(int index) {
-                    return Entries.of(table[index] >> 16);
-                }
-
-                short i1(int index) {
-                    return (short)(table[index] & 0xffff);
-                }
-
-                final List<RingEntry> l0 = new AbstractRandomList<>() {
-                    @Override
-                    public int size() {
-                        return size;
-                    }
-
+                EntryTable t0 = EntryTable.of(new AbstractRandomArray<>(size) {
                     @Override
                     public RingEntry get(int index) {
-                        return r0(index);
+                        return getEntry(index+offt);
+                    }
+                });
+
+                short[] s1 = new short[size];
+                for(int index=0; index<size; ++index) {
+                    s1[index] = getKey(index+offt);
+                }
+
+                List<EntryTable> t1 = new AbstractRandomArray<>(size) {
+                    @Override
+                    public IndexedEntryTable get(int index) {
+                        RingEntry r0 = t0.get(index);
+                        PopCount pop1 = pop0.sub(r0.pop);
+                        int key = s1[index];
+                        return partitions.get(pop1).tables.get(key);
                     }
                 };
-
-                void setup(EntryTable t0) {
-                    int size = t0.size();
-
-                    if(table==null || table.length<size)
-                        table = new int[size];
-
-                    for (int i = 0; i < size; i++) {
-                        RingEntry r0 = t0.get(i);
-                        table[i] = (r0.index << 16) + 0xffff;
-                    }
-
-                    empty = true;
-
-                    this.size = size;
-                }
-
-                void put(int i0, IndexedEntryTable t1) {
-                    int value = table[i0];
-                    value &= 0xffff0000;
-                    value |= t1.getIndex() & 0xffff;
-                    table[i0] = value;
-                    empty = false;
-                }
-
-                R0Table build(PopCount pop0, int n0) {
-
-                    // compact relevant entries
-                    size = 0;
-
-                    if(!empty)
-                    for(int i=0; i<n0; ++i) {
-                        if(i1(i)>=0) {
-                            if(i>size)
-                                table[size] = table[i];
-                            ++size;
-                        }
-                    }
-
-                    if(size==0)
-                        return R0Table.EMPTY;
-
-                    if(size==1) {
-                        RingEntry r0 = r0(0);
-                        int key = i1(0);
-                        PopCount pop1 = pop0.sub(r0.pop);
-                        IndexedEntryTable t1 = partitions.get(pop1).tables.get(key);
-
-                        return R0Table.of(r0.singleton, List.of(t1));
-                    }
-
-                    // reduced t0
-                    EntryTable t0 = EntryTable.of(l0);
-
-                    short[] s1 = new short[size];
-                    for(int i=0; i<size; ++i) {
-                        s1[i] = i1(i);
-                    }
-
-                    return r0Table(partitions, t0, pop0, s1);
-                }
+                
+                return R0Table.of(t0, t1);
             }
         }
-    }
-
-    static R0Table r0Table(Partitions partitions, EntryTable t0, PopCount pop0, short[] indexes) {
-
-        List<EntryTable> t1 = new AbstractRandomList<>() {
-
-            @Override
-            public int size() {
-                return indexes.length;
-            }
-
-            @Override
-            public IndexedEntryTable get(int index) {
-                RingEntry r0 = t0.get(index);
-                PopCount pop1 = pop0.sub(r0.pop);
-                int key = indexes[index];
-                return partitions.get(pop1).tables.get(key);
-            }
-        };
-
-        //try {
-        //    List.copyOf(t1);
-        //} catch(Throwable error) {
-        //    error.printStackTrace();
-        //}
-
-        return R0Table.of(t0, t1);
     }
 
     public static void main(String ... args) {
 
-        PopCount pop = PopCount.of(8,9);
+        GroupBuilder groupBuilder = timer("init", GroupBuilder::create);
 
-        //PopCount.TABLE.forEach(pop ->
-        {
-            GroupBuilder groupBuilder = timer("init", GroupBuilder::create);
+        timer("groups", () -> {
+            Set<Object> groups = new HashSet<>();
 
-            var group = timer("groups", () -> groupBuilder.buildGroup(pop));
+            PopCount.TABLE.forEach(pop -> {
 
-            System.out.format("%s groups: %d\n", pop, group.size());
+                var group = groupBuilder.buildGroup(pop);
+                groups.add(group);
 
-            group.forEach((clop, c2t) -> {
-                System.out.format("%s: %4d %,13d\n", clop.toString(), c2t.n20(), c2t.range());
+                System.out.format("%s groups: %d\n", pop, group.size());
+
+                group.forEach((clop, c2t) -> {
+                    System.out.format("%s: %4d %,13d\n", clop.toString(), c2t.n20(), c2t.range());
+                });
+
+                System.out.println();
             });
 
-            System.out.println();
-
-            /*
-            IndexBuilder indexBuilder = new IndexBuilder();
-
-            var indexGroup = timer("index", () -> indexBuilder.buildGroup(pop));
-
-            System.out.format("%s groups: %d\n", pop, indexGroup.size());
-
-            indexGroup.forEach((clop, c2t) -> {
-                System.out.format("%s: %4d %,13d\n", clop.toString(), c2t.n20(), c2t.range());
-            });
-
-            System.out.println();
-            */
-        }
+            return null;
+        });
     }
 
     static <T> T timer(String name, Supplier<T> proc) {
