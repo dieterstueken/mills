@@ -10,8 +10,9 @@ import mills.util.ArraySet;
 import mills.util.ListSet;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -49,9 +50,15 @@ public class GroupBuilder {
 
         final PopCount pop;
 
+        // subset of clops to build
+        final ListSet<PopCount> clops;
+
         final EntryTable t2;
 
-        final ListSet<PopCount> clops;
+        // next r2 to build
+        final AtomicInteger i2 = new AtomicInteger();
+
+        int count = 0;
 
         final PopMap<C2Builder> builders = PopMap.allocate(PopCount.NCLOPS);
 
@@ -67,13 +74,23 @@ public class GroupBuilder {
             clops.forEach(clop -> builders.put(clop, new C2Builder(clop)));
         }
 
+        RingEntry next() {
+            int n2 = i2.getAndIncrement();
+
+            if(n2<t2.size())
+                return t2.get(n2);
+
+            return null;
+        }
+
         C2Builder getC2Builder(PopCount clop) {
             return builders.get(clop);
         }
 
         Map<PopCount, C2Table> build() {
 
-            t2.parallelStream().forEach(this::build);
+            T0Builder builder = new T0Builder();
+            builder.invoke();
 
             clops.parallelStream().map(this::getC2Builder).forEach(C2Builder::build);
 
@@ -111,41 +128,30 @@ public class GroupBuilder {
             }
         }
 
-        void build(RingEntry r2) {
-            PopCount pop0 = pop.sub(r2.pop);
-
-            if(pop0.sum()>16)
-                return;
-
-            EntryTable t0 = lePops.get(pop0).tailSet(r2);
-
-            T0Builder builder = getBuilder();
-            try {
-                builder.build(r2, pop0, t0);
-            } finally {
-                builder.clear();
-                release(builder);
-            }
-        }
-
-        private final ConcurrentLinkedQueue<T0Builder> cache = new ConcurrentLinkedQueue<>();
-
-        T0Builder getBuilder() {
-            T0Builder builders = cache.poll();
-
-            if(builders==null)
-                builders = new T0Builder();
-
-            return builders;
-        }
-
-        void release(T0Builder builder) {
-            cache.offer(builder);
-        }
-
-        class T0Builder {
+        class T0Builder extends RecursiveAction {
 
             static final int S = 14;
+
+            T0Builder() {
+                ++count;
+            }
+
+            @Override
+            protected void compute() {
+
+                if(i2.get()>=t2.size())
+                    return;
+
+                T0Builder concurrent = new T0Builder();
+                concurrent.fork();
+
+                for(RingEntry r2 = next(); r2!=null; r2=next()) {
+                    build(r2);
+                }
+
+                if(!concurrent.tryUnfork())
+                    concurrent.join();
+            }
 
             int[] table;
             int size = 0;
@@ -180,7 +186,7 @@ public class GroupBuilder {
 
             void add(int index) {
                 if(table==null)
-                    table = new int[1024];
+                    table = new int[25*t2.size()];
                 else
                 if(size >= table.length)
                     table = Arrays.copyOf(table, table.length*2);
@@ -198,11 +204,18 @@ public class GroupBuilder {
                 add(index);
             }
 
-            void build(RingEntry r2, PopCount pop0, EntryTable t0) {
-                clear();
+            void build(RingEntry r2) {
+                PopCount pop0 = pop.sub(r2.pop);
+
+                if(pop0.sum()>16)
+                    return; // won't fit into two rings
+
+                EntryTable t0 = lePops.get(pop0).tailSet(r2);
 
                 if(t0.isEmpty())
                     return;
+
+                clear();
 
                 for (RingEntry r0 : t0) {
                     PopCount pop1 = pop0.sub(r0.pop);
@@ -249,8 +262,6 @@ public class GroupBuilder {
                         clop = iclop;
                     }
                 }
-
-                clear();
             }
 
             private R0Table build(PopCount pop0, int offt, int size) {
@@ -300,10 +311,10 @@ public class GroupBuilder {
         timer("groups", () -> {
             Set<Object> groups = new HashSet<>();
 
-            PopCount.TABLE.forEach(pop -> {
+            PopCount.TABLE.stream().map(PopCount.P99::sub).forEach(pop -> {
 
                 var group = groupBuilder.buildGroup(pop);
-                groups.add(group);
+                //groups.add(group);
 
                 System.out.format("%s groups: %d\n", pop, group.size());
 
