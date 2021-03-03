@@ -2,8 +2,7 @@ package mills.index;
 
 import mills.bits.Perm;
 import mills.bits.PopCount;
-import mills.index.builder.IndexBuilder;
-import mills.index.tables.C2Table;
+import mills.index.builder2.GroupBuilder;
 import mills.index.tables.R0Table;
 import mills.index.tables.R2Table;
 import mills.position.Position;
@@ -34,7 +33,8 @@ import static org.junit.Assert.*;
 public class IndexTests {
 
     EntryTables registry = new EntryTables();
-    IndexBuilder builder = IndexBuilder.create(registry);
+    //IndexProvider builder = IndexBuilder.create(registry).cached();
+    IndexProvider builder = GroupBuilder.create();
 
     /**
      * Iterate popcounts and execute a task on each.
@@ -130,8 +130,8 @@ public class IndexTests {
         System.out.format("p(%d,%d) %,13d\n", pop.nb, pop.nw, index.range());
     }
 
-    public C2Table build(PopCount pop, PopCount clop) {
-        C2Table table = builder.build(pop, clop);
+    public PosIndex build(PopCount pop, PopCount clop) {
+        PosIndex table = builder.build(pop, clop);
         int range = table.range();
         int n20 = table.n20();
         System.out.format("l%d%d%,13d %4d +%d\n", pop.nb, pop.nw, range, n20, registry.count());
@@ -143,7 +143,7 @@ public class IndexTests {
         runGroupTests(this::indexGroup);
     }
 
-    public void runGroupTests(BiConsumer<PopCount, Map<PopCount, C2Table>> test) {
+    public void runGroupTests(BiConsumer<PopCount, Map<PopCount, ? extends PosIndex>> test) {
         double start = System.currentTimeMillis();
 
         runTests(pop->groupTask(pop, test));
@@ -184,20 +184,20 @@ public class IndexTests {
         System.out.format("\n%.3fs, mem: %,d\n", (stop - start) / 1000, Runtime.getRuntime().totalMemory());
     }
 
-    private ForkJoinTask<Runnable> groupTask(PopCount pop, BiConsumer<PopCount, Map<PopCount, C2Table>> test) {
+    private ForkJoinTask<Runnable> groupTask(PopCount pop, BiConsumer<PopCount, Map<PopCount, ? extends PosIndex>> test) {
         return ForkJoinTask.adapt(()->groupAction(pop, test)).fork();
     }
 
-    private Runnable groupAction(PopCount pop, BiConsumer<PopCount, Map<PopCount, C2Table>> test) {
+    private Runnable groupAction(PopCount pop, BiConsumer<PopCount, Map<PopCount, ? extends PosIndex>> test) {
         var group = builder.buildGroup(pop);
         return () -> test.accept(pop, group);
     }
 
-    public Map<PopCount, C2Table> indexGroup(PopCount pop) {
+    public Map<PopCount, ? extends PosIndex> indexGroup(PopCount pop) {
         return indexGroup(pop, builder.buildGroup(pop));
     }
 
-    public Map<PopCount, C2Table> indexGroup(PopCount pop, Map<PopCount, C2Table> group) {
+    public Map<PopCount, ? extends PosIndex> indexGroup(PopCount pop, Map<PopCount, ? extends PosIndex> group) {
 
         PopCount max = group.keySet().stream().reduce(PopCount.EMPTY, PopCount::max);
 
@@ -280,7 +280,7 @@ public class IndexTests {
     }
 
     public void testIndexSizes(PopCount pop) {
-        R2Table table = builder.build(pop);
+        R2Table table = (R2Table) builder.build(pop);
 
         Comparator<R0Table> range = Comparator.comparingInt(IndexedMap::range);
 

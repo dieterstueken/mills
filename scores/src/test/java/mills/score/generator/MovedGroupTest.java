@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.stream.IntStream;
 
 public class MovedGroupTest {
-    static final IndexProvider indexes = IndexProvider.load().lazy();
+    static final IndexProvider indexes = IndexProvider.load();
 
     PopCount p33 = PopCount.of(3,3);
     Player w = Player.White;

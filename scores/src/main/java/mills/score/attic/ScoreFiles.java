@@ -155,7 +155,7 @@ public class ScoreFiles {
         return df.format(new Date());
     }
 
-    QueueActor<ScoreFiles> queue = new QueueActor<>(this);
+    QueueActor<ScoreFiles> queue = QueueActor.of(this);
 
     public void print(String message) {
         queue.submit((t)->System.out.format("%s %s\n", t.now(), message));

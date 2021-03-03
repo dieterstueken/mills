@@ -36,10 +36,10 @@ public class R0Table extends IndexedMap<EntryTable> {
         if(pos==-1)
             return -1;
         if(pos<-1)
-            return -baseIndex(-2 - pos);
+            return -it.baseIndex(-2 - pos);
 
         // get relative indexes
-        final int idx0 = baseIndex(pos);
+        final int idx0 = it.baseIndex(pos);
         final int idx1 = values.get(pos).findIndex(i1);
 
         // if missing return lower bound by negative index
@@ -59,10 +59,10 @@ public class R0Table extends IndexedMap<EntryTable> {
 
         assert idx01>=0;
 
-        int pos = indexOf(idx01);
+        int pos = it.indexOf(idx01);
 
         short i0 = keys.ringIndex(pos);
-        idx01 -= baseIndex(pos);
+        idx01 -= it.baseIndex(pos);
 
         short i1 = values.get(pos).ringIndex(idx01);
 
@@ -71,11 +71,11 @@ public class R0Table extends IndexedMap<EntryTable> {
 
     boolean process(final int base, final short i2, final IndexProcessor processor, final int start, final int end) {
 
-        int i = start>base ? indexOf(start-base) : 0;
+        int i = start>base ? it.indexOf(start-base) : 0;
         boolean any = false;
 
         for(; i< it.size(); i++) {
-            if(!foreach(base + baseIndex(i), i2, keys.ringIndex(i), values.get(i), processor, start, end))
+            if(!foreach(base + it.baseIndex(i), i2, keys.ringIndex(i), values.get(i), processor, start, end))
                 break;
             any = true;
         }

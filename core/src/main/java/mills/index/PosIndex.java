@@ -29,7 +29,9 @@ public interface PosIndex extends Clops {
 
     long i201(int posIndex);
 
-    long normalize(long i201);
+    default long normalize(long i201) {
+        return Positions.normalize(i201);
+    }
 
     default Position position(int posIndex) {
         return Position.of(i201(posIndex));

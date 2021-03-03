@@ -18,10 +18,6 @@ import java.util.List;
  */
 public class R2Table extends IndexedMap<R0Table> implements PosIndex {
 
-    public long normalize(long i201) {
-        return Positions.normalize(i201);
-    }
-
     public int posIndex(long i201) {
 
         if(!Positions.normalized(i201))
@@ -36,12 +32,12 @@ public class R2Table extends IndexedMap<R0Table> implements PosIndex {
         if(pos==-1)
             return -1;
         if(pos<-1)
-            return -baseIndex(-2 - pos);
+            return -it.baseIndex(-2 - pos);
 
         R0Table r0 = values.get(pos);
         int posIndex = r0.idx01(i201);
 
-        int baseIndex = baseIndex(pos);    // base index
+        int baseIndex = it.baseIndex(pos);    // base index
 
         // if missing return lower bound by negative index
         if(posIndex<0)
@@ -54,21 +50,21 @@ public class R2Table extends IndexedMap<R0Table> implements PosIndex {
 
     public long i201(int posIndex) {
 
-        final int pos = indexOf(posIndex);
+        int pos = it.indexOf(posIndex);
         R0Table r0 = values.get(pos);
         short i2 = keys.ringIndex(pos);
-        int index = baseIndex(pos);
+        int index = it.baseIndex(pos);
 
         return r0.i201(i2, posIndex-index);
     }
 
     public IndexProcessor process(IndexProcessor processor, int start, int end) {
 
-        for(int pos = start>0 ? indexOf(start) : 0;
+        for(int pos = start>0 ? it.indexOf(start) : 0;
             pos< values.size(); ++pos) {
             R0Table r0 = values.get(pos);
             short i2 = keys.ringIndex(pos);
-            int baseIndex = baseIndex(pos);
+            int baseIndex = it.baseIndex(pos);
 
             if(!r0.process(baseIndex, i2, processor, start, end))
                 break;

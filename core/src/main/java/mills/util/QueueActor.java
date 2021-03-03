@@ -1,9 +1,12 @@
 package mills.util;
 
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * version:     $Revision$
@@ -18,21 +21,13 @@ import java.util.function.Consumer;
  * If the Actor is idle, the action is executed immediately.
  * If the actor is busy the action is queued to be executed by someone else.
  */
-public class QueueActor<T> {
+abstract public class QueueActor<T> implements AutoCloseable {
 
-    final T actor;
+    abstract protected T actor();
 
     final ConcurrentLinkedQueue<Consumer<? super T>> mbox = new ConcurrentLinkedQueue<>();
 
     final AtomicBoolean idle = new AtomicBoolean(true);
-
-    public QueueActor(T actor) {
-        this.actor = actor;
-    }
-
-    public static <T> QueueActor<T> of(T actor) {
-        return new QueueActor<T>(actor);
-    }
 
     public int size() {
         return mbox.size();
@@ -45,7 +40,21 @@ public class QueueActor<T> {
      */
     public int submit(Consumer<? super T> action) {
         mbox.offer(action);
-        return work();
+
+        int processed = 0;
+
+        // process any work if idle
+        while(!mbox.isEmpty() && idle.compareAndSet(true, false)) {
+
+            try {
+                processed += work();
+            } finally {
+                // reset to idle
+                idle.set(true);
+            }
+        }
+
+        return processed;
     }
 
     /**
@@ -53,30 +62,25 @@ public class QueueActor<T> {
      * May be called concurrently any time.
      * @return # of executed tasks
      */
-    private int work() {
+    protected int work() {
         int done = 0;
 
-        // work to do and idle
-        while(!mbox.isEmpty() && idle.compareAndSet(true, false)) {
+        T actor = actor();
 
-            // execute all actions queued
-            for(Consumer<? super T> action = mbox.poll(); action!=null; action=mbox.poll()) {
-                action.accept(actor);
-                ++done;
-            }
-
-            // reset to idle
-            idle.set(true);
+        // execute all actions queued
+        for (Consumer<? super T> action = mbox.poll(); action != null; action = mbox.poll()) {
+            action.accept(actor);
+            ++done;
         }
 
         return done;
     }
 
-    public boolean idle() {
+    public boolean isIdle() {
         return idle.get();
     }
 
-    public void finish() {
+    public void close() {
         if(idle.get())
             return;
 
@@ -90,7 +94,41 @@ public class QueueActor<T> {
         task.join();
     }
 
-    public String toString() {
-        return String.format("Queue of %s [%d]", actor, mbox.size());
+    public static <T> QueueActor<T> of(T actor) {
+        return new QueueActor<T>() {
+            @Override
+            protected T actor() {
+                return actor;
+            }
+
+            public String toString() {
+                return String.format("Queue of %s [%d]", actor, mbox.size());
+            }
+        };
+    }
+
+    static final Reference<Object> EMPTY = new SoftReference<>(null);
+
+    @SuppressWarnings("unchecked")
+    static <T> Reference<T> emptyRef() {
+        return (Reference<T>)EMPTY;
+    }
+
+    public static <T> QueueActor<T> lazy(Supplier<T> factory) {
+
+        return new QueueActor<T>() {
+
+            Reference<T> ref = emptyRef();
+
+            @Override
+            protected T actor() {
+                T actor = ref.get();
+                if(actor==null) {
+                    actor = factory.get();
+                    ref = new SoftReference<>(actor);
+                }
+                return actor;
+            }
+        };
     }
 }

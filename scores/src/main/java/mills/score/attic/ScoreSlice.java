@@ -19,7 +19,7 @@ import java.util.function.Predicate;
  */
 public class ScoreSlice extends MapSlice {
 
-    final QueueActor<ScoreSlice> work = new QueueActor<>(this);
+    final QueueActor<ScoreSlice> work = QueueActor.of(this);
 
     // max score occurred
     private int max = 0;

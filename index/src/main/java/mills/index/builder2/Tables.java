@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static mills.ring.RingEntry.MAX_INDEX;
 
@@ -21,6 +22,8 @@ import static mills.ring.RingEntry.MAX_INDEX;
  * Time: 10:52
  */
 public class Tables {
+
+    public static final AtomicInteger MAX = new AtomicInteger();
 
     private final ConcurrentNavigableMap<List<RingEntry>, IndexedEntryTable> fragMap = new ConcurrentSkipListMap<>(Entries.BY_SIZE);
     private final List<IndexedEntryTable> fragments = new ArrayList<>();
@@ -80,6 +83,9 @@ public class Tables {
         assert table.size()>1;
 
         fragMap.put(table, table);
+
+        if(index>MAX.get())
+            MAX.updateAndGet(i -> Math.max(i, index));
 
         return table;
     }

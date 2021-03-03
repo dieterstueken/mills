@@ -3,7 +3,6 @@ package mills.bits;
 import mills.util.Indexed;
 import mills.util.ListSet;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -100,7 +99,7 @@ public interface Clops extends Indexed {
     int MCLOPS = PopCount.NCLOPS+1;
     int NCLOPS = PopCount.SIZE * MCLOPS;
 
-    List<Clops> CLOPS = ListSet.generate(NCLOPS, Clops::create);
+    ListSet<Clops> CLOPS = ListSet.generate(NCLOPS, Clops::create);
 
     Clops EMPTY = of(PopCount.EMPTY, PopCount.EMPTY);
 
@@ -133,7 +132,7 @@ public interface Clops extends Indexed {
         };
     }
 
-    private static int index(PopCount pop, PopCount clop) {
+    static int index(PopCount pop, PopCount clop) {
 
         int index = pop.index;
 

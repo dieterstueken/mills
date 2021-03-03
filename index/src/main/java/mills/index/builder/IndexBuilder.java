@@ -1,5 +1,6 @@
 package mills.index.builder;
 
+import mills.bits.Clops;
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.index.tables.C2Table;
@@ -72,11 +73,15 @@ public class IndexBuilder implements IndexProvider {
         return new IndexBuilder(registry);
     }
 
+    public CachedBuilder cached() {
+        return new CachedBuilder(this);
+    }
+
     public Map<PopCount, C2Table> buildGroup(PopCount pop) {
 
         C2Table[] tables = new C2Table[PopCount.CLOPS.size()];
 
-        PopCount.CLOPS.parallelStream().forEach(clop -> tables[clop.index] = build(pop, clop));
+        PopCount.CLOPS.parallelStream().forEach(clop -> tables[clop.index] = this.build(pop, clop));
 
         Map<PopCount, C2Table> group = new TreeMap<>();
 
@@ -89,7 +94,11 @@ public class IndexBuilder implements IndexProvider {
     }
 
     public R2Table build(PopCount pop) {
-        return build(pop, null);
+        return this.build(pop, null);
+    }
+
+    public C2Table build(Clops clops) {
+        return this.build(clops.pop(), clops.clop());
     }
 
     public C2Table build(PopCount pop, PopCount clop) {

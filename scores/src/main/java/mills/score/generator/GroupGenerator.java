@@ -42,7 +42,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
 
     GroupGenerator(Generator generator, PopCount pop) {
         this.generator = generator;
-        this.indexes = generator.indexes.lazy();
+        this.indexes = generator.indexes;
         this.pop = pop;
         this.clops = MovingGroup.clops(pop);
 

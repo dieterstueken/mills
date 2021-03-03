@@ -17,7 +17,7 @@ import mills.util.QueueActor;
  */
 abstract public class MapSlice extends ScoreSlice {
 
-    final QueueActor<MapSlice> work = new QueueActor<>(this);
+    final QueueActor<MapSlice> work = QueueActor.of(this);
 
     // to calculate pending moves
     final Mover mover;
@@ -28,7 +28,7 @@ abstract public class MapSlice extends ScoreSlice {
 
     public void close() {
         super.close();
-        work.finish();
+        work.close();
 
         var scores = scores();
         for(int offset=0; offset<size(); ++offset) {

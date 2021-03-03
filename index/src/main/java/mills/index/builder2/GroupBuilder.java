@@ -1,19 +1,25 @@
 package mills.index.builder2;
 
+import mills.bits.Clops;
 import mills.bits.PopCount;
+import mills.index.IndexProcessor;
+import mills.index.IndexProvider;
+import mills.index.PosIndex;
 import mills.index.tables.C2Table;
 import mills.index.tables.R0Table;
 import mills.position.Positions;
 import mills.ring.*;
-import mills.util.AbstractRandomArray;
-import mills.util.ArraySet;
-import mills.util.ListSet;
+import mills.util.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static java.util.function.Predicate.not;
@@ -24,26 +30,143 @@ import static java.util.function.Predicate.not;
  * Date: 04.02.21
  * Time: 09:04
  */
-public class GroupBuilder {
+public class GroupBuilder implements IndexProvider {
+
+    public static GroupBuilder create() {
+        return new GroupBuilder();
+    }
 
     final Partitions partitions;
 
     final PopMap<EntryTable> lePops;
     final PopMap<EntryTable> minPops;
 
-    GroupBuilder(Supplier<Partitions> partitions) {
+    final List<CachedEntry<Group>> groups;
+
+    public GroupBuilder() {
+        var task = ForkJoinTask.adapt(Partitions::new).fork();
         this.lePops = PopMap.lePops(Entries.TABLE);
         this.minPops = PopMap.lePops(Entries.MINIMIZED);
-        this.partitions = partitions.get();
+        this.partitions = task.join();
+        this.groups = AbstractRandomList
+                .transform(PopCount.TABLE, pop->new CachedEntry<>(() -> new Group(pop)))
+                .copyOf();
     }
 
-    public static GroupBuilder create() {
-        var task = ForkJoinTask.adapt(Partitions::new).fork();
-        return new GroupBuilder(task::join);
+    public Group group(PopCount pop) {
+        return groups.get(pop.index).get();
     }
 
+    @Override
     public Map<PopCount, C2Table> buildGroup(PopCount pop) {
-        return new Builder(pop).build();
+        return group(pop).group;
+    }
+
+    public CompletableFuture<Group> futureGroup(PopCount pop) {
+        return groups.get(pop.index).future();
+    }
+
+    @Override
+    public PosIndex build(PopCount pop, PopCount clop) {
+        return group(pop).getIndex(clop);
+    }
+
+    @Override
+    public CompletionStage<PosIndex> stage(PopCount pop, PopCount clop) {
+        return futureGroup(pop).thenApply(g->g.getIndex(clop));
+    }
+
+    public void close() {
+        groups.forEach(CachedEntry::clear);
+    }
+
+    public class Group implements PosIndex {
+
+        final PopCount pop;
+
+        public final ListMap<PopCount, C2Table> group;
+
+        final IndexTable it;
+
+        public Group(PopCount pop) {
+            this.pop = pop;
+            this.group = new Builder(pop).build(C2T::new);
+            this.it = IndexTable.sum(group.values(), C2Table::range);
+        }
+
+        /**
+         * A non static implementation to hold a reference to its group.
+         */
+        class C2T extends C2Table {
+            public C2T(PopCount clop, EntryMap<R0Table> r0Tables) {
+                super(pop, clop, r0Tables.keySet(), r0Tables.values());
+            }
+        }
+
+        public PosIndex getIndex(PopCount clop) {
+            return clop==null ? this : group.get(clop);
+        }
+
+        @Override
+        public PopCount pop() {
+            return pop;
+        }
+
+        @Override
+        public int range() {
+            return it.range();
+        }
+
+        public int posIndex(long i201) {
+
+            if(!Positions.normalized(i201))
+                i201 = normalize(i201);
+            else
+                assert i201 == normalize(i201);
+
+            PopCount clop = Positions.clop(i201);
+            int pos = group.keySet().indexOf(clop);
+            int posIndex = group.getValue(pos).posIndex(i201);
+            int baseIndex = it.baseIndex(pos);
+
+            // if missing return lower bound by negative index
+            if(posIndex<0)
+                posIndex -= baseIndex;
+            else
+                posIndex += baseIndex;
+
+            return posIndex;
+        }
+
+        public long i201(int posIndex) {
+            int pos = it.indexOf(posIndex);
+            posIndex -= it.baseIndex(pos);
+            C2Table c2t = group.getValue(pos);
+            return c2t.i201(posIndex);
+        }
+
+        public IndexProcessor process(IndexProcessor processor, int start, int end) {
+
+            for(int pos = it.indexOf(start); pos<group.size(); ++pos) {
+                int baseIndex = it.baseIndex(pos);
+                if(end<baseIndex)
+                    break;
+
+                C2Table c2t = group.getValue(pos);
+                int pstart = Math.max(0, start-baseIndex);
+                c2t.process(processor, pstart, end-baseIndex);
+            }
+
+            return processor;
+        }
+
+        @Override
+        public int n20() {
+            int n20 = 0;
+            for(int pos=0; pos<group.size(); ++pos)
+                n20 += group.getValue(pos).n20();
+            return n20;
+        }
     }
 
     class Builder {
@@ -62,6 +185,16 @@ public class GroupBuilder {
 
         final PopMap<C2Builder> builders = PopMap.allocate(PopCount.NCLOPS);
 
+        boolean debug(RingEntry r0, RingEntry r2) {
+            //if(!pop.equals(PopCount.P88))
+            //    return false;
+            //
+            //if(r2.index==6520 && r0.index==6520)
+            //    return true;
+            //else
+                return false;
+        }
+
         Builder(PopCount pop) {
             this.pop = pop;
             this.t2 = minPops.get(pop);
@@ -72,6 +205,23 @@ public class GroupBuilder {
 
             // preset possible builders
             clops.forEach(clop -> builders.put(clop, new C2Builder(clop)));
+        }
+
+        <R extends Clops> ListMap<PopCount, R> build(BiFunction<PopCount, EntryMap<R0Table>, R> generator) {
+
+            T0Builder builder = new T0Builder();
+            builder.invoke();
+
+            List<R> tmp = AbstractRandomList.preset(PopCount.NCLOPS, null);
+
+            clops.parallelStream()
+                    .map(this::getC2Builder)
+                    .map(b->b.build(generator))
+                    .forEach(result->tmp.set(result.clop().index, result));
+
+            List<R> results = AbstractRandomList.transform(clops, c -> tmp.get(c.index)).copyOf();
+
+            return clops.mapOf(results);
         }
 
         RingEntry next() {
@@ -87,28 +237,11 @@ public class GroupBuilder {
             return builders.get(clop);
         }
 
-        Map<PopCount, C2Table> build() {
-
-            T0Builder builder = new T0Builder();
-            builder.invoke();
-
-            clops.parallelStream().map(this::getC2Builder).forEach(C2Builder::build);
-
-            var c2Table = clops.stream()
-                    .map(this::getC2Builder)
-                    .map(C2Builder::build)
-                    .collect(Collectors.toUnmodifiableList());
-
-            return ArraySet.mapOf(c2Table, C2Table::clop, null);
-        }
-
         class C2Builder {
 
             final PopCount clop;
 
             final EntryMap<R0Table> t0Tables;
-
-            transient C2Table result;
 
             C2Builder(PopCount clop) {
                 this.clop = clop;
@@ -119,18 +252,15 @@ public class GroupBuilder {
                 t0Tables.put(r2, t0Table);
             }
 
-            C2Table build() {
-                if(result!=null)
-                    return result;
-
+            <Result> Result build(BiFunction<PopCount, EntryMap<R0Table>, Result> group) {
                 var filtered= t0Tables.filterValues(not(R0Table::isEmpty));
-                return result = C2Table.of(pop, clop, filtered);
+                return group.apply(clop, filtered);
             }
         }
 
         class T0Builder extends RecursiveAction {
 
-            static final int S = 14;
+            static final int M=12*1024;
 
             T0Builder() {
                 ++count;
@@ -155,38 +285,38 @@ public class GroupBuilder {
 
             int[] table;
             int size = 0;
-            int maxSize = 0;
-
-            int size() {
-                return size;
-            }
-
-            void clear() {
-                if(size>maxSize)
-                    maxSize = size;
-                
-                size = 0;
-            }
 
             short getKey(int index) {
                 int pattern = table[index];
-                return (short)(pattern&((1<<S)-1));
+                return (short)(pattern%M);
             }
 
             RingEntry getEntry(int index) {
                 int pattern = table[index];
-                int i1 = (pattern>>>S)%RingEntry.MAX_INDEX;
+                int i1 = (pattern/M)%RingEntry.MAX_INDEX;
                 return Entries.of(i1);
             }
 
             int getClopIndex(int index) {
                 int pattern = table[index];
-                return (pattern>>>S)/RingEntry.MAX_INDEX;
+                if(pattern<0)
+                    return -1;
+                return (pattern/M)/RingEntry.MAX_INDEX;
+            }
+
+            void setup(int n0) {
+                size = 0;
+                //if(table==null) {
+                //    PopCount mclop = pop.mclop();
+                //    n0 *= mclop.nb * mclop.nw + 1;
+                //    n0 = Math.max(n0, 1024);
+                //    table = new int[n0];
+                //}
             }
 
             void add(int index) {
                 if(table==null)
-                    table = new int[25*t2.size()];
+                    table = new int[1024];
                 else
                 if(size >= table.length)
                     table = Arrays.copyOf(table, table.length*2);
@@ -196,15 +326,18 @@ public class GroupBuilder {
 
             void add(PopCount clop, RingEntry r0, IndexedEntryTable t1) {
                 int index = t1.getIndex();
-                if(index>=(1<<S))
+                if(index>=M)
                     throw new IndexOutOfBoundsException("IndexedEntryTable to big");
 
-                index += (r0.index + RingEntry.MAX_INDEX*clop.index) << S;
-               
+                index += (r0.index + RingEntry.MAX_INDEX*clop.index) * M;
+                if(index<0)
+                    throw new IndexOutOfBoundsException("IndexedEntryTable negative index");
+
                 add(index);
             }
 
             void build(RingEntry r2) {
+
                 PopCount pop0 = pop.sub(r2.pop);
 
                 if(pop0.sum()>16)
@@ -215,14 +348,14 @@ public class GroupBuilder {
                 if(t0.isEmpty())
                     return;
 
-                clear();
+                setup(t0.size());
 
                 for (RingEntry r0 : t0) {
+
+                    // debug(r0, r2);
+
                     PopCount pop1 = pop0.sub(r0.pop);
                     final Partition partition = partitions.get(pop1);
-
-                    if(r0.pop().ge(PopCount.of(4,5)))
-                        r0.pop();
 
                     if(partition.isEmpty())
                         continue;
@@ -244,7 +377,9 @@ public class GroupBuilder {
                 if(size==0)
                     return;
 
-                Arrays.sort(table, 0, size);
+                if(size>1)
+                    Arrays.sort(table, 0, size);
+
                 add(-1); // terminal dummy index
 
                 int offt=0;
@@ -303,40 +438,4 @@ public class GroupBuilder {
             }
         }
     }
-
-    public static void main(String ... args) {
-
-        GroupBuilder groupBuilder = timer("init", GroupBuilder::create);
-
-        timer("groups", () -> {
-            Set<Object> groups = new HashSet<>();
-
-            PopCount.TABLE.stream().map(PopCount.P99::sub).forEach(pop -> {
-
-                var group = groupBuilder.buildGroup(pop);
-                //groups.add(group);
-
-                System.out.format("%s groups: %d\n", pop, group.size());
-
-                group.forEach((clop, c2t) -> {
-                    System.out.format("%s: %4d %,13d\n", clop.toString(), c2t.n20(), c2t.range());
-                });
-
-                System.out.println();
-            });
-
-            return null;
-        });
-    }
-
-    static <T> T timer(String name, Supplier<T> proc) {
-        double start = System.currentTimeMillis();
-        T t = proc.get();
-        double stop = System.currentTimeMillis();
-
-        System.out.format("%s: %.3fs\n", name, (stop - start) / 1000);
-
-        return t;
-    }
-
 }

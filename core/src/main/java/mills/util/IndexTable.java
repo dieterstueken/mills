@@ -26,6 +26,14 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
         return index<0 ? -(index+1) : index+1;
     }
 
+    public int baseIndex(int pos) {
+        return pos==0 ? 0 : get(pos-1);
+    }
+
+    public int indexOf(int index) {
+        return index==0 ? 0 : upperBound(index);
+    }
+
     public int range() {
         return isEmpty() ? 0 : get(size()-1);
     }
@@ -142,7 +150,7 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
 
     public static final Indexer<List> SIZE = List::size;
 
-    public static <E> IndexTable sum(final List<? extends E> table, final ToIntFunction<? super E> indexer) {
+    public static <E> IndexTable sum(List<? extends E> table, ToIntFunction<? super E> indexer) {
 
         if(table.isEmpty())
             return EMPTY;
@@ -152,7 +160,7 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
         if(size==1)
             return singleton(sum);
 
-        int index[] = new int[size];
+        int[] index = new int[size];
         index[0] = sum;
 
         for(int i=1; i<size; ++i) {

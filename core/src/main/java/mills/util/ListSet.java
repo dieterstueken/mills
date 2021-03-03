@@ -13,6 +13,9 @@ import java.util.function.IntFunction;
 public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
 
     @Override
+    Comparator<? super T> comparator();
+
+    @Override
     default boolean contains(Object obj) {
             return indexOf(obj) >= 0;
         }
@@ -163,5 +166,9 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
 
     static <T extends Comparable<? super T>> ListSet<T> mutable() {
         return mutable(Comparator.naturalOrder());
+    }
+
+    default <V> ListMap<T, V> mapOf(List<V> values) {
+        return ListMap.create(this, values);
     }
 }

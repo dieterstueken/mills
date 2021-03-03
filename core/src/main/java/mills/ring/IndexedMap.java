@@ -17,16 +17,7 @@ public class IndexedMap<T> extends EntryMap<T> {
     protected final IndexTable it;
 
     public int range() {
-        int size = it.size();
-        return size>0 ? it.get(size-1) : 0;
-    }
-
-    public int baseIndex(int pos) {
-        return pos==0 ? 0 : it.get(pos-1);
-    }
-
-    public int indexOf(int index) {
-        return index==0 ? 0 : it.upperBound(index);
+        return it.range();
     }
 
     public IndexedMap(EntryTable keys, List<T> values, IndexTable it) {

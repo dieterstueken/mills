@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class Opening {
 
-    final IndexProvider indexes = IndexProvider.load().lazy();
+    final IndexProvider indexes = IndexProvider.load();
 
     final List<MovedLayer> layers = new ArrayList<>(Plop.COUNT);
 
