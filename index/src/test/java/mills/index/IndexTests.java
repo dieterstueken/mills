@@ -1,291 +1,77 @@
 package mills.index;
 
-import mills.bits.Perm;
+import mills.bits.Clops;
 import mills.bits.PopCount;
-import mills.index.builder2.GroupBuilder;
-import mills.index.tables.R0Table;
-import mills.index.tables.R2Table;
-import mills.position.Position;
-import mills.position.Positions;
-import mills.ring.Entries;
-import mills.ring.EntryTables;
-import mills.ring.IndexedMap;
-import mills.util.IntegerDigest;
+import mills.index.builder.GroupBuilder;
 import org.junit.Test;
 
-import java.util.Comparator;
-import java.util.Map;
-import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.RecursiveTask;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
- * Created by IntelliJ IDEA.
- * User: stueken
- * Date: 20.09.19
- * Time: 14:42
+ * version:     IndexCompare$
+ * created by:  d.stueken
+ * created on:  02.03.2021 19:53
+ * modified by: $
+ * modified on: $
  */
 public class IndexTests {
 
-    EntryTables registry = new EntryTables();
-    //IndexProvider builder = IndexBuilder.create(registry).cached();
-    IndexProvider builder = GroupBuilder.create();
+    final GroupBuilder groupBuilder = new GroupBuilder();
 
-    /**
-     * Iterate popcounts and execute a task on each.
-     * @param tasks generator of tasks to execute.
-     */
-    void runTests(Function<PopCount, ForkJoinTask<Runnable>> tasks) {
-
-        ForkJoinTask<Runnable> task = null;
-
-        for (int nb = 0; nb < 10; ++nb) {
-            for (int nw = 0; nw < 10; ++nw) {
-                PopCount pop = PopCount.get(nb, nw);
-                ForkJoinTask<Runnable> next = tasks.apply(pop).fork();
-
-                if(task!=null)
-                    task.join().run();
-                task = next;
-            }
-        }
-
-        task.join().run();
-    }
-
-    void indexTests(Consumer<PosIndex> test) {
-        runTests(pop->indexTask(pop, test));
-    }
-
-    ForkJoinTask<Runnable> indexTask(PopCount pop, Consumer<PosIndex> test) {
-        return new RecursiveTask<>() {
-            @Override
-            protected Runnable compute() {
-                PosIndex posIndex = builder.build(pop);
-                return () -> test.accept(posIndex);
-            }
-        };
+    public Stream<GroupBuilder.Group> groups() {
+        return PopCount.TABLE.stream()
+                .map(PopCount.P99::sub)
+                .map(groupBuilder::futureGroup)
+                .map(CompletableFuture::join);
     }
 
     @Test
-    public void testDigest() {
-        IntegerDigest digest = new IntegerDigest("MD5");
+    public void buildGroups() {
 
-        System.out.format("start %d\n", Entries.TABLE.size());
-        double start = System.currentTimeMillis();
+        timer("groups", () -> {
+            groups().forEach(group -> {
+                System.out.format("%s groups: %d\n", group.pop(), group.group.size());
 
-        AtomicLong count20 = new AtomicLong();
+                group.group.forEach((clop, c2t) -> {
+                    System.out.format("%s: %4d %,13d\n", clop.toString(), c2t.n20(), c2t.range());
+                });
 
-        indexTests(posIndex->{
-            PopCount pop = posIndex.pop();
-            int range = posIndex.range();
-            int n20 = posIndex.n20();
-            count20.addAndGet(n20);
-            System.out.format("l%d%d%,13d %4d\n", pop.nb, pop.nw, range, n20);
-            digest.update(range);
-        });
-
-        double stop = System.currentTimeMillis();
-
-        System.out.format("\n%.3fs, n20: %d, %,d\n", (stop - start) / 1000, count20.get(), Runtime.getRuntime().totalMemory());
-
-        byte[] result = digest.digest();
-
-        System.out.println("digest: " + IntegerDigest.toString(result));
-
-        assertArrayEquals(IntegerDigest.EXPECTED, result);
-    }
-
-    @Test
-    public void testPerms() {
-        double start = System.currentTimeMillis();
-        indexTests(this::testPerms);
-        double stop = System.currentTimeMillis();
-        System.out.format("\n%.3fs\n", (stop - start) / 1000);
-    }
-
-    private void testPerms(PosIndex index) {
-
-        PopCount pop = index.pop();
-
-        Perm.VALUES.parallelStream().forEach(perm->{
-            index.process((idx, i201)->{
-                long p201 = Positions.permute(i201, perm);
-                long n201 = index.normalize(p201);
-                if(!Positions.equals(n201, i201)) {
-                    Position p0 = Position.of(i201);
-                    Position pm = Position.of(n201);
-                    Position pn = Position.of(n201);
-                    n201 = index.normalize(p201);
-                }
-                assertTrue(Positions.equals(n201, i201));
+                System.out.println();
             });
-        });
-
-        System.out.format("p(%d,%d) %,13d\n", pop.nb, pop.nw, index.range());
-    }
-
-    public PosIndex build(PopCount pop, PopCount clop) {
-        PosIndex table = builder.build(pop, clop);
-        int range = table.range();
-        int n20 = table.n20();
-        System.out.format("l%d%d%,13d %4d +%d\n", pop.nb, pop.nw, range, n20, registry.count());
-        return table;
-    }
-
-    @Test
-    public void testIndexGroups() {
-        runGroupTests(this::indexGroup);
-    }
-
-    public void runGroupTests(BiConsumer<PopCount, Map<PopCount, ? extends PosIndex>> test) {
-        double start = System.currentTimeMillis();
-
-        runTests(pop->groupTask(pop, test));
-
-        double stop = System.currentTimeMillis();
-
-        System.out.format("\n%.3fs, mem: %,d\n", (stop - start) / 1000, Runtime.getRuntime().totalMemory());
-
-        registry.stat(System.out);
-    }
-
-    @Test
-    public void indexGroups1() {
-        double start = System.currentTimeMillis();
-
-        for (int nb = 0; nb <= 9; ++nb) {
-            PopCount pop = PopCount.get(nb, nb);
-            indexGroup(pop);
-        }
-        
-        double stop = System.currentTimeMillis();
-
-        System.out.format("\n%.3fs, mem: %,d\n", (stop - start) / 1000, Runtime.getRuntime().totalMemory());
-    }
-
-    @Test
-    public void indexGroups0() {
-
-        double start = System.currentTimeMillis();
-
-        for (int nb = 0; nb <= 9; ++nb) {
-            PopCount pop = PopCount.get(nb, nb);
-            build(pop, PopCount.EMPTY);
-        }
-
-        double stop = System.currentTimeMillis();
-
-        System.out.format("\n%.3fs, mem: %,d\n", (stop - start) / 1000, Runtime.getRuntime().totalMemory());
-    }
-
-    private ForkJoinTask<Runnable> groupTask(PopCount pop, BiConsumer<PopCount, Map<PopCount, ? extends PosIndex>> test) {
-        return ForkJoinTask.adapt(()->groupAction(pop, test)).fork();
-    }
-
-    private Runnable groupAction(PopCount pop, BiConsumer<PopCount, Map<PopCount, ? extends PosIndex>> test) {
-        var group = builder.buildGroup(pop);
-        return () -> test.accept(pop, group);
-    }
-
-    public Map<PopCount, ? extends PosIndex> indexGroup(PopCount pop) {
-        return indexGroup(pop, builder.buildGroup(pop));
-    }
-
-    public Map<PopCount, ? extends PosIndex> indexGroup(PopCount pop, Map<PopCount, ? extends PosIndex> group) {
-
-        PopCount max = group.keySet().stream().reduce(PopCount.EMPTY, PopCount::max);
-
-        int count = group.values().stream().mapToInt(PosIndex::range).sum();
-
-        System.out.format("group (%d,%d) [%d,%d] +%d: %,d +%d\n",
-                pop.nb, pop.nw, max.nb, max.nw,
-                group.size(), count, registry.count());
-
-        for (int mb = 0; mb <= max.nb; ++mb) {
-            for (int mw = 0; mw <= max.nw; ++mw) {
-                PopCount clop = PopCount.of(mb, mw);
-                PosIndex pi = group.get(clop);
-                if(pi==null)
-                    System.out.append("             |");
-                else
-                    System.out.format("%,13d|", pi.range());
-            }
-            System.out.println();
-        }
-
-        System.out.println();
-
-        return group;
-    }
-
-    @Test
-    public void testNormalized() {
-        runGroupTests((pop, tables) -> tables.values().parallelStream().forEach(this::testNormalized));
-    }
-
-    @Test
-    public void testNormalized12() {
-        PopCount pop = PopCount.of(1,1);
-        PosIndex index = builder.build(pop, PopCount.EMPTY);
-        testNormalized(index);
-    }
-
-    public void testNormalized(PosIndex index) {
-
-        System.out.format("%s:%s %,13d\n", index.pop(), index.clop(), index.range());
-
-        index.process((idx, i201) ->{
-            Position pos = Position.of(i201);
-
-            for (int perm=0; perm<16; ++perm) {
-                Position ppos = pos.permute(perm);
-
-                if(ppos.m201() < pos.m201())
-                    assert false;
-
-                long n201 = Positions.normalize(ppos.i201);
-                Position npos = Position.of(n201);
-
-                if(npos.m201() != pos.m201()) {
-                    n201 = Positions.normalize(ppos.i201);
-                    assert false;
-                }
-            }
-        });
-    }
-
-    public void testIndex(PosIndex posIndex) {
-        posIndex.process((idx, i201) ->{
-            int kdx = posIndex.posIndex(i201);
-            assertEquals(kdx, idx);
+            return null;
         });
     }
 
     @Test
-    public void testIndex() {
-        PopCount pop = PopCount.of(0,2);
-        PosIndex posIndex = builder.build(pop);
-        testIndex(posIndex);
+    public void testIndexes() {
+        groups().forEach(this::testIndexes);
     }
 
-    @Test
-    public void testIndexSizes() {
-        testIndexSizes(PopCount.of(8, 8));
+    void testIndexes(PosIndex index) {
+        System.out.format("testIndexes %s\n", Clops.of(index));
+
+        IntStream.range(0, index.range()).parallel()
+                .forEach(i->testIndex(index, i));
     }
 
-    public void testIndexSizes(PopCount pop) {
-        R2Table table = (R2Table) builder.build(pop);
+    void testIndex(PosIndex ix, int pi0) {
+        long i201 = ix.i201(pi0);
+        int pi1 = ix.posIndex(i201);
+        assertEquals(pi1, pi0);
+    }
 
-        Comparator<R0Table> range = Comparator.comparingInt(IndexedMap::range);
+    static <T> T timer(String name, Supplier<T> proc) {
+        double start = System.currentTimeMillis();
+        T t = proc.get();
+        double stop = System.currentTimeMillis();
 
-        R0Table max = table.values().stream().max(range).get();
-        System.out.format("max %d,%d : %,d / %,d / %d\n", pop.nb, pop.nw, table.range(),
-                max.range(), max.size());
+        System.out.format("%s: %.3fs\n", name, (stop - start) / 1000);
+
+        return t;
     }
 }

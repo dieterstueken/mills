@@ -117,7 +117,10 @@ public interface Clops extends Indexed {
 
             @Override
             public String toString() {
-                return String.format("%s[%s]", pop, clop);
+                if(clop!=null)
+                    return String.format("%s-%s", pop, clop);
+                else
+                    return String.format("%s", pop);
             }
 
             @Override

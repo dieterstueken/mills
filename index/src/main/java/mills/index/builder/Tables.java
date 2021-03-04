@@ -1,4 +1,4 @@
-package mills.index.builder2;
+package mills.index.builder;
 
 import mills.ring.Entries;
 import mills.ring.EntryTable;

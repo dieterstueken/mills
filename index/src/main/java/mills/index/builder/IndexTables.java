@@ -1,4 +1,4 @@
-package mills.index.builder2;
+package mills.index.builder;
 
 import mills.bits.PopCount;
 import mills.index.tables.C2Table;

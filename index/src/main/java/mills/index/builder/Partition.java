@@ -2,112 +2,108 @@ package mills.index.builder;
 
 import mills.bits.Perms;
 import mills.bits.PopCount;
+import mills.ring.Entries;
 import mills.ring.EntryTable;
-import mills.ring.EntryTables;
-import mills.util.AbstractRandomArray;
+import mills.ring.IndexedEntryTable;
+import mills.ring.RingEntry;
+import mills.util.AbstractRandomList;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
- * Date: 17.10.19
- * Time: 17:23
+ * Date: 01.02.21
+ * Time: 21:20
  */
 public class Partition {
 
-    private static final int[] PERMS = new int[]{0x01, 0x05, 0x0f, 0x11, 0x21, 0x41, 0x55, 0x81, 0xa5, 0xff};
-    private static final int[] INDEX = index();
+    final Tables tables = new Tables();
 
-    public static final Partition EMPTY = new Partition() {
-        @Override
-        public String toString() {
-            return "()";
-        }
-    };
-
-    final EntryTable root;
+    final IndexedEntryTable root;
 
     final List<Fragments> fragments;
 
-    private Partition(EntryTable root, List<Fragments> fragments) {
-        this.root = root;
-        this.fragments = fragments;
+    public Partition(EntryTable root) {
+        this.root = tables.get(root);
+        this.fragments = fragments();
     }
 
-    private Partition() {
-        root = EntryTable.EMPTY;
-        fragments = AbstractRandomArray.constant(PERMS.length, Fragments.EMPTY);
+    public boolean isEmpty() {
+        return root.isEmpty();
     }
 
-    public EntryTable root() {
-        return root;
+    public String toString() {
+        return String.format("p[%d]", root.size());
     }
 
-    public Fragments get(int msk) {
-        int index = INDEX[msk/2];
-
-        if(index<0)
-            return Fragments.EMPTY;
-
-        return fragments.get(index);
+    public Fragments getFragments(int meq2) {
+        int index = ROOT_INDEX.get(meq2/2);
+        return index<0 ? null : fragments.get(index);
     }
 
-    private static int[] index() {
-        int[] index = new int[Perms.VALUES.size()/2];
-        Arrays.fill(index, -1);
+    IndexedEntryTable filter(Predicate<? super RingEntry> predicate) {
+        return tables.get(root.filter(predicate));
+    }
 
-        for(int i=0; i<PERMS.length; ++i) {
-            int pi = PERMS[i];
-            index[pi/2] = i;
+    IndexedEntryTable filter(Perms perms) {
+        return filter(e -> e.stable(perms));
+    }
+
+    private List<Fragments> fragments() {
+        if(root.size()<2)
+            return AbstractRandomList.constant(ROOTS.size(), Fragments.of(root, tables));
+
+        Fragments[] fragments = new Fragments[ROOTS.size()];
+
+        for(int i=0; i<9; ++i) {
+            IndexedEntryTable table = filter(ROOTS.get(i));
+            fragments[i] = fragments(table);
         }
 
-        return index;
+        // this is the only case of a duplicate fragment:
+        // for size==8  with 1:0, 7:0, 7:1 and swapped
+        // fragments[2] == fragments[9]
+        IndexedEntryTable table = filter(ROOTS.get(9));
+        if(root.size()==8) {
+            Fragments f2 = fragments[2];
+            if(f2.root!=table)
+                throw new IllegalStateException("should be equal");
+            fragments[9] = f2;
+        } else
+            fragments[9] = fragments(table);
+
+        return List.of(fragments);
     }
 
-    public static Partition partition(PopCount pop, EntryTable root, EntryTables registry) {
+    private Fragments fragments(IndexedEntryTable table) {
+        return Fragments.of(table, tables);
+    }
 
-        if(pop.max()>8)
-            return null;
+    public static final List<Perms> ROOTS;
+    public static final List<Integer> ROOT_INDEX;
 
-        root = root.filter(pop.eq);
-
-        if(root.isEmpty())
-            return null;
-
-        root = registry.table(root);
-
-        FragmentBuilder builder = new FragmentBuilder(registry);
-
-        Map<EntryTable, Fragments> roots = new HashMap<>();
-        Fragments[] fragments = new Fragments[PERMS.length];
-
-        for (int i=0; i<PERMS.length; ++i) {
-            int msk = PERMS[i];
-            EntryTable filtered = i==0 ? root : root.filter(e -> (e.mlt&msk)==0);
-            filtered = registry.table(filtered);
-            Fragments fragment = roots.computeIfAbsent(filtered, builder::build);
-            fragments[i] = fragment;
+    static  {
+        ROOTS = Perms.listOf(0x01, 0x05, 0x0f, 0x11, 0x21, 0x41, 0x55, 0x81, 0xa5, 0xff);
+        List<Integer> lookup = AbstractRandomList.preset(128, -1);
+        for (int i = 0; i < ROOTS.size(); i++) {
+            Perms p = ROOTS.get(i);
+            lookup.set(p.getIndex()/2, i);
         }
-
-        return new Partition(root, List.of(fragments)) {
-            @Override
-            public String toString() {
-                return String.format("%s [%d,%d]", pop.toString(), root.size(), fragments.size());
-            }
-        };
+        ROOT_INDEX = List.copyOf(lookup);
     }
 
-    public static Map<PopCount, Partition> partitions(EntryTable root, EntryTables registry) {
+    public static Partition EMPTY = new Partition(EntryTable.EMPTY);
+            // AbstractRandomList.constant(ROOTS.size(), AbstractRandomList.constant(Entries.RADIALS.size(), EntryTable.EMPTY)));
 
-        Partition[] partitions = new Partition[PopCount.TABLE.size()];
+    public static Partition of(PopCount pop) {
+        
+        if(pop.sum()>8)
+            return EMPTY;
 
-        PopCount.TABLE.parallelStream()
-                .forEach(pop -> partitions[pop.index] = partition(pop, root, registry));
+        EntryTable root = PopCount.EMPTY.equals(pop) ? Entries.EMPTY.singleton: Entries.TABLE.filter(pop.eq);
 
-        return PopTable.mapOf(Arrays.asList(partitions), EMPTY);
+        return new Partition(root);
     }
 }
