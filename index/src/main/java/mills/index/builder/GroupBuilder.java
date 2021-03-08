@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -72,7 +71,7 @@ public class GroupBuilder implements IndexProvider {
     }
 
     @Override
-    public CompletionStage<PosIndex> stage(PopCount pop, PopCount clop) {
+    public CompletableFuture<PosIndex> stage(PopCount pop, PopCount clop) {
         return futureGroup(pop).thenApply(g->g.getIndex(clop));
     }
 

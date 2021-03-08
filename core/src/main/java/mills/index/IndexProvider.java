@@ -6,7 +6,6 @@ import mills.bits.PopCount;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 public interface IndexProvider extends AutoCloseable {
 
@@ -22,11 +21,11 @@ public interface IndexProvider extends AutoCloseable {
 
     Map<PopCount, ? extends PosIndex> buildGroup(PopCount pop);
 
-    default CompletionStage<? extends PosIndex> stage(PopCount pop, PopCount clop) {
-        return CompletableFuture.completedStage(this.build(pop, clop));
+    default CompletableFuture<? extends PosIndex> stage(PopCount pop, PopCount clop) {
+        return CompletableFuture.completedFuture(this.build(pop, clop));
     }
 
-    default CompletionStage<? extends PosIndex> stage(Clops clops) {
+    default CompletableFuture<? extends PosIndex> stage(Clops clops) {
         return stage(clops.pop(), clops.clop());
     }
 

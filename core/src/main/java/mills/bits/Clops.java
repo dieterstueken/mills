@@ -18,7 +18,7 @@ public interface Clops extends Indexed {
     PopCount clop();
 
     default int getIndex() {
-        return index(pop(), clop());
+        return index(this);
     }
 
     default boolean isEqual(Clops other) {
@@ -85,7 +85,7 @@ public interface Clops extends Indexed {
 
     static Clops of(PopCount pop, PopCount clop) {
         assert pop!=null && PopCount.P99.sub(pop) != null;
-        assert clop == null || PopCount.P44.sub(clop)!=null;
+        assert clop == null || (PopCount.P44.sub(clop)!=null && pop.mclop().sub(clop)!=null);
         return of(index(pop, clop));
     }
 
@@ -133,6 +133,10 @@ public interface Clops extends Indexed {
                 return other instanceof Clops && isEqual((Clops)other);
             }
         };
+    }
+
+    static int index(Clops clops) {
+        return index(clops.pop(), clops.clop());
     }
 
     static int index(PopCount pop, PopCount clop) {

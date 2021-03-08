@@ -1,6 +1,6 @@
 package mills;
 
-import mills.score.opening.Opening;
+import mills.score.attic.opening.Opening;
 import org.junit.Test;
 
 /**

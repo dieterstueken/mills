@@ -1,4 +1,4 @@
-package mills.score.opening;
+package mills.score.attic.opening;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
