@@ -21,28 +21,30 @@ import java.util.function.Consumer;
  * modified by: $
  * modified on: $
  */
-public class PlopSets extends Plop implements Moves.Process {
+public class PlopSets implements Moves.Process {
+
+    final Plop plop;
 
     final IndexProvider indexes;
 
     Map<Clops, PlopSet> plops = new ConcurrentHashMap<>();
 
-    PlopSets(IndexProvider indexes, int layer) {
-        super(layer);
+    PlopSets(IndexProvider indexes, Plop plop) {
+        this.plop = plop;
         this.indexes = indexes;
     }
 
     protected PlopSets(PlopLayer parent) {
-        super(parent);
+        this.plop = parent.plop;
         this.indexes = parent.indexes;
     }
 
     private PlopSet newPlops(Clops clops) {
 
-        assert plop.sub(clops.pop()) !=null;
+        assert plop.pop.sub(clops.pop()) !=null;
 
         PosIndex index = index(clops);
-        return new PlopSet(this, index);
+        return new PlopSet(plop, index);
     }
 
     PosIndex index(Clops clops) {
@@ -50,7 +52,7 @@ public class PlopSets extends Plop implements Moves.Process {
     }
 
     public Player player() {
-        return plop.sum()%2==0 ? Player.White : Player.Black;
+        return plop.player();
     }
 
     PlopSet plops(Clops clops) {

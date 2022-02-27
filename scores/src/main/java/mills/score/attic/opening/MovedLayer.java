@@ -17,8 +17,8 @@ public class MovedLayer extends PlopLayer {
 
     final ClosedLayer closed;
 
-    MovedLayer(IndexProvider indexes, int layer) {
-        super(indexes, layer);
+    MovedLayer(IndexProvider indexes, Plop plop) {
+        super(indexes, plop);
         closed = new ClosedLayer(this);
     }
 

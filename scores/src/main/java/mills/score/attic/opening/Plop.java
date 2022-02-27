@@ -2,6 +2,8 @@ package mills.score.attic.opening;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
+import mills.util.Indexed;
+import mills.util.ListSet;
 
 /**
  * Created by IntelliJ IDEA.
@@ -9,30 +11,32 @@ import mills.bits.PopCount;
  * Date: 09.11.19
  * Time: 17:35
  */
-public class Plop {
+
+/**
+ * Class Plop indexes an opening level[18]: 00,01,11, ... 88,89.
+ */
+public class Plop implements Indexed {
 
     public static final int COUNT = 18;
 
-    protected final PopCount plop;
+    public static ListSet<Plop> LIST = ListSet.generate(COUNT, Plop::new);
 
-    public Plop(int level) {
-        this.plop = PopCount.get(level/2, level-level/2);
+    protected final PopCount pop;
+
+    private Plop(int level) {
+        this.pop = PopCount.get(level/2, level-level/2);
     }
 
-    public Plop(Plop other) {
-        this.plop = other.plop;
-    }
-
-    public int level() {
-        return plop.sum();
+    public int getIndex() {
+        return pop.sum();
     }
 
     public Player player() {
-        return level()%2==0 ? Player.White : Player.Black;
+        return getIndex()%2==0 ? Player.White : Player.Black;
     }
 
     @Override
     public String toString() {
-        return String.format("(%d)%s%s", level(), plop, player().key());
+        return String.format("(%d)%s%s", getIndex(), pop, player().key());
     }
 }

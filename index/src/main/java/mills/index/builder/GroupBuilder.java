@@ -48,8 +48,12 @@ public class GroupBuilder implements IndexProvider {
         this.minPops = PopMap.lePops(Entries.MINIMIZED);
         this.partitions = task.join();
         this.groups = AbstractRandomList
-                .transform(PopCount.TABLE, pop->new CachedEntry<>(() -> new Group(pop)))
+                .transform(PopCount.TABLE, this::newEntry)
                 .copyOf();
+    }
+
+    private CachedEntry<Group> newEntry(PopCount pop) {
+        return new CachedEntry<>(() -> new Group(pop));
     }
 
     public Group group(PopCount pop) {

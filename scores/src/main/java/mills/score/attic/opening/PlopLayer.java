@@ -10,8 +10,8 @@ import mills.index.IndexProvider;
  */
 abstract class PlopLayer extends PlopSets {
 
-    PlopLayer(IndexProvider indexes, int layer) {
-        super(indexes, layer);
+    PlopLayer(IndexProvider indexes, Plop plop) {
+        super(indexes, plop);
     }
 
     protected PlopLayer(PlopLayer parent) {

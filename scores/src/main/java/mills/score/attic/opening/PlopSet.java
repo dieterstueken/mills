@@ -1,6 +1,7 @@
 package mills.score.attic.opening;
 
 import mills.bits.Clops;
+import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
@@ -15,16 +16,22 @@ import java.util.stream.IntStream;
  * Date: 09.11.19
  * Time: 17:36
  */
-public class PlopSet extends Plop {
+public class PlopSet {
+
+    final Plop plop;
 
     final PosIndex index;
 
     final BitSet set;
 
     public PlopSet(Plop plop, PosIndex index) {
-        super(plop);
+        this.plop=plop;
         this.index = index;
         this.set = new BitSet(index.range());
+    }
+
+    public Player player() {
+        return plop.player();
     }
 
     public PopCount pop() {
@@ -40,7 +47,7 @@ public class PlopSet extends Plop {
     }
 
     public PopCount taken() {
-        return plop.sub(index.pop());
+        return plop.pop.sub(index.pop());
     }
 
     public void set(int posIndex) {

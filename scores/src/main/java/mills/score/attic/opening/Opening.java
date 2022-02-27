@@ -14,29 +14,35 @@ import java.util.List;
  */
 public class Opening {
 
-    final IndexProvider indexes = IndexProvider.load();
 
     final List<MovedLayer> layers = new ArrayList<>(Plop.COUNT);
 
     public void run() {
-        double start = System.currentTimeMillis();
+        try(IndexProvider indexes = IndexProvider.load()) {
 
-        if(!layers.isEmpty())
-            throw new IllegalStateException();
+            double start = System.currentTimeMillis();
 
-        MovedLayer prev = new MovedLayer(indexes, 0);
-        prev.plops(Clops.EMPTY).set(0);
+            if (!layers.isEmpty())
+                throw new IllegalStateException();
 
-        for(int l = 1; l<Plop.COUNT; ++l) {
-            MovedLayer layer = new MovedLayer(indexes, l);
-            layer.elevate(prev);
-            prev = layer;
+            MovedLayer prev = null;
+
+            for(Plop plop:Plop.LIST) {
+                MovedLayer layer = new MovedLayer(indexes, plop);
+
+                if(prev == null) {
+                    layer.plops(Clops.EMPTY).set(0);
+                } else {
+                    layer.elevate(prev);
+                }
+
+                double stop = System.currentTimeMillis();
+                System.out.format("elevate %s %.3fs\n", layer, (stop - start) / 1000);
+                prev = layer;
+            }
 
             double stop = System.currentTimeMillis();
-            System.out.format("elevate %s %.3fs\n", layer, (stop - start) / 1000);
+            System.out.format("\n%.3fs\n", (stop - start) / 1000);
         }
-
-        double stop = System.currentTimeMillis();
-        System.out.format("\n%.3fs\n", (stop - start) / 1000);
     }
 }
