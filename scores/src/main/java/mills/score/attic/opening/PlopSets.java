@@ -55,7 +55,7 @@ public class PlopSets implements Moves.Process {
         return plop.player();
     }
 
-    PlopSet plops(Clops clops) {
+    public PlopSet plops(Clops clops) {
         PlopSet ps = plops.get(clops);
         if(ps==null) {
             synchronized (plops) {

@@ -17,12 +17,17 @@ public class MovedLayer extends PlopLayer {
 
     final ClosedLayer closed;
 
-    MovedLayer(IndexProvider indexes, Plop plop) {
+    public MovedLayer(IndexProvider indexes, Plop plop) {
         super(indexes, plop);
         closed = new ClosedLayer(this);
     }
 
-    void elevate(MovedLayer src) {
+    public MovedLayer next() {
+        Plop next = plop.next();
+        return next == null ? null : new MovedLayer(indexes, next).elevate(this);
+    }
+
+    MovedLayer elevate(MovedLayer src) {
 
         // prepare target plop sets of both layers
         src.forEach(this::elevate);
@@ -35,6 +40,8 @@ public class MovedLayer extends PlopLayer {
 
         closed.show();
         show();
+
+        return this;
     }
 
     /**

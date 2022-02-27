@@ -21,6 +21,8 @@ public class Plop implements Indexed {
 
     public static ListSet<Plop> LIST = ListSet.generate(COUNT, Plop::new);
 
+    public static Plop EMPTY = LIST.get(0);
+
     protected final PopCount pop;
 
     private Plop(int level) {
@@ -33,6 +35,12 @@ public class Plop implements Indexed {
 
     public Player player() {
         return getIndex()%2==0 ? Player.White : Player.Black;
+    }
+
+    public Plop next() {
+        int next = getIndex() + 1;
+        return next<LIST.size()?LIST.get(next) : null;
+
     }
 
     @Override
