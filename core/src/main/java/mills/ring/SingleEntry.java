@@ -1,6 +1,7 @@
 package mills.ring;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -61,6 +62,11 @@ class SingleEntry extends AbstractEntryTable implements IndexedEntryTable {
         if(ringIndex<i)
             return -1;
         return -2;
+    }
+
+    @Override
+    public int indexOf(Object obj) {
+        return Objects.equals(obj, entry) ? 0 : -1;
     }
 
     @Override

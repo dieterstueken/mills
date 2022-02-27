@@ -21,7 +21,7 @@ import java.util.List;
 public interface Indexer<T> extends Comparator<T> {
 
     Indexer<Indexed> INDEXED = Indexed::getIndex;
-    Indexer<Enum> ENUM = Enum::ordinal;
+    Indexer<Enum<?>> ENUM = Enum::ordinal;
 
     // mapping to be implemented.
     int indexOf(T element);

@@ -48,6 +48,10 @@ public class ListMap<K, V> extends AbstractMap<K, V> {
         if(index>=0 && index<values.size())
             return values.get(index);
 
+        return defaultValue();
+    }
+
+    V defaultValue() {
         return null;
     }
 
@@ -64,7 +68,7 @@ public class ListMap<K, V> extends AbstractMap<K, V> {
     public Set<Entry<K, V>> entrySet() {
         var entries= AbstractRandomList.generate(size(), this::getEntry);
         final Comparator<? super K> comparator = keySet.comparator();
-        return AbstractListSet.of(entries, comparator==null ? null : Entry.comparingByKey(comparator));
+        return ListSet.of(entries, comparator==null ? null : Entry.comparingByKey(comparator));
     }
 
     @Override

@@ -22,24 +22,38 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
 
     /**
      *
-     * @param key the key to be searched for.
-     * @return the index of the search key, if it is contained in the list;
+     * @param entry the entry to be searched for.
+     * @return the index of the search entry, if it is contained in the list;
      *         otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.
      */
-    default int findIndex(T key) {
+    default int findIndex(T entry) {
         if(isEmpty())
             return -1;
 
         Comparator<? super T> comparator = comparator();
         int size = size();
         T last = get(size-1);
-        int cmp = comparator.compare(key, last);
+        int cmp = comparator.compare(entry, last);
 
         if(cmp<0) // within
-            return Collections.binarySearch(this, key, comparator());
+            return Collections.binarySearch(this, entry, comparator);
 
         // at end or beyond
         return cmp==0 ? size-1 : -size-1;
+    }
+
+    /**
+     * This may be overridden to speed up for direct access.
+     * @param o element to search for
+     * @return index of the requested element or -1 if missing.
+     */
+    @Override
+    int indexOf(Object o);
+
+    @Override
+    default int lastIndexOf(Object o) {
+        // must be unique
+        return indexOf(o);
     }
 
     /**
@@ -113,7 +127,7 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
 
     default <E> ListSet<E> transform(Function<? super T, ? extends E> mapper, Comparator<? super E> comparator) {
         List<E> transformed = AbstractRandomList.transform(this, mapper);
-        return AbstractListSet.of(transformed, comparator);
+        return of(transformed, comparator);
     }
 
     static <T extends Indexed> ListSet<T> generate(int size, IntFunction<? extends T> generate) {
@@ -121,15 +135,11 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
     }
 
     static <T extends Indexed> ListSet<T> of(List<T> values) {
-        return AbstractListSet.of(values, Indexer.INDEXED);
-    }
-
-    static <T extends Indexed> ListSet<T> ofIndexed() {
-        return AbstractListSet.of(new ArrayList<>(), Indexer.INDEXED);
+        return of(values, Indexer.INDEXED);
     }
 
     static <T extends Comparable<T>> ListSet<T> of() {
-        return AbstractListSet.<T>of(new ArrayList<>(), Comparator.naturalOrder());
+        return of(new ArrayList<T>(), Comparator.naturalOrder());
     }
 
     static <T> ListSet<T> empty(Comparator<? super T> comparator) {
@@ -137,19 +147,23 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
     }
 
     static <T> ListSet<T> of(List<T> values, Comparator<? super T> comparator) {
-        return AbstractListSet.of(values, comparator);
+        return OrderedListSet.of(values, comparator);
+    }
+
+    static <T> ListSet<T> of(T[] values, Comparator<? super T> comparator) {
+        return of(Arrays.asList(values), comparator);
     }
 
     static <T extends Comparable<? super T>> ListSet<T> of(T ... values) {
-        return AbstractListSet.of(values, Comparator.naturalOrder());
+        return of(values, Comparator.naturalOrder());
     }
 
-    static <T extends Indexed> ListSet<T> of(T ... values) {
-        return AbstractListSet.of(values, Indexer.INDEXED);
+    static <T extends Indexed> ListSet<T> of(IntFunction<? extends T> generator, int size) {
+        return DirectListSet.of(generator, size);
     }
 
-    static <T extends Enum<T>> ListSet<T> of(T ... values) {
-        return AbstractListSet.of(values, Indexer.ENUM);
+    static <E extends Enum<E>> ListSet<E> of(Class<E> type) {
+        return DirectListSet.of(type);
     }
 
     static <T> ListSet<T> mutable(T[] values, Comparator<? super T> comparator) {

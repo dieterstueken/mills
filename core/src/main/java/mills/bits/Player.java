@@ -104,7 +104,7 @@ public enum Player {
 
     public final PopCount pop;
 
-    public static final ListSet<Player> PLAYERS = ListSet.of(values());
+    public static final ListSet<Player> PLAYERS = ListSet.of(Player.class);
     public static final List<Player> BW = List.of(Black, White);
 
     public static Player of(int i) {

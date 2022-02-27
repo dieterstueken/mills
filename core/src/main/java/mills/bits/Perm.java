@@ -205,7 +205,7 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
         return pattern;
     }
 
-    public static final ListSet<Perm> VALUES = ListSet.of(values());
+    public static final ListSet<Perm> VALUES = ListSet.of(Perm.class);
 
     // get by index [0,8[
     public static Perm get(int i) { return VALUES.get(i & Perms.MSK);}

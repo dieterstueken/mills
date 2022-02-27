@@ -27,10 +27,10 @@ public enum Ring {
     }
 
     public long seek(final short ring) {
-        return ring << 16*ordinal();
+        return (long)ring << 16*ordinal();
     }
 
-    public static final ListSet<Ring> RINGS = ListSet.of(values());
+    public static final ListSet<Ring> RINGS = ListSet.of(Ring.class);
 
     public static Ring of(int i) {
         return RINGS.get(i);

@@ -7,6 +7,8 @@ import mills.position.Positions;
 import mills.util.Stat;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -59,30 +61,6 @@ public class RingTableTest {
     }
 
     @Test
-    public void testX() {
-
-        Entries.EMPTY.index();
-
-        final int MAX=500;
-
-        long result = 0;
-        long count=0;
-
-        System.out.println("start");
-        double start = System.currentTimeMillis();
-        for (RingEntry e2 : Entries.MINIMIZED) {
-            for (RingEntry e0 : Entries.TABLE.tailSet(e2)) {
-                ++count;
-                for(int i=0; i<MAX; ++i)
-                    result += Positions.meq(e2, e0);
-            }
-        }
-        double stop = System.currentTimeMillis();
-        System.out.format("%,d: %,1f/ms\n", count, count * MAX / (stop - start));
-    }
-
-
-    @Test
     public void testMeq() {
 
         for (RingEntry e2 : Entries.TABLE) {
@@ -126,4 +104,40 @@ public class RingTableTest {
 
         System.out.format("meq: %d, mlt: %d\n", meq.size(), mlt.size());
     }
+
+    @Test
+    public void testX() {
+
+        Entries.EMPTY.index();
+
+        final int MAX=500;
+
+        long result = 0;
+        long count=0;
+
+        System.out.println("start");
+        double start = System.currentTimeMillis();
+        for (RingEntry e2 : Entries.MINIMIZED) {
+            for (RingEntry e0 : Entries.TABLE.tailSet(e2)) {
+                ++count;
+                for(int i=0; i<MAX; ++i)
+                    result += Positions.meq(e2, e0);
+            }
+        }
+        double stop = System.currentTimeMillis();
+        System.out.format("%,d: %,1f/ms\n", count, count * MAX / (stop - start));
+    }
+
+    @Test
+    public void testMinRad() {
+        List<RingEntry> mirad = new ArrayList<>();
+
+        for (RingEntry e : Entries.RADIALS) {
+            if(e.isMin())
+                mirad.add(e);
+        }
+
+        mirad.forEach(e -> System.out.format("%s %d\n", e, e.sisters().size()));
+    }
+
 }

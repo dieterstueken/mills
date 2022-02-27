@@ -1,7 +1,7 @@
 package mills.index.builder;
 
 import mills.bits.PopCount;
-import mills.util.ListMap;
+import mills.util.PopMap;
 
 import java.util.Arrays;
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.List;
  * Date: 26.01.21
  * Time: 21:31
  */
-public class Partitions extends ListMap<PopCount, Partition> {
+public class Partitions extends PopMap<Partition> {
 
     final List<Partition> values = partitions();
     
@@ -37,19 +37,17 @@ public class Partitions extends ListMap<PopCount, Partition> {
 
     public static void main(String ... args) {
 
-        Partitions pt = new Partitions();
+        Partitions pts = new Partitions();
 
-        for (int nb = 0; nb < 9; nb++) {
-            for (int nw = 0; nw < 9; nw++) {
-                final PopCount pop = PopCount.of(nb, nw);
-                final Partition fs = pt.get(pop);
-
-                System.out.format("%5d:%5d", fs.root.size(), fs.tables.count());
+        pts.dump("root:", pt->String.format("%5d", pt.root.size()));
+        pts.dump("max frag size:", pt-> {
+            int max = 0;
+            for (Fragments fm : pt.fragments) {
+                max = Math.max(max, fm.root.size());
             }
-
-            System.out.println();
+            return String.format("%5d", pt.root.size());
         }
-
-        System.out.println();
+        );
+        pts.dump("tables:", pt->String.format("%5d", pt.tables.count()));
     }
 }

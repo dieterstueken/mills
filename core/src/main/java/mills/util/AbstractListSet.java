@@ -62,10 +62,8 @@ abstract public class AbstractListSet<T> extends AbstractList<T> implements List
         if (o == this)
             return true;
 
-        if (!(o instanceof List))
+        if (!(o instanceof List<?> l))
             return false;
-
-        List<?> l = (List) o;
 
         if (l.size() != size())
             return false;
@@ -76,77 +74,6 @@ abstract public class AbstractListSet<T> extends AbstractList<T> implements List
         }
 
         return true;
-    }
-
-    public static <T> ListSet<T> of(T[] values, Comparator<? super T> comparator) {
-        return of(Arrays.asList(values), comparator);
-    }
-
-    public static <T> ListSet<T> of(List<T> values, Comparator<? super T> comparator) {
-
-        assert isOrdered(values, comparator) : "index mismatch";
-
-        return new AbstractListSet<>() {
-
-            @Override
-            public T get(int index) {
-                return values.get(index);
-            }
-
-            @Override
-            public int size() {
-                return values.size();
-            }
-
-            @Override
-            public ListSet<T> subList(int fromIndex, int toIndex) {
-                return of(values.subList(fromIndex, toIndex), comparator);
-            }
-
-            @Override
-            public Comparator<? super T> comparator() {
-                return comparator;
-            }
-
-            @Override
-            public int checkRange(int fromIndex, int toIndex) {
-                return super.checkRange(fromIndex, toIndex);
-            }
-
-            @Override
-            public boolean add(T t) {
-                int index = findIndex(t);
-
-                // already contained
-                if (index >= 0)
-                    return false;
-
-                values.add(-index - 1, t);
-
-                return true;
-            }
-
-            @Override
-            public void clear() {
-                values.clear();
-            }
-
-            @Override
-            public boolean remove(Object o) {
-                int index = findIndex((T)o);
-                if(index<0)
-                    return false;
-
-                values.remove(index);
-
-                return true;
-            }
-
-            @Override
-            public T remove(int index) {
-                return values.remove(index);
-            }
-        };
     }
 
     private static final AbstractListSet<Object> EMPTY = new AbstractListSet<>() {
@@ -203,6 +130,11 @@ abstract public class AbstractListSet<T> extends AbstractList<T> implements List
         @Override
         public int size() {
             return 1;
+        }
+
+        @Override
+        public int indexOf(Object obj) {
+            return Objects.equals(obj, value) ? 0 : -1;
         }
 
         @Override
