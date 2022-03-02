@@ -14,7 +14,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.LongConsumer;
 import java.util.function.ToIntBiFunction;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -59,9 +58,8 @@ public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> 
     public IntStream propagate(Score score, ToIntBiFunction<MovingGroup<?>, ScoreSlice> processors) {
 
         List<? extends ScoreSlice> slices = group.values().stream()
-                   .flatMap(ScoreSlices::stream)
-                   .filter(slice->slice.hasScores(score))
-                   .collect(Collectors.toList());
+                .flatMap(ScoreSlices::stream)
+                .filter(slice -> slice.hasScores(score)).toList();
 
         if(slices.isEmpty())
             return null;
@@ -92,7 +90,7 @@ public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> 
             if (!closing())
                 mask ^= move;
             //Position pos = Position.of(m201);
-            mover.move(stay, move, mask).normalize().analyze(analyzer::accept);
+            mover.move(stay, move, mask).normalize().analyze(analyzer);
         };
     }
 

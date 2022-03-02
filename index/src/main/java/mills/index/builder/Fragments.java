@@ -56,8 +56,7 @@ public class Fragments {
                     var list = registry.tablesOf(group.values());
                     return list;
                 })
-                .map(tables -> fragset.computeIfAbsent(tables, UnaryOperator.identity()))
-                .collect(Collectors.toUnmodifiableList());
+                .map(tables -> fragset.computeIfAbsent(tables, UnaryOperator.identity())).toList();
         
         return new Fragments(root, fragments) {
             public String toString() {

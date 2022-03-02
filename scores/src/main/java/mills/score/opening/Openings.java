@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.NavigableMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -64,7 +63,7 @@ public class Openings {
 
         final NavigableMap<OpeningLayer, CompletableFuture<? extends OpeningMap.Target>> targets;
 
-        final List<OpeningMap> input;
+        final List<? extends OpeningMap> input;
 
         Turn(int turn) {
             this.turn = turn;
@@ -72,8 +71,7 @@ public class Openings {
             this.targets = new ConcurrentSkipListMap<>(OpeningLayer.COMPARATOR);
 
             this.input = layers.values().stream().map(CompletableFuture::join)
-                    .filter(om->om.layer.turn==turn)
-                    .collect(Collectors.toUnmodifiableList());
+                    .filter(om -> om.layer.turn == turn).toList();
         }
 
         OpeningMap.Target getTarget(Clops clops) {

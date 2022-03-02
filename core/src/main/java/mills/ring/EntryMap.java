@@ -5,9 +5,8 @@ import mills.util.AbstractRandomList;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
-/**
+/*
  * version:     $Revision$
  * created by:  dst
  * created on:  09.07.2014 20:06
@@ -216,7 +215,7 @@ public class EntryMap<T> implements SortedMap<RingEntry, T> {
         if(newKeys.isEmpty())
             return empty();
 
-        List<T> newValues = newKeys.stream().map(this::get).collect(Collectors.toUnmodifiableList());
+        List<T> newValues = newKeys.stream().map(this::get).toList();
 
         return newMap(newKeys, newValues);
     }

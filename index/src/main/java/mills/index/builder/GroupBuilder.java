@@ -19,7 +19,6 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 import static java.util.function.Predicate.not;
 
@@ -203,11 +202,14 @@ public class GroupBuilder implements IndexProvider {
             this.t2 = minPops.get(pop);
             final PopCount mclop = pop.mclop(false);
             this.clops = ListSet.of(PopCount.CLOPS.stream()
-                    .filter(mclop::ge)
-                    .collect(Collectors.toUnmodifiableList()));
+                    .filter(mclop::ge).toList());
 
             // preset possible builders
-            clops.forEach(clop -> builders.put(clop, new C2Builder(clop)));
+            clops.forEach(this::setupBuilder);
+        }
+
+        private void setupBuilder(PopCount clop) {
+            builders.put(clop, new C2Builder(clop));
         }
 
         <R extends Clops> ListMap<PopCount, R> build(BiFunction<PopCount, EntryMap<R0Table>, R> generator) {
