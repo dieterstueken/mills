@@ -30,6 +30,10 @@ public class PopMap<T> {
         return defaultValue();
     }
 
+    public T get(int pop) {
+        return get(PopCount.get(pop));
+    }
+
     public T put(PopCount pop, T value) {
         return table.set(pop.index, value);
     }

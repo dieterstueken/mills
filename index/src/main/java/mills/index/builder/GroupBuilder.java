@@ -3,7 +3,6 @@ package mills.index.builder;
 import mills.bits.Clops;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
-import mills.index.IndexProvider;
 import mills.index.PosIndex;
 import mills.index.tables.C2Table;
 import mills.index.tables.R0Table;
@@ -15,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
@@ -28,24 +26,17 @@ import static java.util.function.Predicate.not;
  * Date: 04.02.21
  * Time: 09:04
  */
-public class GroupBuilder implements IndexProvider {
+public class GroupBuilder extends AbstractGroupBuilder {
 
     public static GroupBuilder create() {
         return new GroupBuilder();
     }
 
-    final Partitions partitions;
-
-    final PopMap<EntryTable> lePops;
-    final PopMap<EntryTable> minPops;
-
     final List<CachedEntry<Group>> groups;
 
     public GroupBuilder() {
-        var task = ForkJoinTask.adapt(Partitions::new).fork();
-        this.lePops = PopMap.lePops(Entries.TABLE);
-        this.minPops = PopMap.lePops(Entries.MINIMIZED);
-        this.partitions = task.join();
+        super();
+
         this.groups = AbstractRandomList
                 .transform(PopCount.TABLE, this::newEntry)
                 .copyOf();
@@ -175,9 +166,6 @@ public class GroupBuilder implements IndexProvider {
 
         final PopCount pop;
 
-        // subset of clops to build
-        final ListSet<PopCount> clops;
-
         final EntryTable t2;
 
         // next r2 to build
@@ -200,12 +188,6 @@ public class GroupBuilder implements IndexProvider {
         Builder(PopCount pop) {
             this.pop = pop;
             this.t2 = minPops.get(pop);
-            final PopCount mclop = pop.mclop(false);
-            this.clops = ListSet.of(PopCount.CLOPS.stream()
-                    .filter(mclop::ge).toList());
-
-            // preset possible builders
-            clops.forEach(this::setupBuilder);
         }
 
         private void setupBuilder(PopCount clop) {
@@ -214,13 +196,21 @@ public class GroupBuilder implements IndexProvider {
 
         <R extends Clops> ListMap<PopCount, R> build(BiFunction<PopCount, EntryMap<R0Table>, R> generator) {
 
+            // subset of clops to build
+            final PopCount mclop = pop.mclop(false);
+            ListSet<PopCount> clops = ListSet.of(PopCount.CLOPS.stream()
+                    .filter(mclop::ge).toList());
+
+            // preset possible builders
+            clops.forEach(this::setupBuilder);
+
             T0Builder builder = new T0Builder();
             builder.invoke();
 
             List<R> tmp = AbstractRandomList.preset(PopCount.NCLOPS, null);
 
             clops.parallelStream()
-                    .map(this::getC2Builder)
+                    .map(builders::get)
                     .map(b->b.build(generator))
                     .forEach(result->tmp.set(result.clop().index, result));
 
@@ -236,10 +226,6 @@ public class GroupBuilder implements IndexProvider {
                 return t2.get(n2);
 
             return null;
-        }
-
-        C2Builder getC2Builder(PopCount clop) {
-            return builders.get(clop);
         }
 
         class C2Builder {
@@ -393,7 +379,7 @@ public class GroupBuilder implements IndexProvider {
                 for(int i=1; i<size; ++i) {
                     int iclop = getClopIndex(i);
                     if(iclop!=clop) {
-                        C2Builder c2Builder = getC2Builder(PopCount.get(clop));
+                        C2Builder c2Builder = builders.get(clop);
                         if(c2Builder!=null) {
                             R0Table r0t = build(pop0, offt, i - offt);
                             c2Builder.put(r2, r0t);
