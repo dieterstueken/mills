@@ -71,8 +71,7 @@ public class EntryArray extends AbstractEntryTable {
         if (o == this)
             return true;
 
-        if ((o instanceof EntryArray)) {
-            EntryArray a = (EntryArray) o;
+        if ((o instanceof EntryArray a)) {
 
             return Arrays.equals(this.indices, a.indices);
         }

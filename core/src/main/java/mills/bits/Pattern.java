@@ -257,7 +257,7 @@ public class Pattern extends Sectors implements Indexed {
         };
 
         Pattern[] patterns = new Pattern[256];
-        Arrays.parallelSetAll(patterns, generate);
+        Arrays.setAll(patterns, generate);
 
         return patterns;
     }

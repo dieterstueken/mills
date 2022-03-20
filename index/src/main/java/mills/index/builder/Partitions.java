@@ -1,6 +1,7 @@
 package mills.index.builder;
 
 import mills.bits.PopCount;
+import mills.util.ListMap;
 
 import java.util.Arrays;
 import java.util.List;
@@ -11,12 +12,16 @@ import java.util.List;
  * Date: 26.01.21
  * Time: 21:31
  */
-public class Partitions {
+public class Partitions extends ListMap<PopCount, Partition> {
 
-    final List<Partition> partitions = partitions();
+    final List<Partition> values = partitions();
+    
+    public Partitions() {
+        super(PopCount.TABLE, partitions());
+    }
 
     public Partition get(PopCount pop) {
-        return partitions.get(pop.index);
+        return values.get(pop.index);
     }
 
     private static List<Partition> partitions() {

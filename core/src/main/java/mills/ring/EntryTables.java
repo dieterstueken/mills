@@ -86,9 +86,8 @@ public class EntryTables {
         if(list==null)
             return null;
 
-        if(list instanceof IndexedEntryTable) {
+        if(list instanceof IndexedEntryTable entry) {
 
-            IndexedEntryTable entry = (IndexedEntryTable) list;
             int index = entry.getIndex();
             if(entry == get(index))
                 return entry;

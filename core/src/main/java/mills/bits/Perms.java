@@ -15,10 +15,13 @@ import java.util.stream.IntStream;
  */
 public class Perms extends AbstractSet<Perm> implements Indexed {
 
-    final int perms;
+    public final int perms;
+
+    public final int bitseq;
 
     private Perms(int perms) {
         this.perms = perms;
+        this.bitseq = bitseq(perms);
     }
 
     @Override
@@ -103,6 +106,22 @@ public class Perms extends AbstractSet<Perm> implements Indexed {
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    // fill a long with byte indexes of set bits.
+    // bit 0 is ignored
+
+    static int bitseq(int perms) {
+        int bits = 0;
+        for(int i=7; i>0; --i) {
+            int m = 1<<i;
+            if((perms & m)!=0) {
+                bits <<= 4;
+                bits += i;
+            }
+        }
+
+        return bits;
     }
 
     //////////////////////////////////////////

@@ -39,6 +39,11 @@ public class PlopSets implements Moves.Process {
         this.indexes = parent.indexes;
     }
 
+    @Override
+    public String toString() {
+        return String.format("%s[%d]", plop.toString(), plops.size());
+    }
+
     private PlopSet newPlops(Clops clops) {
 
         assert plop.pop.sub(clops.pop()) !=null;

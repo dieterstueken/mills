@@ -6,7 +6,26 @@ package mills.bits;
  * Date: 12/29/15
  * Time: 12:56 PM
  */
-abstract public class Patterns {
+public class Patterns {
+
+    /**
+     * The central index function to map a pair of patterns [0,256[
+     * to a composed index of [0, 81*81.
+     * @param b black pattern.
+     * @param w white pattern.
+     * @return a composed ringIndex index.
+     */
+
+    public static short index(final Pattern b, final Pattern w) {
+
+        assert (b.pattern&w.pattern) == 0 : "duplicate occupation";
+
+        return (short) (b.pow3* Player.Black.wgt() + w.pow3* Player.White.wgt());
+    }
+
+    public static short index(int b, int w) {
+        return index(Pattern.of(b), Pattern.of(w));
+    }
 
     public final Pattern b;
     public final Pattern w;
@@ -16,7 +35,7 @@ abstract public class Patterns {
         this.w = w;
     }
 
-    protected Patterns(short index) {
+    public Patterns(short index) {
         int b = 0;
         int w = 0;
 
@@ -33,5 +52,9 @@ abstract public class Patterns {
 
         this.b = Pattern.of(b);
         this.w = Pattern.of(w);
+    }
+
+    public short perm(int i) {
+        return index(b.perm(i), w.perm(i));
     }
 }

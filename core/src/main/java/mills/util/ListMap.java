@@ -26,7 +26,7 @@ public class ListMap<K, V> extends AbstractMap<K, V> {
 
     final List<V> values;
 
-    private ListMap(ListSet<K> keySet, List<V> values) {
+    protected ListMap(ListSet<K> keySet, List<V> values) {
         this.keySet = keySet;
         this.values = values;
     }

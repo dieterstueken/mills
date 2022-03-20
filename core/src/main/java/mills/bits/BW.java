@@ -15,26 +15,6 @@ import mills.util.Indexed;
  */
 public class BW extends Patterns implements Indexed {
 
-    /**
-     * The central index function to map a pair of patterns [0,256[
-     * to a composed index of [0, 81*81.
-     * @param b black pattern.
-     * @param w white pattern.
-     * @return a composed ringIndex index.
-     */
-
-
-    public static short index(final Pattern b, final Pattern w) {
-
-        assert (b.pattern&w.pattern) == 0 : "duplicate occupation";
-
-        return (short) (b.pow3* Player.Black.wgt() + w.pow3* Player.White.wgt());
-    }
-
-    public static short index(int b, int w) {
-        return index(Pattern.of(b), Pattern.of(w));
-    }
-
     public final PopCount pop;
 
     public final Short index;

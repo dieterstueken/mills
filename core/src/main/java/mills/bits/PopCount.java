@@ -212,9 +212,7 @@ public class PopCount implements Indexed {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof PopCount)) return false;
-
-        PopCount pop = (PopCount) o;
+        if (!(o instanceof PopCount pop)) return false;
 
         if (nb != pop.nb) return false;
         if (nw != pop.nw) return false;

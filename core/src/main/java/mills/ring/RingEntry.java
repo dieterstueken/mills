@@ -2,7 +2,10 @@ package mills.ring;
 
 import mills.bits.*;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Created by IntelliJ IDEA.
@@ -18,7 +21,7 @@ import java.util.*;
  * All possible tables are kept in a static lookup table.
  * The index
  */
-public class RingEntry extends BW {
+abstract public class RingEntry extends BW {
 
     // number of possible entries
     public static final int MAX_INDEX = 81*81;
@@ -41,38 +44,35 @@ public class RingEntry extends BW {
     public final byte mix;
 
     // permutation group kept as a short index.
-    private final short[] perm = new short[8];
+    private final short[] perm;
 
-    private EntryTable sisters;
+    final EntryTable sisters;
 
-    public EntryTable sisters() {
+    abstract RingEntry entryOf(int index);
 
-        if(sisters==null) {
-            sisters = minimized().sisters;
-        }
-
+    public final EntryTable sisters() {
         return sisters;
     }
 
-    public Player player(Sector sector) {
+    public final Player player(Sector sector) {
         int p = index/sector.pow3();
         return Player.of(p%3);
     }
 
     public final SingleEntry singleton = new SingleEntry(this);
 
-    public SingleEntry singleton() {
+    public final SingleEntry singleton() {
         return singleton;
     }
 
     public final RingEntry inverted() {
-        return Entries.TABLE.get(inverted);
+        return entryOf(inverted);
     }
 
     // return entry with only radials set.
     public final RingEntry radials() {
         int radix = index%81;
-        return index==radix ? this : Entries.RADIALS.get(radix());
+        return index==radix ? this : entryOf(radix());
     }
 
     /**
@@ -80,12 +80,12 @@ public class RingEntry extends BW {
      * @param rad external radials.
      * @return effective clop count
      */
-    public PopCount clop(RingEntry rad) {
+    public final PopCount clop(RingEntry rad) {
         return and(rad).radials().pop.add(clop());
     }
 
     // reversed
-    public PopCount clops(RingEntry rad) {
+    public final PopCount clops(RingEntry rad) {
         return and(rad).radials().pop.add(rad.clop());
     }
 
@@ -100,7 +100,7 @@ public class RingEntry extends BW {
     }
 
     public final RingEntry permute(int i) {
-        return Entries.of(perm(i));
+        return entryOf(perm(i));
     }
 
     public final RingEntry permute(Perm p) {
@@ -108,27 +108,27 @@ public class RingEntry extends BW {
     }
 
     // return stable permutation mask
-    public int pmeq() {
+    public final int pmeq() {
         return 0xff & meq;  // convert to positive int [0, 256[
     }
 
     // return stable permutation mask
-    public int pmlt() {
+    public final int pmlt() {
         return 0xff & mlt;  // convert to positive int [0, 256[
     }
 
     // return if this is stable for all permutations given.
-    public boolean stable(Perms perms) {
+    public final boolean stable(Perms perms) {
         return (mlt & perms.getIndex())==0;
     }
 
     // return minimum permutation mask
-    public int pmin() {
+    public final int pmin() {
         return 0xff & min;  // convert to positive int [0, 256[
     }
 
     // remains stable under given permutation mask
-    public boolean stable(int msk) {
+    public final boolean stable(int msk) {
         return (pmin() & msk) == 0;
     }
 
@@ -148,17 +148,17 @@ public class RingEntry extends BW {
     }
 
     public RingEntry minimized() {
-        return mix==0 ? this : Entries.of(min());
+        return entryOf(min());
     }
 
     /**
      * @return Occupied sectors.
      */
-    public Pattern sectors() {
+    public final Pattern sectors() {
         return b.or(w);
     }
 
-    public Pattern sectors(Player player) {
+    public final Pattern sectors(Player player) {
 
         switch(player) {
             case Black: return b;
@@ -175,7 +175,7 @@ public class RingEntry extends BW {
      * @param player to set.
      * @return a RingEntry with given player at given sector.
      */
-    public RingEntry withPlayer(Sector sector, Player player) {
+    public final  RingEntry withPlayer(Sector sector, Player player) {
         final Player current = player(sector);
 
         // noop
@@ -187,79 +187,32 @@ public class RingEntry extends BW {
         index -= pow3 * current.ordinal();
         index += pow3 * player.ordinal();
 
-        return Entries.of(index);
+        return entryOf(index);
     }
 
-    public RingEntry and(Patterns other) {
-        return Entries.of(b.and(other.b), w.and(other.w));
+    public final RingEntry and(Patterns other) {
+        return entryOf(BW.index(b.and(other.b), w.and(other.w)));
     }
 
-    public boolean contains(RingEntry other) {
+    public final boolean contains(RingEntry other) {
         return b.contains(other.b) && w.contains(other.w);
     }
 
-    private RingEntry(short index) {
+    RingEntry(short index, byte meq, byte mlt, byte min, byte mix, short[] perm, EntryTable sisters) {
         super(index);
 
-        this.inverted = BW.index(w, b);
-
-        perm[0] = index;
-
-        byte mix = 0;
-        byte meq = 1;
-        byte min = 1;
-        byte mlt = 0;
-
-        for(int i=1; i<8; i++) {
-            // generate permutations
-            final short k = index(b.perm(i), w.perm(i));
-            perm[i] = k;
-
-            int m = 1<<i;
-
-            // find if new permutation is smaller than current mix index
-            if(k<perm[mix]) {
-                mix = (byte)i;        // found better minimal index
-                min = (byte)m;        // reset any previous masks
-            }
-            else
-            if(k==perm[mix])
-                min |= m;   // add additional minimum to mask
-
-            if(k<index)         // found a new mlt index
-                mlt |= m;
-
-            if(k==index)         // found a new meq index
-                meq |= m;
-        }
-
+        assert perm.length == 8 : "invalid perm";
         assert perm[0] == index : "RingEntry: index mismatch";
+
+        this.perm = perm;
+        this.inverted = BW.index(w, b);
 
         this.meq = meq;
         this.mlt = mlt;
         this.min = min;
         this.mix = mix;
 
-        // precalculate sisters
-        if(mix==0) {
-            short[] s = Arrays.copyOf(perm, 8);
-            Arrays.sort(s);
-
-            int n=0;
-            for(int i=1; i<8; ++i) {
-                short k = s[i];
-                if(k>s[n])
-                    s[++n] = k;
-            }
-
-            sisters = n==0 ? singleton : EntryTable.of(s, n+1);
-        }
-    }
-
-    static RingEntry[] table() {
-        RingEntry[] table = new RingEntry[MAX_INDEX];
-        Arrays.parallelSetAll(table, index -> new RingEntry((short) index));
-        return table;
+        this.sisters = sisters.size()==1 ? singleton : sisters;
     }
 
     static List<EntryTable> sisters(EntryTable minimized) {
@@ -283,11 +236,11 @@ public class RingEntry extends BW {
 
     // return short instead of byte to avoid any negative values
 
-    public String toString() {
+    public final String toString() {
         return toString(new StringBuilder()).toString();
     }
 
-    public StringBuilder toString(final StringBuilder sb) {
+    public final  StringBuilder toString(final StringBuilder sb) {
 
         // prepend pop
         sb.append(String.format("%1d%1d[%1d%1d] ", pop.nb(), pop.nw(), b.mcount, w.mcount));
@@ -303,7 +256,7 @@ public class RingEntry extends BW {
         return sb;
     }
 
-    public int hashCode() {
+    public final  int hashCode() {
         return index;
     }
 

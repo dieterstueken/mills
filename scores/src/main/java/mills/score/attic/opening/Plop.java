@@ -45,6 +45,6 @@ public class Plop implements Indexed {
 
     @Override
     public String toString() {
-        return String.format("(%d)%s%s", getIndex(), pop, player().key());
+        return String.format("%d: %s%s", getIndex(), pop, player().key());
     }
 }

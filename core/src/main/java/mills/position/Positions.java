@@ -120,6 +120,10 @@ public interface Positions {
         return diff == WORD;
     }
 
+    static int i20(RingEntry e2, RingEntry e0) {
+        return (e2.index<<16) + e0.index;
+    }
+
     static long i201(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
         return i201(r2.index, r0.index, r1.index, stat);
     }
@@ -261,11 +265,11 @@ public interface Positions {
         if(e0min<e2index)
             return 0;
 
-        int meq = e2.pmeq();
+        byte meq = e2.meq;
 
         // no further analysis necessary.
         if(e2==e0)
-            return meq;
+            return meq&0xff;
 
         // check if any e0 reduces while e2 remains stable
         if ((meq & e0.mlt) != 0)
@@ -276,7 +280,7 @@ public interface Positions {
 
         // if e0 is always bigger than e2 no further swaps or minima are expected.
         if (e0min > e2index)
-            return meq;
+            return meq&0xff;
 
         int e0index = e0.index;
 
@@ -290,10 +294,12 @@ public interface Positions {
 
 
         int msk = 0xff & e0.min & ~meq;
-        while (msk != 0) {
-            int mi = Integer.lowestOneBit(msk);
-            msk ^= mi;
-            int i = Integer.numberOfTrailingZeros(mi);
+
+        long bitseq = Perms.of(msk).bitseq;
+        while (bitseq != 0) {
+            int i = (int) (bitseq&0x0f);
+            bitseq >>>= 4;
+
             int p2 = e2.perm(i);
 
             // even reduces
@@ -303,10 +309,10 @@ public interface Positions {
 
             // stable if swapped
             if (p2 == e0index) {
-                meq |= mi;
+                meq |= (1<<i);
             }
         }
 
-        return meq;
+        return meq&0xff;
     }
 }

@@ -83,7 +83,7 @@ public class PlopSet {
 
     @Override
     public String toString() {
-        return String.format("%s/%s", clops(), super.toString());
+        return clops() + "/" + plop.toString();
     }
 
     static final int BLOCK = 1024;

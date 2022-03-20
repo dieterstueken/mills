@@ -1,8 +1,5 @@
 package mills.ring;
 
-import mills.bits.BW;
-import mills.bits.Pattern;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
@@ -28,10 +25,6 @@ public interface Entries {
 
     static RingEntry of(int index) {
         return TABLE.get(index);
-    }
-
-    static RingEntry of(Pattern b, Pattern w) {
-        return TABLE.get(BW.index(b,w));
     }
 
     Predicate<RingEntry> ALL  = e -> true;

@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 
 /**
  * An EntryTable is a List of RingEntries.
- * In addition it provides utility methods to get the RingEntry.index directly,
+ * In addition, it provides utility methods to get the RingEntry.index directly,
  * to find the table indexOf a given RingEntry and to generate filtered subsets of itself.
  */
 abstract public class AbstractEntryTable extends AbstractListSet<RingEntry> implements EntryTable {
