@@ -1,13 +1,17 @@
 package mills.util;
 
 /**
- * version:     $
- * created by:  d.stueken
- * created on:  26.08.2022 15:42
- * modified by: $
- * modified on: $
+ * Created by IntelliJ IDEA.
+ * User: stueken
+ * Date: 21.08.22
+ * Time: 14:09
  */
-public interface IndexedListSet<T extends Indexed> extends ListSet<T> {
+public interface IndexedListSet<T> extends ListSet<T> {
 
-    int findIndex(int ringIndex);
+    @Override
+    Indexer<? super T> comparator();
+
+    default int findIndex(int key) {
+        return comparator().binarySearchKey(this, key);
+    }
 }

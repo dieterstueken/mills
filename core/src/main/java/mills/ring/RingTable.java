@@ -43,10 +43,6 @@ class RingTable extends AbstractEntryTable implements IndexedEntryTable {
         return entries[index];
     }
 
-    boolean inRange(int index) {
-        return index >= 0 && index < MAX_INDEX;
-    }
-
     // for the full table there is no need to search any entry.
     public int findIndex(int index) {
         return inRange(index) ? index : -1;

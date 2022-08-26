@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import static mills.ring.RingEntry.MAX_INDEX;
+
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -34,6 +36,10 @@ abstract public class AbstractListSet<T> extends AbstractRandomList<T> implement
                     ") > toIndex(" + toIndex + ")");
 
         return toIndex-fromIndex;
+    }
+
+    public boolean inRange(int index) {
+        return index >= 0 && index < MAX_INDEX;
     }
 
     @Override
@@ -94,7 +100,7 @@ abstract public class AbstractListSet<T> extends AbstractRandomList<T> implement
     };
 
     @SuppressWarnings("unchecked")
-    public static <T> AbstractListSet<T> empty() {
+    public static <T> ListSet<T> empty() {
         return (AbstractListSet<T>) EMPTY;
     }
 

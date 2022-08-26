@@ -1,89 +1,76 @@
 package mills.util;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.function.IntFunction;
-import java.util.stream.IntStream;
 
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
- * Date: 21.08.22
- * Time: 14:09
+ * Date: 26.08.22
+ * Time: 19:24
  */
-public class DirectListSet<T> extends DelegateListSet<T> {
-
-    final Indexer<? super T> indexer;
-
-    protected DirectListSet(List<T> values, Indexer<? super T> indexer) {
-        super(values);
-        this.indexer = indexer;
-    }
-
+abstract public class DirectListSet<T> extends AbstractListSet<T> implements IndexedListSet<T> {
     @Override
-    public Comparator<? super T> comparator() {
-        return indexer;
+    public int findIndex(final int index) {
+        return inRange(index) ? index : -1;
     }
 
-    @Override
-    public int findIndex(T entry) {
-        int index = indexer.indexOf(entry);
+    static <T> DirectListSet<T> of(List<T> values, Indexer<? super T> comparator) {
 
-        // turn indexes beyond size into a negative value.
-        if(index>=values.size())
-            index = -index-1;
+        assert isDirect(values, comparator);
 
-        return index;
-    }
-
-
-    public static <T> DirectListSet<T> of(List<? extends T> values, Indexer<? super T> indexer) {
-
-        assert isDirect(values, indexer);
-
-        return new DirectListSet<>(List.copyOf(values), indexer);
-    }
-
-    static <T extends Indexed> ListSet<T> of(IntFunction<? extends T> generator, int size) {
-        List<? extends T> values = IntStream.of(size).mapToObj(generator).toList();
-        return new DirectListSet<>(List.copyOf(values), Indexer.INDEXED);
-    }
-
-    static <E extends Enum<E>> ListSet<E> of(Class<E> type) {
-        List<E> values = List.of(type.getEnumConstants());
-        return new DirectListSet<>(values, Indexer.ENUM) {
+        return new DirectListSet<>() {
             @Override
-            public int indexOf(final Object o) {
-                if(type.isInstance(o))
-                    return type.cast(o).ordinal();
-                else
-                    return -1;
+            public T get(final int index) {
+                return values.get(index);
+            }
+
+            @Override
+            public int size() {
+                return values.size();
+            }
+
+            @Override
+            public ListSet<T> subList(final int fromIndex, final int toIndex) {
+                return DelegateListSet.of(values.subList(fromIndex, toIndex), comparator());            }
+
+            @Override
+            public Indexer<? super T> comparator() {
+                return comparator;
             }
         };
     }
 
-    static <I extends Indexed> ListSet<I> of(I ... values) {
-        List<I> indexed = List.of(values);
-
-        assert isDirect(indexed, Indexer.INDEXED);
-
-        return new DirectListSet<>(indexed, Indexer.INDEXED) {
+    static <T> DirectListSet<T> of(T[] values, Indexer<? super T> comparator) {
+        return new DirectListSet<>() {
 
             @Override
-            public int indexOf(final Object o) {
-                return o instanceof Indexed indexed ? indexed.getIndex() : -1;
+            public Indexer<? super T> comparator() {
+                return comparator;
+            }
+
+            @Override
+            public T get(final int index) {
+                return values[index];
+            }
+
+            @Override
+            public int size() {
+                return values.length;
+            }
+
+            @Override
+            public ListSet<T> subList(final int fromIndex, final int toIndex) {
+                return DelegateListSet.of(List.of(values), comparator).subList(fromIndex, toIndex);
             }
         };
     }
 
-    static <T> boolean isDirect(List<T> values, Indexer<? super T> indexer) {
-
-        for (final T value : values) {
-            if(indexer.indexOf(value)==0)
+    static <T> boolean isDirect(List<T> values, Indexer<? super T> index) {
+        for (int i = 0; i < values.size(); i++) {
+            T value = values.get(i);
+            if(index.indexOf(value)!=i)
                 return false;
         }
-
         return true;
     }
-
 }

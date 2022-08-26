@@ -1,5 +1,6 @@
 package mills.util;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -28,7 +29,15 @@ abstract public class DelegateListSet<T> extends AbstractListSet<T>  {
 
     @Override
     public ListSet<T> subList(int fromIndex, int toIndex) {
-        return of(values.subList(fromIndex, toIndex), comparator);
+        checkRange(fromIndex, toIndex);
+
+        if(fromIndex==toIndex)
+            return empty();
+
+        if(fromIndex==toIndex+1)
+            return singleton(get(fromIndex));
+
+        return of(values.subList(fromIndex, toIndex), comparator());
     }
 
     @Override
@@ -65,11 +74,6 @@ abstract public class DelegateListSet<T> extends AbstractListSet<T>  {
         return values.remove(index);
     }
 
-    public static <T> ListSet<T> of(List<T> values, Comparator<? super T> comparator) {
-        assert isOrdered(values, comparator) : "index mismatch";
-        return new DelegateListSet<>(values, comparator);
-    }
-
     protected AbstractListSet<T> verify() {
         assert isOrdered(this, comparator()) : "index mismatch";
         return this;
@@ -91,21 +95,12 @@ abstract public class DelegateListSet<T> extends AbstractListSet<T>  {
         return  true;
     }
 
-    public static <T extends Indexed> ListSet<T> ofDirect(List<T> values, Comparator<? super T> comparator) {
-
-        assert isDirect(values, comparator) : "index mismatch";
-
-        return new DelegateListSet<>(values, comparator) {
-
+    static <T> DelegateListSet<T> of(List<T> values, Comparator<? super T> comparator) {
+        return new DelegateListSet<>(values) {
+            @Override
+            public Comparator<? super T> comparator() {
+                return comparator;
+            }
         };
-    }
-
-    static <T extends Indexed> boolean isDirect(List<T> values, Comparator<? super T> order) {
-        for (int i = 0; i < values.size(); i++) {
-            T value = values.get(i);
-            if(value.getIndex()!=i)
-                return false;
-        }
-        return true;
     }
 }

@@ -1,7 +1,7 @@
 package mills.ring;
 
 
-import mills.util.ListSet;
+import mills.util.IndexedListSet;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,10 +17,10 @@ import java.util.function.Predicate;
 
 /**
  * An EntryTable is a List of RingEntries.
- * In addition it provides utility methods to get the RingEntry.index directly,
+ * In addition, it provides utility methods to get the RingEntry.index directly,
  * to find the table indexOf a given RingEntry and to generate filtered subsets of itself.
  */
-public interface EntryTable extends ListSet<RingEntry> {
+public interface EntryTable extends IndexedListSet<RingEntry> {
 
     // fast lookup of table index of a given ring index
     int findIndex(int ringIndex);

@@ -5,7 +5,6 @@ import mills.util.AbstractListSet;
 import mills.util.Indexed;
 import mills.util.Indexer;
 
-import java.util.Comparator;
 import java.util.function.Predicate;
 
 /**
@@ -23,7 +22,7 @@ import java.util.function.Predicate;
 abstract public class AbstractEntryTable extends AbstractListSet<RingEntry> implements EntryTable {
 
     @Override
-    public Comparator<Indexed> comparator() {
+    public Indexer<Indexed> comparator() {
         return Indexer.INDEXED;
     }
 
