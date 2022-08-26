@@ -1,6 +1,5 @@
 package mills.bits;
 
-import mills.util.AbstractRandomList;
 import mills.util.Indexed;
 import mills.util.ListSet;
 
@@ -126,7 +125,7 @@ public class Perms extends AbstractSet<Perm> implements Indexed {
 
     //////////////////////////////////////////
 
-    public static final ListSet<Perms> VALUES = ListSet.of(AbstractRandomList.generate(256, Perms::new));
+    public static final ListSet<Perms> VALUES = ListSet.ofIndexed(256, Perms::new);
 
     public static final Perms EMPTY = of(0);
 

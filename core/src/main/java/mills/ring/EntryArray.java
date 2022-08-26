@@ -44,12 +44,6 @@ public class EntryArray extends AbstractEntryTable {
         return new EntryArray(indices);
     }
 
-    @Override
-    protected EntryArray verify() {
-        assert isOrdered(indices) : "index mismatch";
-        return this;
-    }
-
     static boolean isOrdered(short[] values) {
 
         if(values.length<2)

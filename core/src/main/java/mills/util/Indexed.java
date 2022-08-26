@@ -15,5 +15,4 @@ public interface Indexed extends Comparable<Indexed> {
     default int compareTo(Indexed o) {
         return Integer.compare(getIndex(), o.getIndex());
     }
-
 }

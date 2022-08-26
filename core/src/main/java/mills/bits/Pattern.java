@@ -208,13 +208,13 @@ public class Pattern extends Sectors implements Indexed {
     }
 
     // a pre calculated list of all 256 Pattern
-    public static final ListSet<Pattern> PATTERNS = ListSet.of(patterns());
+    public static final ListSet<Pattern> PATTERNS = ListSet.of(values());
 
     public static final Pattern NONE = of(0);
     public static final Pattern RADIALS = of(Sector.RADIALS);
     public static final Pattern ALL = of(0xff);
 
-    private static Pattern[] patterns() {
+    private static Pattern[] values() {
 
         IntFunction<Pattern> generate = new IntFunction<>() {
 

@@ -2,9 +2,7 @@ package mills.util;
 
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -17,23 +15,26 @@ import static org.junit.Assert.assertTrue;
  */
 public class ListSetTest {
 
+    List<Integer> base = List.of(1, 5, 7, 11);
+
     @Test
     public void testNaturalOrder() {
 
+
+        List<Integer> mutable = new ArrayList<>(base);
+
         ListSet<Integer> list = ListSet.of();
 
-        list.add(1);
-        list.add(5);
-        list.add(11);
-        list.add(7);
+        list.addAll(base);
 
-        ListSet<Integer> list1 = ListSet.mutable(1, 5, 7, 11);
+        // based on a mutable list
+        ListSet<Integer> list1 = ListSet.of(mutable);
 
         assertEquals(list, list1);
 
         list1.clear();
 
-        list1.addAll(Arrays.asList(1, 11, 5, 7));
+        list1.addAll(List.of(1, 11, 5, 7));
         assertEquals(list, list1);
 
         Set<Integer> iset =  new TreeSet<>(Arrays.asList(11, 7, 1, 5));
@@ -47,7 +48,7 @@ public class ListSetTest {
 
     @Test
     public void testBounds() {
-        ListSet<Integer> entryTable = ListSet.of(1, 5, 7, 11);
+        ListSet<Integer> entryTable = ListSet.of(base);
         TreeSet<Integer> intTable = new TreeSet<>(entryTable);
 
         assertEquals(entryTable, intTable);

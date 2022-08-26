@@ -19,7 +19,7 @@ public class Plop implements Indexed {
 
     public static final int COUNT = 18;
 
-    public static ListSet<Plop> LIST = ListSet.generate(COUNT, Plop::new);
+    public static ListSet<Plop> LIST = ListSet.ofIndexed(COUNT, Plop::new);
 
     public static Plop EMPTY = LIST.get(0);
 

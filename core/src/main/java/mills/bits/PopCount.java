@@ -292,7 +292,7 @@ public class PopCount implements Indexed {
 
 
     // PopCounts <= (9,9)
-    public static final ListSet<PopCount> TABLE = ListSet.of(root());
+    public static final ListSet<PopCount> TABLE = ListSet.of(values());
 
     public static final PopCount EMPTY = get(0,0);
     public static final PopCount P11 = get(1,1);
@@ -312,9 +312,9 @@ public class PopCount implements Indexed {
         return TABLE.get(index);
     }
 
-    private static PopCount[] root() {
+    private static PopCount[] values() {
 
-        PopCount table[] = new PopCount[SIZE];
+        PopCount[] table = new PopCount[SIZE];
         for (int nw = 0; nw < 10; ++nw) {
             for (int nb = 0; nb < 10; ++nb) {
                 PopCount p = new PopCount(nb, nw);

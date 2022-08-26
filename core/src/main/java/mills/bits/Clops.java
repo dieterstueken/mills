@@ -99,7 +99,7 @@ public interface Clops extends Indexed {
     int MCLOPS = PopCount.NCLOPS+1;
     int NCLOPS = PopCount.SIZE * MCLOPS;
 
-    ListSet<Clops> CLOPS = ListSet.generate(NCLOPS, Clops::create);
+    ListSet<Clops> CLOPS = ListSet.ofIndexed(NCLOPS, Clops::create);
 
     Clops EMPTY = of(PopCount.EMPTY, PopCount.EMPTY);
 

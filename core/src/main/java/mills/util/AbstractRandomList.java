@@ -11,7 +11,7 @@ import java.util.stream.Stream;
  * Date: 07.10.12
  * Time: 18:23
  */
-public abstract class AbstractRandomList<T> extends AbstractList<T> implements RandomAccess {
+public abstract class AbstractRandomList<T> extends AbstractList<T> implements RandomList<T> {
 
     public AbstractRandomList() {}
 
@@ -22,10 +22,6 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
 
     public List<T> copyOf() {
         return List.copyOf(this);
-    }
-
-    public <K extends Indexed> Map<K,T> asMap(IntFunction<K> keys, T defaultValue) {
-        return ArraySet.mapOf(keys, this, defaultValue);
     }
 
     public static <T> AbstractRandomArray<T> constant(int size, T value) {

@@ -10,15 +10,15 @@ import java.util.function.IntFunction;
  * Date: 03.10.19
  * Time: 19:52
  */
-public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
+public interface ListSet<T> extends RandomList<T>, SortedSet<T> {
 
     @Override
     Comparator<? super T> comparator();
 
     @Override
     default boolean contains(Object obj) {
-            return indexOf(obj) >= 0;
-        }
+        return indexOf(obj) >= 0;
+    }
 
     /**
      *
@@ -122,7 +122,7 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
     @Override
     default Spliterator<T> spliterator() {
         // prefer RandomAccessSpliterator
-        return List.super.spliterator();
+        return RandomList.super.spliterator();
     }
 
     default <E> ListSet<E> transform(Function<? super T, ? extends E> mapper, Comparator<? super E> comparator) {
@@ -130,58 +130,59 @@ public interface ListSet<T> extends List<T>, SortedSet<T>, RandomAccess {
         return of(transformed, comparator);
     }
 
-    static <T extends Indexed> ListSet<T> generate(int size, IntFunction<? extends T> generate) {
-        return of(AbstractRandomList.generate(size, generate));
-    }
-
-    static <T extends Indexed> ListSet<T> of(List<T> values) {
-        return of(values, Indexer.INDEXED);
-    }
-
-    static <T extends Comparable<T>> ListSet<T> of() {
-        return of(new ArrayList<T>(), Comparator.naturalOrder());
-    }
-
-    static <T> ListSet<T> empty(Comparator<? super T> comparator) {
+    static <T> ListSet<T> of(Comparator<? super T> comparator) {
         return of(new ArrayList<>(), comparator);
     }
 
+    static <T extends Comparable<T>> ListSet<T> of() {
+        return of(Comparator.naturalOrder());
+    }
+
     static <T> ListSet<T> of(List<T> values, Comparator<? super T> comparator) {
-        return OrderedListSet.of(values, comparator);
+        return DelegateListSet.of(values, comparator);
     }
 
-    static <T> ListSet<T> of(T[] values, Comparator<? super T> comparator) {
-        return of(Arrays.asList(values), comparator);
+    static <T extends Indexed> ListSet<T> ofIndexed(int size, IntFunction<? extends T> generate) {
+        return of(AbstractRandomList.generate(size, generate));
     }
 
-    static <T extends Comparable<? super T>> ListSet<T> of(T ... values) {
+    static <T extends Comparable<? super T>> ListSet<T> of(List<T> values) {
         return of(values, Comparator.naturalOrder());
     }
 
-    static <T extends Indexed> ListSet<T> of(IntFunction<? extends T> generator, int size) {
-        return DirectListSet.of(generator, size);
+    static <T extends Comparable<? super T>> ListSet<T> of(T[] values) {
+        return of(List.of(values), Comparator.naturalOrder());
     }
 
-    static <E extends Enum<E>> ListSet<E> of(Class<E> type) {
-        return DirectListSet.of(type);
+    /*
+    static <T extends Comparable<? super T>> ListSet<T> of(Comparator<? super T> comparator, T ... values) {
+        return of(List.of(values), comparator);
     }
 
-    static <T> ListSet<T> mutable(T[] values, Comparator<? super T> comparator) {
-        return of(new ArrayList<>(Arrays.asList(values)), comparator);
-    }
+   static <T extends Comparable<? super T>> ListSet<T> of(T ... values) {
+       return of(List.of(values), Comparator.naturalOrder());
+   }
 
-    static <T> ListSet<T> mutable(Comparator<? super T> comparator) {
-            return of(new ArrayList<>(), comparator);
-        }
+   static <T extends Indexed> ListSet<T> of(T ... values) {
+       return of(Indexer.INDEXED, values);
+   }
 
-    static <T extends Comparable<? super T>> ListSet<T> mutable(T ... values) {
-        return mutable(values, Comparator.naturalOrder());
-    }
+   static <T extends Enum<T>> ListSet<T> of(T ... values) {
+       return of(Indexer.ENUM, values);
+   }
 
-    static <T extends Comparable<? super T>> ListSet<T> mutable() {
-        return mutable(Comparator.naturalOrder());
-    }
+   static <T> ListSet<T> mutable(T[] values, Comparator<? super T> comparator) {
+       return of(new ArrayList<>(Arrays.asList(values)), comparator);
+   }
 
+   static <T> ListSet<T> mutable(Comparator<? super T> comparator) {
+           return of(new ArrayList<>(), comparator);
+       }
+
+   static <T extends Comparable<? super T>> ListSet<T> mutable(T ... values) {
+       return mutable(values, Comparator.naturalOrder());
+   }
+*/
     default <V> ListMap<T, V> mapOf(List<V> values) {
         return ListMap.create(this, values);
     }

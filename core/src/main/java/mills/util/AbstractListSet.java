@@ -10,7 +10,7 @@ import java.util.stream.Stream;
  * Date: 7/20/14
  * Time: 10:32 AM
  */
-abstract public class AbstractListSet<T> extends AbstractList<T> implements ListSet<T> {
+abstract public class AbstractListSet<T> extends AbstractRandomList<T> implements ListSet<T> {
 
     @Override
     abstract public T get(int index);
@@ -34,27 +34,6 @@ abstract public class AbstractListSet<T> extends AbstractList<T> implements List
                     ") > toIndex(" + toIndex + ")");
 
         return toIndex-fromIndex;
-    }
-
-    protected AbstractListSet<T> verify() {
-        assert isOrdered(this, comparator()) : "index mismatch";
-        return this;
-    }
-
-    static <T> boolean isOrdered(List<T> values, Comparator<? super T> order) {
-
-        if(values.size()<2)
-            return true;
-
-        T t0 = values.get(0);
-        for (int i = 1; i < values.size(); ++i) {
-            T t1 = values.get(i);
-            if(order.compare(t0, t1)>=0)
-                return false;
-            t0 = t1;
-        }
-
-        return  true;
     }
 
     @Override
