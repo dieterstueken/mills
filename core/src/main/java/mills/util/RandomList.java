@@ -21,4 +21,8 @@ public interface RandomList<T> extends List<T>, RandomAccess {
     default ListSet<T> asListSet(Comparator<? super T> comparator) {
         return ListSet.of(this, comparator);
     }
+
+    default List<T> copyOf() {
+        return List.copyOf(this);
+    }
 }
