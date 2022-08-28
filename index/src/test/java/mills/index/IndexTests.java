@@ -38,7 +38,10 @@ public class IndexTests {
 
     {
         groupBuilder = new GroupBuilder(DEBUG);
+
+        // prefetch
         List<? extends ForkJoinTask<?>> tasks = PopCount.TABLE
+                .subList(50,100)
                 .transform(this::compute)
                 .transform(ForkJoinTask::adapt)
                 .copyOf();
@@ -55,7 +58,7 @@ public class IndexTests {
     }
 
     @Test
-    public void buildGroups() throws InterruptedException {
+    public void buildGroups() {
 
         timer("groups", () -> {
             groupBuilder.entries().forEach(entry -> {
