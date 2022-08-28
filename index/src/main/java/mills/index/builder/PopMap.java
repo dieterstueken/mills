@@ -43,7 +43,7 @@ public class PopMap<T> {
     }
 
     public static PopMap<EntryTable> lePops(EntryTable root) {
-        return new PopMap<>(AbstractRandomList.transform(PopCount.TABLE, pop -> root.filter(pop.le)));
+        return new PopMap<>(PopCount.TABLE.transform(pop -> root.filter(pop.le)));
     }
 
     public static <T> PopMap<T> allocate(int size) {

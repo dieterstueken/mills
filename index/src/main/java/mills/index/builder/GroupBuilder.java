@@ -14,7 +14,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
@@ -28,22 +30,41 @@ import static java.util.function.Predicate.not;
  */
 public class GroupBuilder extends AbstractGroupBuilder {
 
+    public interface Debug {
+        default void start(PopCount pop) {}
+        default void done(Group result) {};
+    }
+
+    static final Debug NOOP = new Debug() {};
+
     public static GroupBuilder create() {
         return new GroupBuilder();
     }
 
+    final Debug debug;
+
     final List<CachedEntry<Group>> groups;
 
-    public GroupBuilder() {
+    public GroupBuilder(Debug debug) {
         super();
 
-        this.groups = AbstractRandomList
-                .transform(PopCount.TABLE, this::newEntry)
-                .copyOf();
+        this.debug = debug;
+        this.groups = PopCount.TABLE.transform(this::newEntry).copyOf();
+    }
+
+    public GroupBuilder() {
+        this(NOOP);
     }
 
     private CachedEntry<Group> newEntry(PopCount pop) {
-        return new CachedEntry<>(() -> new Group(pop));
+        return new CachedEntry<>(() -> newGroup(pop));
+    }
+
+    private Group newGroup(PopCount pop) {
+        debug.start(pop);
+        Group group = new Group(pop);
+        debug.done(group);
+        return group;
     }
 
     public Group group(PopCount pop) {
@@ -57,6 +78,22 @@ public class GroupBuilder extends AbstractGroupBuilder {
 
     public CompletableFuture<Group> futureGroup(PopCount pop) {
         return groups.get(pop.index).future();
+    }
+
+    public ForkJoinTask<Group> task(PopCount pop) {
+
+        CompletableFuture<Group> future = futureGroup(pop);
+        return new RecursiveTask<>() {
+            @Override
+            public String toString() {
+                return "task: " + pop;
+            }
+
+            @Override
+            protected Group compute() {
+                return future.join();
+            }
+        };
     }
 
     @Override
@@ -88,7 +125,7 @@ public class GroupBuilder extends AbstractGroupBuilder {
         }
 
         /**
-         * A non static implementation to hold a reference to its group.
+         * A non-static implementation to hold a reference to its group.
          */
         class C2T extends C2Table {
             public C2T(PopCount clop, EntryMap<R0Table> r0Tables) {
@@ -214,7 +251,7 @@ public class GroupBuilder extends AbstractGroupBuilder {
                     .map(b->b.build(generator))
                     .forEach(result->tmp.set(result.clop().index, result));
 
-            List<R> results = AbstractRandomList.transform(clops, c -> tmp.get(c.index)).copyOf();
+            List<R> results = clops.transform(c -> tmp.get(c.index)).copyOf();
 
             return clops.mapOf(results);
         }
