@@ -5,7 +5,8 @@ import mills.bits.PopCount;
 import mills.index.builder.GroupBuilder;
 import org.junit.Test;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.List;
+import java.util.concurrent.ForkJoinTask;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -21,21 +22,51 @@ import static org.junit.Assert.assertEquals;
  */
 public class IndexTests {
 
-    final GroupBuilder groupBuilder = new GroupBuilder();
+    static final GroupBuilder.Debug DEBUG = new GroupBuilder.Debug() {
+        @Override
+        public void start(final PopCount pop) {
+            System.out.format("%s start\n", pop);
+        }
+
+        @Override
+        public void done(final GroupBuilder.Group result) {
+            System.out.format("%s done\n", result.pop());
+        }
+    };
+
+    final GroupBuilder groupBuilder;
+
+    {
+        groupBuilder = new GroupBuilder(DEBUG);
+        List<? extends ForkJoinTask<?>> tasks = PopCount.TABLE
+                .transform(this::compute)
+                .transform(ForkJoinTask::adapt)
+                .copyOf();
+
+        ForkJoinTask.adapt(()->ForkJoinTask.invokeAll(tasks)).fork();
+    }
+
+    public Runnable compute(PopCount pop) {
+        return () -> groupBuilder.group(pop);
+    }
 
     public Stream<GroupBuilder.Group> groups() {
-        return PopCount.TABLE.stream()
-                .map(PopCount.P99::sub)
-                .map(groupBuilder::futureGroup)
-                .map(CompletableFuture::join);
+        return PopCount.TABLE.stream().map(groupBuilder::group);
     }
 
     @Test
-    public void buildGroups() {
+    public void buildGroups() throws InterruptedException {
 
         timer("groups", () -> {
-            groups().forEach(group -> {
-                System.out.format("%s groups: %d\n", group.pop(), group.group.size());
+            groupBuilder.entries().forEach(entry -> {
+
+                boolean exists = entry.cached()!=null;
+                GroupBuilder.Group group = entry.get();
+
+                System.out.format("%s %sgroups: %d\n",
+                        group.pop(),
+                        exists ? "ready " :"",
+                        group.group.size());
 
                 group.group.forEach((clop, c2t) -> {
                     System.out.format("%s: %4d %,13d\n", clop.toString(), c2t.n20(), c2t.range());

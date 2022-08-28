@@ -13,10 +13,7 @@ import mills.util.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
-import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
@@ -37,13 +34,31 @@ public class GroupBuilder extends AbstractGroupBuilder {
 
     static final Debug NOOP = new Debug() {};
 
+    public class Entry extends CachedBuilder<Group> {
+
+        final PopCount pop;
+
+        public Entry(final PopCount p_pop) {
+            pop = p_pop;
+        }
+
+        public PopCount pop() {
+            return pop;
+        }
+
+        @Override
+        protected Group build() {
+            return newGroup(pop);
+        }
+    }
+
     public static GroupBuilder create() {
         return new GroupBuilder();
     }
 
     final Debug debug;
 
-    final List<CachedEntry<Group>> groups;
+    final List<Entry> groups;
 
     public GroupBuilder(Debug debug) {
         super();
@@ -56,8 +71,16 @@ public class GroupBuilder extends AbstractGroupBuilder {
         this(NOOP);
     }
 
-    private CachedEntry<Group> newEntry(PopCount pop) {
-        return new CachedEntry<>(() -> newGroup(pop));
+    public Group group(PopCount pop) {
+        return groups.get(pop.index).get();
+    }
+
+    public List<Entry> entries() {
+        return groups;
+    }
+
+    private Entry newEntry(PopCount pop) {
+        return new Entry(pop);
     }
 
     private Group newGroup(PopCount pop) {
@@ -67,33 +90,9 @@ public class GroupBuilder extends AbstractGroupBuilder {
         return group;
     }
 
-    public Group group(PopCount pop) {
-        return groups.get(pop.index).get();
-    }
-
     @Override
     public Map<PopCount, C2Table> buildGroup(PopCount pop) {
         return group(pop).group;
-    }
-
-    public CompletableFuture<Group> futureGroup(PopCount pop) {
-        return groups.get(pop.index).future();
-    }
-
-    public ForkJoinTask<Group> task(PopCount pop) {
-
-        CompletableFuture<Group> future = futureGroup(pop);
-        return new RecursiveTask<>() {
-            @Override
-            public String toString() {
-                return "task: " + pop;
-            }
-
-            @Override
-            protected Group compute() {
-                return future.join();
-            }
-        };
     }
 
     @Override
@@ -101,13 +100,8 @@ public class GroupBuilder extends AbstractGroupBuilder {
         return group(pop).getIndex(clop);
     }
 
-    @Override
-    public CompletableFuture<PosIndex> stage(PopCount pop, PopCount clop) {
-        return futureGroup(pop).thenApply(g->g.getIndex(clop));
-    }
-
     public void close() {
-        groups.forEach(CachedEntry::clear);
+        groups.forEach(CachedBuilder::clear);
     }
 
     public class Group implements PosIndex {
