@@ -10,6 +10,8 @@ import mills.position.Positions;
 import mills.ring.*;
 import mills.util.*;
 
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +30,11 @@ import static java.util.function.Predicate.not;
 public class GroupBuilder extends AbstractGroupBuilder {
 
     public interface Debug {
+
+        default Reference<Group> newReference(Group value) {
+            return new SoftReference<>(value);
+        }
+
         default void start(PopCount pop) {}
         default void done(Group result) {};
     }
@@ -49,6 +56,10 @@ public class GroupBuilder extends AbstractGroupBuilder {
         @Override
         protected Group build() {
             return newGroup(pop);
+        }
+
+        public Reference<Group> newReference(Group value) {
+            return debug.newReference(value);
         }
     }
 
@@ -72,7 +83,11 @@ public class GroupBuilder extends AbstractGroupBuilder {
     }
 
     public Group group(PopCount pop) {
-        return groups.get(pop.index).get();
+        return entry(pop).get();
+    }
+
+    public Entry entry(PopCount pop) {
+        return groups.get(pop.index);
     }
 
     public List<Entry> entries() {

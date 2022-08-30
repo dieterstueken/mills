@@ -90,7 +90,7 @@ abstract public class CachedBuilder<V> {
                 // keep this empty task permanently
             } else {
                 // transfer value to a SoftReference
-                cached = new SoftReference<>(value);
+                cached = newReference(value);
 
                 // drop hard reference again
                 task = null;
@@ -98,6 +98,10 @@ abstract public class CachedBuilder<V> {
 
             return value;
         }
+    }
+
+    protected Reference<V> newReference(V value) {
+        return new SoftReference<>(value);
     }
 
     @SuppressWarnings("unchecked")

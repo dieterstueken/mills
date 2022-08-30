@@ -5,6 +5,11 @@ import mills.bits.PopCount;
 import mills.index.builder.GroupBuilder;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.SoftReference;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import java.util.function.Supplier;
@@ -22,7 +27,25 @@ import static org.junit.Assert.assertEquals;
  */
 public class IndexTests {
 
-    static final GroupBuilder.Debug DEBUG = new GroupBuilder.Debug() {
+
+    static final ReferenceQueue<GroupBuilder.Group> queue = new ReferenceQueue<>();
+
+    static class GroupReference extends SoftReference<GroupBuilder.Group> {
+
+        final PopCount pop;
+
+        public GroupReference(GroupBuilder.Group referent) {
+            super(referent, queue);
+            pop = referent.pop();
+        }
+
+        @Override
+        public String toString() {
+            return "Ref(" + pop + ')';
+        }
+    }
+
+    final GroupBuilder.Debug DEBUG = new GroupBuilder.Debug() {
         @Override
         public void start(final PopCount pop) {
             System.out.format("%s start\n", pop);
@@ -32,21 +55,36 @@ public class IndexTests {
         public void done(final GroupBuilder.Group result) {
             System.out.format("%s done\n", result.pop());
         }
+
+        @Override
+        public Reference<GroupBuilder.Group> newReference(GroupBuilder.Group value) {
+            return new GroupReference(value);
+        }
     };
 
     final GroupBuilder groupBuilder;
 
+    final Thread queueRunner;
+
     {
         groupBuilder = new GroupBuilder(DEBUG);
 
-        // prefetch
-        List<? extends ForkJoinTask<?>> tasks = PopCount.TABLE
-                .subList(50,100)
-                .transform(this::compute)
-                .transform(ForkJoinTask::adapt)
-                .copyOf();
+        queueRunner = new Thread("queue runner") {
+            @Override
+            public void run() {
+                try {
+                while(!Thread.currentThread().isInterrupted()) {
+                    Reference<?> ref = queue.remove();
+                    System.err.println("enqueued: " + ref.toString());
+                }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        };
 
-        ForkJoinTask.adapt(()->ForkJoinTask.invokeAll(tasks)).fork();
+        queueRunner.start();
+
     }
 
     public Runnable compute(PopCount pop) {
@@ -58,9 +96,19 @@ public class IndexTests {
     }
 
     @Test
-    public void buildGroups() {
+    public void buildGroups() throws IOException {
+
 
         timer("groups", () -> {
+
+           // prefetch
+            List<? extends ForkJoinTask<?>> tasks = PopCount.TABLE
+                    .subList(50,100)
+                    .transform(e -> ForkJoinTask.adapt(compute(e)))
+                    .copyOf();
+
+            ForkJoinTask.adapt(()->ForkJoinTask.invokeAll(tasks)).fork();
+
             groupBuilder.entries().forEach(entry -> {
 
                 boolean exists = entry.cached()!=null;
@@ -79,6 +127,15 @@ public class IndexTests {
             });
             return null;
         });
+
+        List<Integer> dummy = List.of(42,43, 44);
+        while(true) {
+            List<Integer> tmp = new ArrayList<>(dummy);
+            tmp.addAll(dummy);
+            dummy=tmp;
+            System.err.println("size: " + tmp.size());
+        }
+
     }
 
     @Test
