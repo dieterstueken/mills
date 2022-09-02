@@ -3,6 +3,8 @@ package mills.index;
 import mills.bits.Clops;
 import mills.bits.PopCount;
 import mills.index.builder.GroupBuilder;
+import mills.index.builder.IndexBuilder;
+import mills.index.builder.IndexGroup;
 import mills.util.CachedBuilder;
 import org.junit.Test;
 
@@ -27,13 +29,13 @@ import static org.junit.Assert.assertEquals;
 public class IndexTests {
 
 
-    static final ReferenceQueue<GroupBuilder.Group> queue = new ReferenceQueue<>();
+    static final ReferenceQueue<IndexGroup> queue = new ReferenceQueue<>();
 
-    static class GroupReference extends SoftReference<GroupBuilder.Group> {
+    static class GroupReference extends SoftReference<IndexGroup> {
 
         final PopCount pop;
 
-        public GroupReference(GroupBuilder.Group referent) {
+        public GroupReference(IndexGroup referent) {
             super(referent, queue);
             pop = referent.pop();
         }
@@ -51,12 +53,12 @@ public class IndexTests {
         }
 
         @Override
-        public void done(final GroupBuilder.Group result) {
+        public void done(final IndexGroup result) {
             System.out.format("%s done\n", result.pop());
         }
 
         @Override
-        public Reference<GroupBuilder.Group> newReference(GroupBuilder.Group value) {
+        public Reference<IndexGroup> newReference(IndexGroup value) {
             return new GroupReference(value);
         }
     };
@@ -90,7 +92,7 @@ public class IndexTests {
         return () -> groupBuilder.group(pop);
     }
 
-    public Stream<GroupBuilder.Group> groups() {
+    public Stream<IndexGroup> groups() {
         return PopCount.TABLE.stream().map(groupBuilder::group);
     }
 
@@ -110,18 +112,18 @@ public class IndexTests {
 
             long total = 0;
 
-            for (GroupBuilder.Entry entry : groupBuilder.entries()) {
-                boolean exists = entry.cached() != null;
-                GroupBuilder.Group group = entry.get();
+            for (IndexBuilder builder : groupBuilder.builders()) {
+                boolean exists = builder.cached() != null;
+                IndexGroup group = builder.get();
 
                 total += group.range();
 
                 System.out.format("%s %sgroups: %d\n",
                         group.pop(),
                         exists ? "ready " : "",
-                        group.group.size());
+                        group.group().size());
 
-                group.group.forEach((clop, c2t) -> {
+                group.group().forEach((clop, c2t) -> {
                     System.out.format("%s: %4d %,13d\n", clop.toString(), c2t.n20(), c2t.range());
                 });
 
@@ -131,7 +133,7 @@ public class IndexTests {
         });
 
         System.out.format("memory: %dMb\n", Runtime.getRuntime().totalMemory()/1024/1024);
-        groupBuilder.entries().forEach(CachedBuilder::clear);
+        groupBuilder.builders().forEach(CachedBuilder::clear);
         Runtime.getRuntime().gc();
         System.out.format("memory: %dMb\n", Runtime.getRuntime().totalMemory()/1024/1024);
 

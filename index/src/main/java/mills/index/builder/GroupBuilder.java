@@ -2,24 +2,19 @@ package mills.index.builder;
 
 import mills.bits.Clops;
 import mills.bits.PopCount;
-import mills.index.IndexProcessor;
-import mills.index.PosIndex;
-import mills.index.tables.C2Table;
 import mills.index.tables.R0Table;
 import mills.position.Positions;
 import mills.ring.*;
-import mills.util.*;
+import mills.util.AbstractRandomArray;
+import mills.util.AbstractRandomList;
+import mills.util.ListMap;
+import mills.util.ListSet;
 
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import static java.util.function.Predicate.not;
 
@@ -31,201 +26,17 @@ import static java.util.function.Predicate.not;
  */
 public class GroupBuilder extends AbstractGroupBuilder {
 
-    public interface Debug {
-
-        default Reference<Group> newReference(Group value) {
-            return new SoftReference<>(value);
-        }
-
-        default void start(PopCount pop) {}
-        default void done(Group result) {};
-    }
-
-    static final Debug NOOP = new Debug() {};
-
-    final ForkJoinPool pool = new ForkJoinPool();
-
-    public class Entry extends CachedBuilder<Group> {
-
-        final PopCount pop;
-
-        public Entry(final PopCount p_pop) {
-            pop = p_pop;
-        }
-
-        @Override
-        public String toString() {
-            return "Entry(" + pop + ')';
-        }
-
-        public PopCount pop() {
-            return pop;
-        }
-
-        @Override
-        protected Group build() {
-            return newGroup(pop);
-        }
-
-        public Reference<Group> newReference(Group value) {
-            return debug.newReference(value);
-        }
-
-        @Override
-        protected ForkJoinPool getBuildPool() {
-            return pool;
-        }
-    }
-
-    public static GroupBuilder create() {
-        return new GroupBuilder();
-    }
-
-    final Debug debug;
-
-    final List<Entry> groups;
-
     public GroupBuilder(Debug debug) {
-        super();
-
-        this.debug = debug;
-        this.groups = PopCount.TABLE.transform(this::newEntry).copyOf();
+        super(debug);
     }
 
     public GroupBuilder() {
         this(NOOP);
     }
 
-    public Group group(PopCount pop) {
-        return entry(pop).get();
-    }
-
-    public Entry entry(PopCount pop) {
-        return groups.get(pop.index);
-    }
-
-    public List<Entry> entries() {
-        return groups;
-    }
-
-    private Entry newEntry(PopCount pop) {
-        return new Entry(pop);
-    }
-
-    private Group newGroup(PopCount pop) {
-        debug.start(pop);
-        Group group = new Group(pop);
-        debug.done(group);
-        return group;
-    }
-
-    @Override
-    public Map<PopCount, C2Table> buildGroup(PopCount pop) {
-        return group(pop).group;
-    }
-
-    @Override
-    public PosIndex build(PopCount pop, PopCount clop) {
-        return group(pop).getIndex(clop);
-    }
-
-    public void close() {
-        groups.forEach(CachedBuilder::clear);
-    }
-
-    public class Group implements PosIndex {
-
-        final PopCount pop;
-
-        public final ListMap<PopCount, C2Table> group;
-
-        final IndexTable it;
-
-        public Group(PopCount pop) {
-            this.pop = pop;
-            this.group = new Builder(pop).build(C2T::new);
-            this.it = IndexTable.sum(group.values(), C2Table::range);
-        }
-
-        public Group(PopCount pop, Function<BiFunction<PopCount, EntryMap<R0Table>, C2Table>, ListMap<PopCount, C2Table>> generator) {
-            this.pop = pop;
-            this.group = generator.apply(C2T::new);
-            this.it = IndexTable.sum(group.values(), C2Table::range);
-        }
-
-        /**
-         * A non-static implementation to hold a reference to its group.
-         */
-        class C2T extends C2Table {
-             C2T(PopCount clop, EntryMap<R0Table> r0Tables) {
-                super(pop, clop, r0Tables.keySet(), r0Tables.values());
-            }
-        }
-
-        public PosIndex getIndex(PopCount clop) {
-            return clop==null ? this : group.get(clop);
-        }
-
-        @Override
-        public PopCount pop() {
-            return pop;
-        }
-
-        @Override
-        public int range() {
-            return it.range();
-        }
-
-        public int posIndex(long i201) {
-
-            if(!Positions.normalized(i201))
-                i201 = normalize(i201);
-            else
-                assert i201 == normalize(i201);
-
-            PopCount clop = Positions.clop(i201);
-            int pos = group.keySet().indexOf(clop);
-            int posIndex = group.getValue(pos).posIndex(i201);
-            int baseIndex = it.baseIndex(pos);
-
-            // if missing return lower bound by negative index
-            if(posIndex<0)
-                posIndex -= baseIndex;
-            else
-                posIndex += baseIndex;
-
-            return posIndex;
-        }
-
-        public long i201(int posIndex) {
-            int pos = it.indexOf(posIndex);
-            posIndex -= it.baseIndex(pos);
-            C2Table c2t = group.getValue(pos);
-            return c2t.i201(posIndex);
-        }
-
-        public IndexProcessor process(IndexProcessor processor, int start, int end) {
-
-            for(int pos = it.indexOf(start); pos<group.size(); ++pos) {
-                int baseIndex = it.baseIndex(pos);
-                if(end<baseIndex)
-                    break;
-
-                C2Table c2t = group.getValue(pos);
-                int pstart = Math.max(0, start-baseIndex);
-                c2t.process(processor, pstart, end-baseIndex);
-            }
-
-            return processor;
-        }
-
-        @Override
-        public int n20() {
-            int n20 = 0;
-            for(int pos=0; pos<group.size(); ++pos)
-                n20 += group.getValue(pos).n20();
-            return n20;
-        }
+    protected IndexGroup buildGroup(PopCount pop) {
+        Builder builder = new Builder(pop);
+        return new IndexGroup(pop, g->builder.build(g::newGroupIndex));
     }
 
     class Builder {
