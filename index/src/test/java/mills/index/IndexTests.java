@@ -3,13 +3,12 @@ package mills.index;
 import mills.bits.Clops;
 import mills.bits.PopCount;
 import mills.index.builder.GroupBuilder;
+import mills.util.CachedBuilder;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import java.util.function.Supplier;
@@ -96,7 +95,7 @@ public class IndexTests {
     }
 
     @Test
-    public void buildGroups() throws IOException {
+    public void buildGroups() {
 
 
         timer("groups", () -> {
@@ -109,33 +108,40 @@ public class IndexTests {
 
             ForkJoinTask.adapt(()->ForkJoinTask.invokeAll(tasks)).fork();
 
-            groupBuilder.entries().forEach(entry -> {
+            long total = 0;
 
-                boolean exists = entry.cached()!=null;
+            for (GroupBuilder.Entry entry : groupBuilder.entries()) {
+                boolean exists = entry.cached() != null;
                 GroupBuilder.Group group = entry.get();
+
+                total += group.range();
 
                 System.out.format("%s %sgroups: %d\n",
                         group.pop(),
-                        exists ? "ready " :"",
+                        exists ? "ready " : "",
                         group.group.size());
 
                 group.group.forEach((clop, c2t) -> {
                     System.out.format("%s: %4d %,13d\n", clop.toString(), c2t.n20(), c2t.range());
                 });
 
-                System.out.println();
-            });
+                System.out.format("total: %d\n", total);
+            }
             return null;
         });
 
-        List<Integer> dummy = List.of(42,43, 44);
-        while(true) {
-            List<Integer> tmp = new ArrayList<>(dummy);
-            tmp.addAll(dummy);
-            dummy=tmp;
-            System.err.println("size: " + tmp.size());
-        }
+        System.out.format("memory: %dMb\n", Runtime.getRuntime().totalMemory()/1024/1024);
+        groupBuilder.entries().forEach(CachedBuilder::clear);
+        Runtime.getRuntime().gc();
+        System.out.format("memory: %dMb\n", Runtime.getRuntime().totalMemory()/1024/1024);
 
+        //List<Integer> dummy = List.of(42,43, 44);
+        //while(true) {
+        //    List<Integer> tmp = new ArrayList<>(dummy);
+        //    tmp.addAll(dummy);
+        //    dummy=tmp;
+        //    System.err.println("size: " + tmp.size());
+        //}
     }
 
     @Test

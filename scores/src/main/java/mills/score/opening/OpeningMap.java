@@ -1,11 +1,8 @@
 package mills.score.opening;
 
+import mills.index.IndexProvider;
 import mills.index.PosIndex;
-import mills.position.Positions;
-import mills.util.AbstractRandomList;
-import mills.util.QueueActor;
 
-import java.util.BitSet;
 import java.util.List;
 import java.util.function.LongConsumer;
 
@@ -22,18 +19,31 @@ public class OpeningMap {
 
     final PosIndex index;
 
-    final BitSet bits;
+    final List<BitMap> bits;
 
-    public OpeningMap(OpeningLayer layer, PosIndex index) {
+    OpeningMap(PosIndex index, OpeningLayer layer) {
         this.layer = layer;
         this.index = index;
-        final int range = index.range();
-        this.bits = new BitSet(range+1);
+
+        this.bits = BitMap.list(index.range());
+    }
+
+    public static OpeningMap open(IndexProvider provider, OpeningLayer layer) {
+        PosIndex index = provider.build(layer.clops);
+        return new OpeningMap(index, layer);
+    }
+
+    public void set(int pos) {
+        bits.get(pos/BitMap.SIZE).set(pos%BitMap.SIZE);
+    }
+
+    public int cardinality() {
+        return bits.stream().mapToInt(BitMap::cardinality).sum();
     }
 
     public void stat() {
         final int range = index.range();
-        final int cardinality = bits.cardinality();
+        final int cardinality = cardinality();
         if(range==cardinality)
             System.out.format("t: %s %,13d\n", layer, range);
         else {
@@ -42,56 +52,16 @@ public class OpeningMap {
         }
     }
 
-    public void set(int index) {
-        bits.set(index);
+    public MapTarget openTarget() {
+        return new MapTarget(this);
     }
 
-    private void put(long i201) {
-        assert Positions.clops(i201).equals(layer);
-
-        int posIndex = index.posIndex(i201);
-        if(posIndex<0)
-            throw new IllegalArgumentException("position not found");
-
-        bits.set(posIndex);
+    void propagate(LongConsumer target) {
+        bits.parallelStream().forEach(bits->process(bits, target));
     }
-
-    public Target openTarget() {
-        return new Target();
-    }
-
-    public class Target implements LongConsumer, AutoCloseable {
-
-        static final int CHUNK = Short.MAX_VALUE;
-
-        final List<QueueActor<OpeningMap>> chunks;
-
-        Target() {
-            int n = (index.range()+CHUNK-1)/CHUNK;
-            chunks = AbstractRandomList.virtual(n, i -> QueueActor.of(OpeningMap.this)).copyOf();
-            bits.set(index.range());
-        }
-
-        @Override
-        public void accept(long i201) {
-            int posIndex = index.posIndex(i201);
-
-            if(posIndex<0)
-                throw new IllegalArgumentException("position not found");
-
-            int k = posIndex/CHUNK;
-            chunks.get(k).submit(map->map.set(posIndex));
-        }
-
-        public OpeningMap map() {
-            return OpeningMap.this;
-        }
-
-        @Override
-        public void close() {
-            chunks.forEach(QueueActor::close);
-            bits.clear(index.range());
-            stat();
-        }
+    
+    void process(BitMap bits, LongConsumer target) {
+        MapProcessor processor = new MapProcessor(layer, target);
+        bits.process(index, processor);
     }
 }

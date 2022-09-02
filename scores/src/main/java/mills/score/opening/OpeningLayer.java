@@ -14,6 +14,12 @@ import java.util.Comparator;
  * modified by: $
  * modified on: $
  */
+
+/**
+ * Class OpeningLayer represents a layer in the opening phase.
+ * The opening has 18 turns with increasing population count.
+ * In addition, the count of closed mills are relevant (extends ClopLayer)
+ */
 public class OpeningLayer implements ClopLayer {
 
     public static final int MAX_TURN = 18;
@@ -39,7 +45,15 @@ public class OpeningLayer implements ClopLayer {
     }
 
     public OpeningLayer(int turn) {
-        this(turn,Clops.of(placed(turn), null));
+        this(turn, clops(turn));
+    }
+
+    public Clops clops() {
+        return clops;
+    }
+
+    public static Clops clops(int turn) {
+        return Clops.of(placed(turn), PopCount.EMPTY);
     }
 
     public String toString() {

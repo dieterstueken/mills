@@ -79,4 +79,10 @@ public class ListSetTest {
             assertEquals("equal tail", entryTable.tailSet(i), intTable.tailSet(i));
         }
     }
+
+    @Test
+    public void testParallelism() {
+        ListSet<Integer> entryTable = ListSet.ofIndexed(64, i->i, i->i);
+        entryTable.parallelStream().forEach(System.out::println);
+    }
 }

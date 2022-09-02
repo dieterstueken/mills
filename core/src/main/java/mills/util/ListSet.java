@@ -140,6 +140,10 @@ public interface ListSet<T> extends RandomList<T>, SortedSet<T> {
         return of(AbstractRandomList.generate(size, generate));
     }
 
+    static <T> ListSet<T> ofIndexed(int size, IntFunction<? extends T> generate, Indexer<T> indexer) {
+        return of(AbstractRandomList.generate(size, generate), indexer);
+    }
+
     static <T extends Comparable<? super T>> ListSet<T> of(List<T> values) {
         return of(values, Comparator.naturalOrder());
     }

@@ -2,8 +2,9 @@ package mills.util;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
+import java.util.function.Supplier;
 
 /**
  * version:     $
@@ -19,82 +20,91 @@ abstract public class CachedBuilder<V> {
     @SuppressWarnings("unchecked")
     Reference<V> cached = (Reference<V>) EMPTY;
 
-    volatile ForkJoinTask<V> task;
+    volatile Supplier<V> builder;
 
     abstract protected V build();
 
+    protected ForkJoinPool getBuildPool() {
+        return ForkJoinPool.commonPool();
+    }
+
     public V get() {
-        Reference<V> cached = this.cached;
-
-        // finally null
-        if(cached==null)
-            return null;
-
-        V value = cached.get();
-        if(value!=null)
+        V value = cached();
+        if(value!=null || cached==null)
             return value;
 
-        ForkJoinTask<V> task = this.task;
-        if(task==null)
-            task = newTask();
+        Supplier<V> builder = this.builder;
+        if(builder==null)
+            builder = newTask();
 
-        return task.join();
+        return builder.get();
     }
 
     public V cached() {
         var cached = this.cached;
         if(cached!=null)
             return cached.get();
-        else return null;
+        else
+            return null;
     }
 
-    private synchronized ForkJoinTask<V> newTask() {
+    private synchronized Supplier<V> newTask() {
         // double check
-        ForkJoinTask<V> task = this.task;
-        if(task==null)
-            task = new Task();
+        Supplier<V> builder = this.builder;
+        if(builder!=null)
+            return builder;
 
-        return task;
+        // may be the task finished already and left a value
+        V value = cached();
+        if(value!=null || cached==null)
+            return ()->value;
+
+        Task task = new Task();
+
+        // others have to join
+        this.builder = task::join;
+
+        // we invoke the task directly
+        return task::run;
     }
 
-    private class Task extends RecursiveTask<V> {
+    /**
+     * Set up a built result.
+     * If value is null, cached is set to null, too.
+     * This indicates, that no further result s are expected.
+     * @param value to set up.
+     */
+    private synchronized void built(V value) {
+        if(value==null) {
+            // make this finally empty
+            cached = null;
+            // keep this empty task permanently
+        } else {
+            // transfer value to a SoftReference
+            cached = newReference(value);
+
+            // drop hard reference again
+            builder = null;
+        }
+    }
+
+    private class Task extends RecursiveTask<V>  {
+
+        final Thread worker;
 
         Task() {
-            // race conditions:
-           if(cached==null) {
-               // finally empty
-               complete(null);
-           } else {
-               V value = cached.get();
-               if (value != null) {
-                   // already done, don't save
-                   complete(value);
-               } else {
-                   // fork and setup as pending task
-                   fork();
-                   task = this;
-               }
-           }
+            this.worker = Thread.currentThread();
+        }
+
+        V run() {
+            return getBuildPool().invoke(this);
         }
 
         @Override
         protected V compute() {
-            V value = cached();
 
-            if(value==null && cached!=null)
-                value = build();
-
-            if(value==null) {
-                // make finally empty
-                cached = null;
-                // keep this empty task permanently
-            } else {
-                // transfer value to a SoftReference
-                cached = newReference(value);
-
-                // drop hard reference again
-                task = null;
-            }
+            V value = build();
+            built(value);
 
             return value;
         }
@@ -107,8 +117,8 @@ abstract public class CachedBuilder<V> {
     @SuppressWarnings("unchecked")
     public void clear() {
         if(cached!=null) {
-            task = null;
-            cached = (Reference<V>) EMPTY;
+            builder = null;
+            cached.enqueue();
         }
     }
 }

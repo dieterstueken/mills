@@ -15,9 +15,11 @@ import java.lang.ref.SoftReference;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static java.util.function.Predicate.not;
 
@@ -41,12 +43,19 @@ public class GroupBuilder extends AbstractGroupBuilder {
 
     static final Debug NOOP = new Debug() {};
 
+    final ForkJoinPool pool = new ForkJoinPool();
+
     public class Entry extends CachedBuilder<Group> {
 
         final PopCount pop;
 
         public Entry(final PopCount p_pop) {
             pop = p_pop;
+        }
+
+        @Override
+        public String toString() {
+            return "Entry(" + pop + ')';
         }
 
         public PopCount pop() {
@@ -60,6 +69,11 @@ public class GroupBuilder extends AbstractGroupBuilder {
 
         public Reference<Group> newReference(Group value) {
             return debug.newReference(value);
+        }
+
+        @Override
+        protected ForkJoinPool getBuildPool() {
+            return pool;
         }
     }
 
@@ -133,11 +147,17 @@ public class GroupBuilder extends AbstractGroupBuilder {
             this.it = IndexTable.sum(group.values(), C2Table::range);
         }
 
+        public Group(PopCount pop, Function<BiFunction<PopCount, EntryMap<R0Table>, C2Table>, ListMap<PopCount, C2Table>> generator) {
+            this.pop = pop;
+            this.group = generator.apply(C2T::new);
+            this.it = IndexTable.sum(group.values(), C2Table::range);
+        }
+
         /**
          * A non-static implementation to hold a reference to its group.
          */
         class C2T extends C2Table {
-            public C2T(PopCount clop, EntryMap<R0Table> r0Tables) {
+             C2T(PopCount clop, EntryMap<R0Table> r0Tables) {
                 super(pop, clop, r0Tables.keySet(), r0Tables.values());
             }
         }
