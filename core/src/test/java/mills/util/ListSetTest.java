@@ -1,11 +1,11 @@
 package mills.util;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Created by IntelliJ IDEA.
@@ -62,21 +62,21 @@ public class ListSetTest {
             //System.out.println(message);
 
             if(index>=0 && index< entryTable.size())
-                assertTrue(message, i==entryTable.get(index));
+                assertTrue(i==entryTable.get(index), message);
 
             for(int k=0; k<lower; ++k)
-                assertTrue(message, entryTable.get(k) < i);
+                assertTrue(entryTable.get(k) < i, message);
 
             for(int k=lower; k< entryTable.size(); ++k)
-                assertTrue(message, entryTable.get(k) >= i);
+                assertTrue(entryTable.get(k) >= i, message);
 
             for(int k=0; k<upper; ++k)
-                assertTrue(message, entryTable.get(k) <= i);
+                assertTrue(entryTable.get(k) <= i, message);
             for(int k=upper; k< entryTable.size(); ++k)
-                assertTrue(message, entryTable.get(k) > i);
+                assertTrue(entryTable.get(k) > i, message);
 
-            assertEquals("equal head", entryTable.headSet(i), intTable.headSet(i));
-            assertEquals("equal tail", entryTable.tailSet(i), intTable.tailSet(i));
+            assertEquals(entryTable.headSet(i), intTable.headSet(i), "equal head");
+            assertEquals(entryTable.tailSet(i), intTable.tailSet(i), "equal tail");
         }
     }
 

@@ -2,22 +2,22 @@ package mills.index;
 
 import mills.bits.Clops;
 import mills.bits.PopCount;
-import mills.index.builder.GroupBuilder;
-import mills.index.builder.IndexBuilder;
 import mills.index.builder.IndexGroup;
+import mills.index.builder.IndexGroups;
 import mills.util.CachedBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ForkJoinTask;
 import java.util.function.Supplier;
+import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * version:     IndexCompare$
@@ -46,15 +46,15 @@ public class IndexTests {
         }
     }
 
-    final GroupBuilder.Debug DEBUG = new GroupBuilder.Debug() {
+    final IndexGroups.Debug DEBUG = new IndexGroups.Debug() {
         @Override
         public void start(final PopCount pop) {
-            System.out.format("%s start\n", pop);
+            System.err.format("%s start\n", pop);
         }
 
         @Override
         public void done(final IndexGroup result) {
-            System.out.format("%s done\n", result.pop());
+            System.err.format("%s done\n", result.pop());
         }
 
         @Override
@@ -63,12 +63,12 @@ public class IndexTests {
         }
     };
 
-    final GroupBuilder groupBuilder;
+    final IndexGroups groups;
 
     final Thread queueRunner;
 
     {
-        groupBuilder = new GroupBuilder(DEBUG);
+        groups = new IndexGroups(DEBUG);
 
         queueRunner = new Thread("queue runner") {
             @Override
@@ -88,33 +88,57 @@ public class IndexTests {
 
     }
 
+    Thread parallelBuild() {
+
+        return new Thread() {
+
+            final RandomGenerator rg = RandomGenerator.getDefault();
+            public void run() {
+                while(!Thread.currentThread().isInterrupted()) {
+                    int n = rg.nextInt(100);
+                    PopCount pop = PopCount.get(n);
+                    groups.build(pop);
+                }
+            }
+        };
+    }
+
     public Runnable compute(PopCount pop) {
-        return () -> groupBuilder.group(pop);
+        return () -> groups.group(pop);
     }
 
     public Stream<IndexGroup> groups() {
-        return PopCount.TABLE.stream().map(groupBuilder::group);
+        return PopCount.TABLE.stream().map(groups::group);
+    }
+
+    @Test
+    public void buildParallelGroups() throws InterruptedException {
+        // prefetch
+         //List<? extends ForkJoinTask<?>> tasks = PopCount.TABLE
+         //        .subList(50,100)
+         //        .transform(e -> ForkJoinTask.adapt(compute(e)))
+         //        .copyOf();
+         //
+         //ForkJoinTask.adapt(()->ForkJoinTask.invokeAll(tasks)).fork();
+
+        Thread parallelBuild = parallelBuild();
+        parallelBuild.start();
+
+        buildGroups();
+
+        parallelBuild.interrupt();
+        parallelBuild.join();
     }
 
     @Test
     public void buildGroups() {
 
-
-        timer("groups", () -> {
-
-           // prefetch
-            List<? extends ForkJoinTask<?>> tasks = PopCount.TABLE
-                    .subList(50,100)
-                    .transform(e -> ForkJoinTask.adapt(compute(e)))
-                    .copyOf();
-
-            ForkJoinTask.adapt(()->ForkJoinTask.invokeAll(tasks)).fork();
-
+        timer("time", () -> {
             long total = 0;
 
-            for (IndexBuilder builder : groupBuilder.builders()) {
-                boolean exists = builder.cached() != null;
-                IndexGroup group = builder.get();
+            for (IndexGroups.Provider provider : groups.providers()) {
+                boolean exists = provider.cached() != null;
+                IndexGroup group = provider.get();
 
                 total += group.range();
 
@@ -126,24 +150,30 @@ public class IndexTests {
                 group.group().forEach((clop, c2t) -> {
                     System.out.format("%s: %4d %,13d\n", clop.toString(), c2t.n20(), c2t.range());
                 });
-
-                System.out.format("total: %d\n", total);
             }
+
+            System.out.format("total: %,d\n", total);
+
             return null;
         });
 
         System.out.format("memory: %dMb\n", Runtime.getRuntime().totalMemory()/1024/1024);
-        groupBuilder.builders().forEach(CachedBuilder::clear);
+        groups.providers().forEach(CachedBuilder::clear);
         Runtime.getRuntime().gc();
         System.out.format("memory: %dMb\n", Runtime.getRuntime().totalMemory()/1024/1024);
+    }
 
-        //List<Integer> dummy = List.of(42,43, 44);
-        //while(true) {
-        //    List<Integer> tmp = new ArrayList<>(dummy);
-        //    tmp.addAll(dummy);
-        //    dummy=tmp;
-        //    System.err.println("size: " + tmp.size());
-        //}
+    public void createOOM() {
+
+        System.err.format("max memory: %,d\n", Runtime.getRuntime().maxMemory());
+
+        List<Integer> dummy = List.of(42,43, 44);
+        while(true) {
+            List<Integer> tmp = new ArrayList<>(dummy);
+            tmp.addAll(dummy);
+            dummy=tmp;
+            System.err.format("size: %,d\n", tmp.size());
+        }
     }
 
     @Test

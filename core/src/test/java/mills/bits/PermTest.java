@@ -3,13 +3,14 @@ package mills.bits;
 import mills.position.Positions;
 import mills.ring.Entries;
 import mills.ring.RingEntry;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /**
  * Created by IntelliJ IDEA.
@@ -28,7 +29,7 @@ public class PermTest {
             for (RingEntry e : Entries.TABLE) {
                 RingEntry ep = e.permute(perm);
                 RingEntry ex = ep.permute(inv);
-                assertEquals("Perm.inverse", e, ex);
+                assertEquals(e, ex, "Perm.inverse");
             }
         }
     }
@@ -40,8 +41,8 @@ public class PermTest {
             for (Perm then : Perm.VALUES) {
                 Perm pc = then.compose(first);
 
-                assertEquals("Perm.compose", pc.ordinal(), then.compose(first.ordinal()));
-                assertEquals("Perm.compose", pc.ordinal(), Positions.compose(then.ordinal(), first.ordinal()));
+                assertEquals(pc.ordinal(), then.compose(first.ordinal()), "Perm.compose");
+                assertEquals(pc.ordinal(), Positions.compose(then.ordinal(), first.ordinal()), "Perm.compose");
 
                 System.out.format(" %s", pc);
 
@@ -53,7 +54,7 @@ public class PermTest {
                     RingEntry ey = e.permute(pc);
                     if(ex!=ey)
                         ey = e.permute(pc);
-                    assertEquals("Perm.compose", ex, ey);
+                    assertEquals(ex, ey, "Perm.compose");
                 }
             }
             System.out.println();

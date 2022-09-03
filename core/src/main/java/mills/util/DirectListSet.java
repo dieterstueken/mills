@@ -65,7 +65,7 @@ abstract public class DirectListSet<T> extends AbstractListSet<T> implements Ind
         };
     }
 
-    static <T> boolean isDirect(List<T> values, Indexer<? super T> index) {
+    public static <T> boolean isDirect(List<T> values, Indexer<? super T> index) {
         for (int i = 0; i < values.size(); i++) {
             T value = values.get(i);
             if(index.indexOf(value)!=i)

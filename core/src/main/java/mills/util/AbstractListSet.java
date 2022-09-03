@@ -38,6 +38,12 @@ abstract public class AbstractListSet<T> extends AbstractRandomList<T> implement
         return toIndex-fromIndex;
     }
 
+    @Override
+    public int lastIndexOf(final Object o) {
+        // unique elements
+        return indexOf(o);
+    }
+
     public boolean inRange(int index) {
         return index >= 0 && index < MAX_INDEX;
     }

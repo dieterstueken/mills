@@ -128,8 +128,17 @@ public interface ListSet<T> extends RandomList<T>, SortedSet<T> {
         return of(new ArrayList<>(), comparator);
     }
 
+
     static <T extends Comparable<T>> ListSet<T> of() {
         return of(Comparator.naturalOrder());
+    }
+
+    static <T extends Indexed> ListSet<T> ofIndexed(List<T> values) {
+        return IndexedListSet.of(values);
+    }
+
+    static <T extends Indexed> IndexedListSet<T> ifDirect(List<T> values) {
+        return IndexedListSet.ifDirect(values);
     }
 
     static <T> ListSet<T> of(List<T> values, Comparator<? super T> comparator) {
@@ -137,11 +146,15 @@ public interface ListSet<T> extends RandomList<T>, SortedSet<T> {
     }
 
     static <T extends Indexed> ListSet<T> ofIndexed(int size, IntFunction<? extends T> generate) {
-        return of(AbstractRandomList.generate(size, generate));
+        return ofIndexed(AbstractRandomList.generate(size, generate));
+    }
+
+    static <T extends Indexed> ListSet<T> ofDirect(List<T> values) {
+        return DirectListSet.of(values, Indexer.INDEXED);
     }
 
     static <T> ListSet<T> ofIndexed(int size, IntFunction<? extends T> generate, Indexer<T> indexer) {
-        return of(AbstractRandomList.generate(size, generate), indexer);
+        return IndexedDelegate.of(AbstractRandomList.generate(size, generate), indexer);
     }
 
     static <T extends Comparable<? super T>> ListSet<T> of(List<T> values) {

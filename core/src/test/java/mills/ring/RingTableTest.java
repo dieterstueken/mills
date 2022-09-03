@@ -5,14 +5,14 @@ import mills.bits.Pattern;
 import mills.bits.Perm;
 import mills.position.Positions;
 import mills.util.Stat;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Created by IntelliJ IDEA.

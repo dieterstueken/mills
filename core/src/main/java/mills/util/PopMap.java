@@ -1,6 +1,7 @@
 package mills.util;
 
 import mills.bits.PopCount;
+import mills.ring.EntryTable;
 
 import java.util.List;
 import java.util.function.Function;
@@ -13,12 +14,36 @@ import java.util.function.Function;
  */
 public class PopMap<T> extends ListMap<PopCount, T> {
 
-    public PopMap(ListSet<PopCount> keys, List<T> values) {
+    protected PopMap(ListSet<PopCount> keys, List<T> values) {
         super(keys, values);
     }
 
-    public PopMap(List<T> values) {
-        super(PopCount.TABLE, values);
+    public static <T> PopMap<T> of(ListSet<PopCount> keys, List<T> values) {
+        if(keys instanceof DirectListSet<PopCount>)
+            return ofDirect(keys, values);
+        else
+            return new PopMap<>(keys, values);
+    }
+
+    public static <T> PopMap<T> ofDirect(ListSet<PopCount> keys, List<T> values) {
+
+        assert DirectListSet.isDirect(keys, Indexer.INDEXED);
+
+        return new PopMap<>(keys, values) {
+            @Override
+            public T get(PopCount pop) {
+                return getValue(pop.index);
+            }
+
+            @Override
+            public T getOf(int index) {
+                return getValue(index);
+            }
+        };
+    }
+
+    static <T> PopMap<T> of(List<T> values) {
+        return ofDirect(PopCount.TABLE, values);
     }
 
     /**
@@ -34,17 +59,29 @@ public class PopMap<T> extends ListMap<PopCount, T> {
         if(pop==null)
             return null;
         else
-            return super.getValue(pop.index);
+            return super.get(pop);
+    }
+
+    public T getOf(int index) {
+        return get(PopCount.get(index));
+    }
+
+    public int findIndex(PopCount pop) {
+        return keySet.findIndex(pop);
     }
 
     public T put(PopCount pop, T value) {
-        return values.set(pop.index, value);
+        int index = findIndex(pop);
+        return values.set(index, value);
     }
-
 
     public static <T> PopMap<T> allocate(int size) {
         var table = AbstractRandomList.<T>preset(size, null);
-        return new PopMap<>(table);
+        return PopMap.of(table);
+    }
+
+    public static PopMap<EntryTable> lePops(EntryTable root) {
+        return PopMap.of(PopCount.TABLE.transform(pop -> root.filter(pop.le)));
     }
 
     public static <T> PopMap<T> allocate() {

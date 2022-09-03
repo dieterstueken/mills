@@ -9,6 +9,7 @@ import mills.position.Positions;
 import mills.ring.EntryMap;
 import mills.util.IndexTable;
 import mills.util.ListMap;
+import mills.util.PopMap;
 
 import java.util.function.Function;
 
@@ -22,11 +23,11 @@ public class IndexGroup implements PosIndex {
 
     final PopCount pop;
 
-    final ListMap<PopCount, C2Table> group;
+    final PopMap<C2Table> group;
 
     final IndexTable it;
 
-    IndexGroup(PopCount pop, Function<IndexGroup, ListMap<PopCount, C2Table>> builder) {
+    IndexGroup(PopCount pop, Function<IndexGroup, PopMap<C2Table>> builder) {
         this.pop = pop;
         this.group = builder.apply(this);
         this.it = IndexTable.sum(group.values(), C2Table::range);

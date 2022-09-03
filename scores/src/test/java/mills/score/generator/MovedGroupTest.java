@@ -5,7 +5,7 @@ import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
 import mills.score.Score;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 import java.util.stream.IntStream;

@@ -22,9 +22,9 @@ import java.util.Set;
  */
 public class ListMap<K, V> extends AbstractMap<K, V> {
 
-    final ListSet<K> keySet;
+    protected final ListSet<K> keySet;
 
-    final List<V> values;
+    protected final List<V> values;
 
     protected ListMap(ListSet<K> keySet, List<V> values) {
         this.keySet = keySet;

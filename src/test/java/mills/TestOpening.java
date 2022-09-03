@@ -4,7 +4,7 @@ import mills.bits.Clops;
 import mills.index.IndexProvider;
 import mills.score.attic.opening.MovedLayer;
 import mills.score.attic.opening.Plop;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Created by IntelliJ IDEA.

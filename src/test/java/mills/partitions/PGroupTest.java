@@ -1,10 +1,12 @@
 package mills.partitions;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
 import java.util.IntSummaryStatistics;
 import java.util.stream.IntStream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * version:     $Revision$
@@ -34,8 +36,8 @@ public class PGroupTest {
 
                 //System.out.format("%03x %02x %02x %02x %3d\n", igrp, msk, min, max, stat.getCount());
 
-                org.junit.Assert.assertTrue(stat.getMax() == max);
-                org.junit.Assert.assertTrue(stat.getMin()==min);
+                assertEquals(stat.getMax(), max);
+                assertEquals(stat.getMin(), min);
             });
         });
     }

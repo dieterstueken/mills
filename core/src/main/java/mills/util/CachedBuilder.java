@@ -2,8 +2,7 @@ package mills.util;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.ForkJoinTask;
 import java.util.function.Supplier;
 
 /**
@@ -24,10 +23,6 @@ abstract public class CachedBuilder<V> {
 
     abstract protected V build();
 
-    protected ForkJoinPool getBuildPool() {
-        return ForkJoinPool.commonPool();
-    }
-
     public V get() {
         V value = cached();
         if(value!=null || cached==null)
@@ -35,7 +30,7 @@ abstract public class CachedBuilder<V> {
 
         Supplier<V> builder = this.builder;
         if(builder==null)
-            builder = newTask();
+            builder = newBuilder();
 
         return builder.get();
     }
@@ -48,7 +43,7 @@ abstract public class CachedBuilder<V> {
             return null;
     }
 
-    private synchronized Supplier<V> newTask() {
+    private synchronized Supplier<V> newBuilder() {
         // double check
         Supplier<V> builder = this.builder;
         if(builder!=null)
@@ -59,19 +54,29 @@ abstract public class CachedBuilder<V> {
         if(value!=null || cached==null)
             return ()->value;
 
-        Task task = new Task();
+        ForkJoinTask<V> task = ForkJoinTask.adapt(this::compute);
 
         // others have to join
         this.builder = task::join;
 
         // we invoke the task directly
-        return task::run;
+        return task::invoke;
+    }
+
+    /**
+     * Compute the value and setup as result.
+     * @return the computed value after installing it.
+     */
+    private V compute() {
+        V value = build();
+        built(value);
+        return value;
     }
 
     /**
      * Set up a built result.
      * If value is null, cached is set to null, too.
-     * This indicates, that no further result s are expected.
+     * This indicates, that no further results are expected.
      * @param value to set up.
      */
     private synchronized void built(V value) {
@@ -88,37 +93,17 @@ abstract public class CachedBuilder<V> {
         }
     }
 
-    private class Task extends RecursiveTask<V>  {
-
-        final Thread worker;
-
-        Task() {
-            this.worker = Thread.currentThread();
-        }
-
-        V run() {
-            return getBuildPool().invoke(this);
-        }
-
-        @Override
-        protected V compute() {
-
-            V value = build();
-            built(value);
-
-            return value;
-        }
-    }
 
     protected Reference<V> newReference(V value) {
         return new SoftReference<>(value);
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Drop all caches.
+     */
     public void clear() {
-        if(cached!=null) {
-            builder = null;
+        Reference<V> cached = this.cached;
+        if(cached!=null)
             cached.enqueue();
-        }
     }
 }

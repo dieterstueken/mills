@@ -1,14 +1,13 @@
 package mills.ring;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class EntryTableTest {
 
@@ -26,19 +25,19 @@ public class EntryTableTest {
 
             String message = String.format("entry %2d: %2d %2d %2d", e.index, index, lower, upper);
             //System.out.println(message);
-
             if(index>=0 && index< entryTable.size())
-                assertTrue(message, e.equals(entryTable.get(index)));
+                assertEquals(e, entryTable.get(index), message);
 
             for(int k=0; k<lower; ++k)
-                assertTrue(message, entryTable.get(k).index < i);
+                assertTrue(entryTable.get(k).index < i, message);
             for(int k=lower; k< entryTable.size(); ++k)
-                assertTrue(message, entryTable.get(k).index >= i);
+                assertTrue(entryTable.get(k).index >= i, message);
 
             for(int k=0; k<upper; ++k)
-                assertTrue(message, entryTable.get(k).index <= i);
+                assertTrue(entryTable.get(k).index <= i, message);
             for(int k=upper; k< entryTable.size(); ++k)
-                assertTrue(message, entryTable.get(k).index > i);
+                assertTrue(entryTable.get(k).index > i);
+
 
             testEqual("equal head", entryTable.headSet(e), intTable.headSet(i));
             testEqual("equal tail", entryTable.tailSet(e), intTable.tailSet(i));
@@ -78,9 +77,9 @@ public class EntryTableTest {
         }
     }
 
-    @Test(expected= IllegalArgumentException.class)
-    public void testCreation() throws Exception {
-        EntryTable.of(2, 3, 10, 9);
+    @Test
+    public void testCreation() {
+        assertThrows(IllegalArgumentException.class, () -> EntryTable.of(2, 3, 10, 9));
     }
 
     @Test
@@ -102,10 +101,10 @@ public class EntryTableTest {
 
     private void testEqual(String message, EntryTable et, Set<Integer> is) {
 
-        assertEquals(message, et.size(), is.size());
+        assertEquals(et.size(), is.size(), message);
 
         for (RingEntry e : et) {
-            assertTrue(message, is.contains((int) e.index));
+            assertTrue(is.contains((int) e.index), message);
         }
     }
 
