@@ -44,7 +44,7 @@ public class EntryTables {
 
         int size = list.size();
         if(size==0)
-            return EntryTable.EMPTY;
+            return IndexedEntryTable.of();
 
         if(size==1)
             return list.get(0).singleton;
@@ -179,7 +179,7 @@ public class EntryTables {
             return null;
 
         if(index == -1)
-            return EntryTable.EMPTY;
+            return EntryTable.of();
 
         if(index < RingEntry.MAX_INDEX)
             return Entries.of(index).singleton;

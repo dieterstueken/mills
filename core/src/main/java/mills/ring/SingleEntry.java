@@ -43,7 +43,7 @@ class SingleEntry extends AbstractEntryTable implements IndexedEntryTable {
         if (predicate.test(entry))
             return this;
         else
-            return EntryTable.EMPTY;
+            return EntryTable.of();
     }
 
     @Override

@@ -14,9 +14,7 @@ import java.util.stream.Stream;
 
 class EmptyTable extends AbstractEntryTable implements IndexedEntryTable {
 
-    public static EmptyTable of() {
-        return new EmptyTable();
-    }
+    static final IndexedEntryTable EMPTY = new EmptyTable();
 
     @Override
     public EmptyTable filter(Predicate<? super RingEntry> predicate) {

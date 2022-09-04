@@ -7,7 +7,7 @@ import mills.util.PopMap;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * Created by IntelliJ IDEA.
@@ -15,15 +15,18 @@ import java.util.concurrent.ForkJoinTask;
  * Date: 26.01.21
  * Time: 21:31
  */
-public class Partitions extends PopMap<Partition> {
+class Partitions extends PopMap<Partition> {
 
     final PopMap<EntryTable> lePops;
     final PopMap<EntryTable> minPops;
 
-    protected Partitions(List<Partition> partitions, PopMap<EntryTable> lePops, PopMap<EntryTable> minPops) {
+    final ForkJoinPool pool;
+
+    protected Partitions(ForkJoinPool pool, List<Partition> partitions, PopMap<EntryTable> lePops, PopMap<EntryTable> minPops) {
         super(PopCount.TABLE, partitions);
         this.lePops = lePops;
         this.minPops = minPops;
+        this.pool = pool;
     }
 
     @Override
@@ -42,13 +45,14 @@ public class Partitions extends PopMap<Partition> {
         return getValue(index);
     }
 
-    public static Partitions create() {
-        var task = ForkJoinTask.adapt(Partitions::partitions).fork();
+    public static Partitions create(ForkJoinPool pool) {
+
+        var task = pool.submit(Partitions::partitions);
 
         PopMap<EntryTable> lePops = PopMap.lePops(Entries.TABLE);
         PopMap<EntryTable> minPops = PopMap.lePops(Entries.MINIMIZED);
 
-        return new Partitions(task.join(), lePops, minPops);
+        return new Partitions(pool, task.join(), lePops, minPops);
     }
 
     private static List<Partition> partitions() {
@@ -65,7 +69,7 @@ public class Partitions extends PopMap<Partition> {
 
     public static void main(String ... args) {
 
-        Partitions pts = Partitions.create();
+        Partitions pts = Partitions.create(ForkJoinPool.commonPool());
 
         pts.dump("root:", pt->String.format("%5d", pt.root.size()));
         pts.dump("max frag size:", pt-> {

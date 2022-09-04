@@ -8,6 +8,7 @@ import mills.util.CachedBuilder;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * version:     $
@@ -33,7 +34,7 @@ public class IndexGroups implements IndexProvider {
 
     final Debug debug;
 
-    final Partitions partitions = Partitions.create();
+    final Partitions partitions = Partitions.create(new ForkJoinPool());
 
     final List<Provider> providers;
 
@@ -69,6 +70,8 @@ public class IndexGroups implements IndexProvider {
     public class Provider extends CachedBuilder<IndexGroup> {
         final PopCount pop;
 
+        Thread worker;
+
         Provider(final PopCount p_pop) {
             pop = p_pop;
         }
@@ -81,9 +84,11 @@ public class IndexGroups implements IndexProvider {
         @Override
         protected IndexGroup build() {
             debug.start(pop);
+            worker = Thread.currentThread();
             GroupBuilder builder = new GroupBuilder(partitions, pop);
             IndexGroup result = new IndexGroup(pop, g->builder.build(g::newGroupIndex));
             debug.done(result);
+            worker = null;
             return result;
         }
 

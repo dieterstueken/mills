@@ -106,7 +106,7 @@ public class R0Table extends IndexedMap<EntryTable> {
     }
 
     public static final R0Table EMPTY = new R0Table(
-            EntryTable.EMPTY, Collections.<EntryTable>emptyList(), IndexTable.EMPTY
+            EntryTable.of(), Collections.<EntryTable>emptyList(), IndexTable.EMPTY
     );
 
     public static R0Table of(EntryTable r0, List<EntryTable> t1, IndexTable it) {

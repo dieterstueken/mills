@@ -68,13 +68,14 @@ public interface EntryTable extends IndexedListSet<RingEntry> {
 
     ////////////////////////////////////////////////////////////////////////////////////////////
 
-    // an empty table template
-    IndexedEntryTable EMPTY = EmptyTable.of();
+    static EntryTable of() {
+        return IndexedEntryTable.of();
+    }
 
     static EntryTable of(Iterator<? extends RingEntry> entries, int size) {
 
         if(size==0)
-            return EMPTY;
+            return EmptyTable.EMPTY;
 
         RingEntry e = entries.next();
 
@@ -107,7 +108,7 @@ public interface EntryTable extends IndexedListSet<RingEntry> {
         final int size = entries.size();
 
         if(size==0)
-            return EMPTY;
+            return EmptyTable.EMPTY;
 
         return of(entries.iterator(), size);
     }
@@ -137,7 +138,7 @@ public interface EntryTable extends IndexedListSet<RingEntry> {
 
         int size = toIndex - fromIndex;
         if(size==0)
-            return EMPTY;
+            return EmptyTable.EMPTY;
 
         if(size==1)
             return SingleEntry.of(table[fromIndex]);

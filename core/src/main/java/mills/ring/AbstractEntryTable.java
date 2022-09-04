@@ -71,7 +71,7 @@ abstract public class AbstractEntryTable extends AbstractListSet<RingEntry> impl
         int size = checkRange(fromIndex, toIndex);
 
         if(size==0)
-            return EntryTable.EMPTY;
+            return EntryTable.of();
 
         if(size==1)
             return get(fromIndex).singleton;
@@ -107,7 +107,7 @@ abstract public class AbstractEntryTable extends AbstractListSet<RingEntry> impl
             return this;
 
         if(predicate == Entries.NONE)
-            return EntryTable.EMPTY;
+            return EntryTable.of();
 
         int i0; // first match
 
@@ -119,7 +119,7 @@ abstract public class AbstractEntryTable extends AbstractListSet<RingEntry> impl
         }
 
         if(i0==size())
-            return EntryTable.EMPTY;
+            return EntryTable.of();
 
         int i1; // first miss
 

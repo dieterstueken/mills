@@ -66,6 +66,6 @@ class GroupBuilder {
 
     private void buildEntries() {
         T0Builder builder = new T0Builder(this);
-        builder.invoke();
+        partitions.pool.invoke(builder);
     }
 }

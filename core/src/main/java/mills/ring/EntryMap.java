@@ -189,7 +189,7 @@ public class EntryMap<T> implements SortedMap<RingEntry, T> {
         return new EntryMap<>(keys, values);
     }
 
-    private static final EntryMap<Object> EMPTY = new EntryMap<>(EntryTable.EMPTY, List.of());
+    private static final EntryMap<Object> EMPTY = new EntryMap<>(EntryTable.of(), List.of());
 
     @SuppressWarnings("unchecked")
     public static <T> EntryMap<T> empty() {

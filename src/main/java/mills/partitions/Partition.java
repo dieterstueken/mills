@@ -29,7 +29,7 @@ public class Partition {
 
     public EntryTable pop(int pop) {
         if(pop<0 || pop>=partitions.size())
-            return EntryTable.EMPTY;
+            return EntryTable.of();
 
         return partitions.get(pop);
     }

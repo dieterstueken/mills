@@ -1,7 +1,6 @@
 package mills.index.builder;
 
 import mills.ring.Entries;
-import mills.ring.EntryTable;
 import mills.ring.IndexedEntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomArray;
@@ -38,7 +37,7 @@ public class Tables {
 
     public IndexedEntryTable get(int index) {
         if (index < 0)
-            return EntryTable.EMPTY;
+            return IndexedEntryTable.of();
 
         if (index < MAX_INDEX)
             return Entries.of(index).singleton;
@@ -58,7 +57,7 @@ public class Tables {
         int size = entries.size();
 
         if (size == 0)
-            return EntryTable.EMPTY;
+            return IndexedEntryTable.of();
 
         if (size == 1) {
             return entries.get(0).singleton;

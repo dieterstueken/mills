@@ -32,7 +32,7 @@ public class PartitionBuilder<P> extends RecursiveTask<Partitions<P>> {
 
     public PartitionBuilder(Function<EntryTable, P> generator) {
         this.generator = generator;
-        this.empty = PartitionTable.empty(generator.apply(EntryTable.EMPTY));
+        this.empty = PartitionTable.empty(generator.apply(EntryTable.of()));
     }
 
     public PartitionTable<P> build(PopCount pop) {

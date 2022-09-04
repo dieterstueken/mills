@@ -39,20 +39,29 @@ abstract public class QueueActor<T> implements AutoCloseable {
      * @return # of executed tasks
      */
     public int submit(Consumer<? super T> action) {
-        mbox.offer(action);
-
         int processed = 0;
 
-        // process any work if idle
-        while(!mbox.isEmpty() && idle.compareAndSet(true, false)) {
-
-            try {
-                processed += work();
-            } finally {
-                // reset to idle
-                idle.set(true);
+        do {
+            if(idle.compareAndSet(true, false)) {
+                try {
+                    processed += work();
+                    // process any local action
+                    if(action!=null) {
+                        action.accept(actor());
+                        action = null;
+                        ++processed;
+                    }
+                } finally {
+                    // reset to idle
+                    idle.set(true);
+                }
+            } else if(action!=null) {
+                // someone else is currently working
+                mbox.offer(action);
+                action = null;
             }
-        }
+            // anything to do
+        } while(!(mbox.isEmpty()));
 
         return processed;
     }

@@ -1,7 +1,6 @@
 package mills.index.builder;
 
 import mills.ring.Entries;
-import mills.ring.EntryTable;
 import mills.ring.IndexedEntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomArray;
@@ -37,7 +36,7 @@ public class Fragments {
         return String.format("f[%d]", root.size());
     }
 
-    static final Fragments EMPTY = new Fragments(EntryTable.EMPTY, AbstractRandomArray.constant(81, List.of()));
+    static final Fragments EMPTY = new Fragments(IndexedEntryTable.of(), AbstractRandomArray.constant(81, List.of()));
 
     static Fragments of(IndexedEntryTable root, Tables registry) {
         if(root.isEmpty())
