@@ -29,7 +29,7 @@ abstract public class Move {
 
     public static Move moves(ScoreMap from, ScoreMap to, boolean reverse) {
 
-        Player player = from.player().other(reverse);
+        Player player = from.player().either(reverse);
         Moves moves = from.moves(player);
 
         return new Move(from, to, player, moves, reverse) {
@@ -129,7 +129,7 @@ abstract public class Move {
     public Move move(long i201, boolean closed) {
         this.i201 = i201;
 
-        final int stay = Stones.stones(i201, player.other());
+        final int stay = Stones.stones(i201, player.opponent());
         final int move = Stones.stones(i201, player);
 
         // either closed only or excluding closed
@@ -145,7 +145,7 @@ abstract public class Move {
     public Move move(long i201) {
         this.i201 = i201;
 
-        final int stay = Stones.stones(i201, player.other());
+        final int stay = Stones.stones(i201, player.opponent());
         final int move = Stones.stones(i201, player);
 
         // move all
@@ -172,11 +172,11 @@ abstract public class Move {
 
             this.i201 = i201;
 
-            final int stay = Stones.stones(i201, player.other());
+            final int stay = Stones.stones(i201, player.opponent());
             final int move = Stones.stones(i201, player);
 
             // find if opponent closed any mill
-            if (!map.moves(player.other()).any(move, stay, Stones.closed(stay))) {
+            if (!map.moves(player.opponent()).any(move, stay, Stones.closed(stay))) {
                 mover.clear();
                 return this;
             }
@@ -209,7 +209,7 @@ abstract public class Move {
 
             this.i201 = i201;
 
-            final int stay = Stones.stones(i201, player.other());
+            final int stay = Stones.stones(i201, player.opponent());
             final int move = Stones.stones(i201, player);
 
             int free = Stones.free(stay | move);

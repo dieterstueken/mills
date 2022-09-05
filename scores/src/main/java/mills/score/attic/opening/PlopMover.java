@@ -40,7 +40,7 @@ abstract public class PlopMover implements IndexProcessor, AutoCloseable {
 
     public void process(int posIndex, long i201) {
 
-        int stay = Stones.stones(i201, player.other());
+        int stay = Stones.stones(i201, player.opponent());
         int move = Stones.stones(i201, player);
         int mask = move(stay, move);
 

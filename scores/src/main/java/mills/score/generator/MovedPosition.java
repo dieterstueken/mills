@@ -30,7 +30,7 @@ public class MovedPosition extends ScoredPosition {
         List<? extends ScoredPosition> xmoved = AbstractRandomList.transform(this.moved, ScoredPosition::inverted);
         List<? extends ScoredPosition> xclosed = AbstractRandomList.transform(this.closed, ScoredPosition::inverted);
 
-        return new MovedPosition(i201, player.other(), score, xmoved, xclosed) {
+        return new MovedPosition(i201, player.opponent(), score, xmoved, xclosed) {
             @Override
             public MovedPosition inverted() {
                 return MovedPosition.this;

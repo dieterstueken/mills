@@ -29,7 +29,7 @@ public enum Player {
         }
 
         @Override
-        public Player other() {
+        public Player opponent() {
             throw new IllegalStateException();
         }
 
@@ -46,7 +46,7 @@ public enum Player {
         }
 
         @Override
-        public Player other() {
+        public Player opponent() {
             return White;
         }
 
@@ -62,7 +62,7 @@ public enum Player {
         }
 
         @Override
-        public Player other() {
+        public Player opponent() {
             return Black;
         }
 
@@ -86,14 +86,14 @@ public enum Player {
         return count(pop)<=3;
     }
 
-    abstract public Player other();
+    abstract public Player opponent();
 
     public Player and(Player other) {
         return other==this ? this : None;
     }
 
-    public Player other(boolean swap) {
-        return swap ? other() : this;
+    public Player either(boolean swap) {
+        return swap ? opponent() : this;
     }
 
     abstract public int stones(BW bw);

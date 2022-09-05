@@ -179,13 +179,13 @@ abstract class ScoreElevator extends ScoreWorker {
                         final Player player = map.player();
 
                         // see if opponent has closed any mill
-                        int other = Stones.stones(i201, player.other());
+                        int other = Stones.stones(i201, player.opponent());
                         final int closed = Stones.closed(other);
 
                         if (closed != 0) {
                             int self = Stones.stones(i201, player);
 
-                            if (map.moves(player.other()).any(self, other, closed))
+                            if (map.moves(player.opponent()).any(self, other, closed))
                                 return true;
                         }
 

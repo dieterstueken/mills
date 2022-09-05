@@ -61,7 +61,7 @@ public class Situation {
     }
 
     public Situation swap() {
-        return new Situation(pop.swap(), stock, player.other());
+        return new Situation(pop.swap(), stock, player.opponent());
     }
 
     public PopCount popMax() {
@@ -101,7 +101,7 @@ public class Situation {
 
         if (hit) {
             // take a stone
-            put = put.sub(player.other().pop);
+            put = put.sub(player.opponent().pop);
             if (put == null)
                 return null;
 
@@ -116,7 +116,7 @@ public class Situation {
                 return null;
         }
 
-        return Situation.of(put, stock - 1, player.other());
+        return Situation.of(put, stock - 1, player.opponent());
     }
 
     /**
@@ -131,7 +131,7 @@ public class Situation {
             return null;
 
         // reverse move
-        PopCount xput = pop.sub(player.other().pop);
+        PopCount xput = pop.sub(player.opponent().pop);
 
         // may cause underflow
         if (xput == null)
@@ -147,7 +147,7 @@ public class Situation {
             xput = xput.add(player.pop);
         }
 
-        return Situation.of(xput, stock + 1, player.other());
+        return Situation.of(xput, stock + 1, player.opponent());
     }
 
     @Override

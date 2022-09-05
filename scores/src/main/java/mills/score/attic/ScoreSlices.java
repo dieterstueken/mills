@@ -68,7 +68,7 @@ public class ScoreSlices {
             public void process(int posIndex, long i201) {
 
                 int self = Stones.stones(i201, player);
-                int other = Stones.stones(i201, player.other());
+                int other = Stones.stones(i201, player.opponent());
 
                 if (!anyMove(self, other)) {
                     ScoreSlice slice = slices.get(posIndex >>> 15);

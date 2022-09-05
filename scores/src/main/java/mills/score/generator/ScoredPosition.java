@@ -38,7 +38,7 @@ class ScoredPosition extends Position implements Layer {
     }
 
     public ScoredPosition inverted() {
-        return new ScoredPosition(Positions.inverted(i201), player.other(), score) {
+        return new ScoredPosition(Positions.inverted(i201), player.opponent(), score) {
             @Override
             public ScoredPosition inverted() {
                 return ScoredPosition.this;

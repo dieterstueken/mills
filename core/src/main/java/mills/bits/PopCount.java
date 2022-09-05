@@ -141,7 +141,7 @@ public class PopCount implements Indexed {
     }
 
     /**
-     * Subtract an other pop count and return thr remaining population.
+     * Subtract another pop count and return thr remaining population.
      * or null, if the remaining population drops below zero.
      *
      * @param other pop count to subtract

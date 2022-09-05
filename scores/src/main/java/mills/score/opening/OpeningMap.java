@@ -1,10 +1,11 @@
 package mills.score.opening;
 
+import mills.bits.Clops;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
 
-import java.util.List;
-import java.util.function.LongConsumer;
+import java.util.BitSet;
+import java.util.function.LongPredicate;
 
 /**
  * version:     $
@@ -13,55 +14,72 @@ import java.util.function.LongConsumer;
  * modified by: $
  * modified on: $
  */
-public class OpeningMap {
-
-    final OpeningLayer layer;
+public class OpeningMap extends OpeningLayer {
 
     final PosIndex index;
 
-    final List<BitMap> bits;
+    final BitSet bits;
 
-    OpeningMap(PosIndex index, OpeningLayer layer) {
-        this.layer = layer;
+    OpeningMap(PosIndex index, int turn, Clops clops) {
+        super(turn, clops);
         this.index = index;
-
-        this.bits = BitMap.list(index.range());
+        this.bits = new BitSet(index.range());
     }
 
-    public static OpeningMap open(IndexProvider provider, OpeningLayer layer) {
-        PosIndex index = provider.build(layer.clops);
-        return new OpeningMap(index, layer);
+    public static OpeningMap open(IndexProvider provider, int turn, Clops clops) {
+        PosIndex index = provider.build(clops);
+        return new OpeningMap(index, turn, clops);
     }
 
-    public void set(int pos) {
-        bits.get(pos/BitMap.SIZE).set(pos%BitMap.SIZE);
+    void set(int pos) {
+        bits.set(pos);
     }
 
-    public int cardinality() {
-        return bits.stream().mapToInt(BitMap::cardinality).sum();
+    public boolean get(long i201) {
+        int pos = index.posIndex(i201);
+        return bits.get(pos);
     }
 
-    public void stat() {
-        final int range = index.range();
-        final int cardinality = cardinality();
-        if(range==cardinality)
-            System.out.format("t: %s %,13d\n", layer, range);
-        else {
-            double r = Math.log((double)range/cardinality)/Math.log(2);
-            System.out.format("t: %s %,13d %,13d %.1f\n", layer, range, cardinality, r);
-        }
+    void propagate(LongPredicate source) {
+        MapProcessor processor = new MapProcessor(this, source);
+        processor.run();
     }
 
-    public MapTarget openTarget() {
-        return new MapTarget(this);
+    OpeningLayer reduce() {
+        if(isComplete())
+            return new OpeningLayer(turn, clops);
+
+        return this;
     }
 
-    void propagate(LongConsumer target) {
-        bits.parallelStream().forEach(bits->process(bits, target));
+    public boolean isComplete() {
+        return bits.previousClearBit(range()-1) < 0;
     }
-    
-    void process(BitMap bits, LongConsumer target) {
-        MapProcessor processor = new MapProcessor(layer, target);
-        bits.process(index, processor);
+
+    public boolean isEmpty() {
+        return bits.previousSetBit(range()-1) < 0;
+    }
+
+    public int range() {
+        return index.range();
+    }
+
+    public String toString() {
+        int range = index.range();
+        int cardinality = bits.cardinality();
+        double db = 10*Math.log((double)range/cardinality)/Math.log(10);
+
+        String format = "O%d%c%d%dc%d%d %,13d %,13d (%.1f)";
+
+        if(cardinality==0)
+            format = "O%d%c%d%dc%d%d %,13d 0";
+        else if(range==cardinality)
+            format = "O%d%c%d%dc%d%d %,13d complete";
+
+        return String.format(format, turn/2,
+                player().key(),
+                pop().nb, pop().nw,
+                clop().nb, clop().nw,
+                range, cardinality, db);
     }
 }

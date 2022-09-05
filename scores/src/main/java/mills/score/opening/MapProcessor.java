@@ -1,14 +1,10 @@
 package mills.score.opening;
 
-import mills.bits.Clops;
 import mills.bits.Player;
-import mills.index.IndexProcessor;
-import mills.position.Positions;
-import mills.stones.Mover;
-import mills.stones.Moves;
 import mills.stones.Stones;
+import mills.util.ConcurrentCompleter;
 
-import java.util.function.LongConsumer;
+import java.util.function.LongPredicate;
 
 /**
  * Created by IntelliJ IDEA.
@@ -16,53 +12,89 @@ import java.util.function.LongConsumer;
  * Date: 29.08.22
  * Time: 16:33
  */
-public class MapProcessor implements IndexProcessor {
+public class MapProcessor {
 
-    final OpeningLayer layer;
+    static final int CHUNK = 16*64;
 
-    final Mover mover;
+    // this is the player on Target
+    final OpeningMap map;
 
-    final Mover closer;
+    final LongPredicate source;
 
-    final LongConsumer target;
+    final Player player;
 
-    public MapProcessor(OpeningLayer layer, LongConsumer target) {
-        this.layer = layer;
-        this.target = target;
-        this.mover = Moves.TAKE.mover(layer.player() == Player.Black);
-        this.closer = Moves.TAKE.mover(layer.player() != Player.Black);
+    public MapProcessor(OpeningMap map, LongPredicate source) {
+        this.map = map;
+        this.source = source;
+        this.player = map.player().opponent();
+    }
+
+    public void run() {
+        int count = (map.index.range() + CHUNK - 1) / CHUNK;
+        ConcurrentCompleter.compute(count, this::processChunk);
+    }
+
+    void processChunk(int chunk) {
+        int start = chunk*CHUNK;
+        map.index.process(this::process, start, start+CHUNK);
     }
 
     public void process(int posIndex, long i201) {
-        Player player = layer.player();
-        int stay = Stones.stones(i201, player.other());
-        int move = Stones.stones(i201, player);
-        int mask = Stones.STONES ^ (stay | move);
-
-        mover.move(stay, move, mask);
-        mover.normalize();
-        mover.analyze(this::propagate);
+        if(analyze(i201))
+            map.set(posIndex);
     }
 
-    private void propagate(long i201) {
-        Clops clops = Positions.clops(i201);
+    boolean analyze(long i201) {
 
-        if(!clops.clop().equals(layer.clop())) {
-            // take an opponents stone
-            Player player = layer.player();
-            int self = Stones.stones(i201, player);
-            int oppo = Stones.stones(i201, player.other());
-            int closed = Stones.closed(oppo);
+        int stay = Stones.stones(i201, player.opponent());
+        int move = Stones.stones(i201, player);
+        int free = Stones.STONES ^ (stay|move);
+        int closed = Stones.closed(move);
 
-            // any non mill stones?
-            if(closed!=oppo)
-                closer.move(self, oppo, oppo^closed);
-            else
-                closer.move(self, oppo, closed);
+        for(int m=move, j=m&-m; j!=0; m^=j, j=m&-m) {
+            int moved = move^j;
 
-            closer.normalize();
-            closer.analyze(target);
-        } else
-            target.accept(i201);
+            if((closed&j)==0) {
+                if(analyze(stay, moved))
+                    return true;
+            } else {
+                if(analyzeClosed(stay, moved, free))
+                    return true;
+            }
+        }
+
+        // nothing hit.
+        return false;
+    }
+
+    boolean analyze(int stay, int moved) {
+        long i201 = Stones.i201(stay, moved, player);
+        return source.test(i201);
+    }
+
+    boolean analyzeClosed(int removed, int moved, int free) {
+
+        // closed mills after remove
+        int closed = Stones.closed(removed);
+
+        // some mill was broken
+        boolean anyBroken = false;
+
+        for(int j=free&-free; j!=0; free^=j, j=free&-free) {
+            // j was taken
+            int before = removed | j;
+
+            // find if any mill was broken
+            if(analyze(before, moved)) {
+                // regular remove
+                if((closed&j)==0)
+                    return true;
+                else
+                    anyBroken = true;
+            }
+        }
+
+        // report if any mill was broken.
+        return anyBroken;
     }
 }

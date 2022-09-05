@@ -11,7 +11,7 @@ import mills.bits.Sector;
 
 /**
  * Class Moves executes move operations based on a move table.
- * each move is propagated to a Move.Processor.
+ * Each move is propagated to a Move.Processor.
  * This class is not thread safe.
  */
 abstract public class Moves {

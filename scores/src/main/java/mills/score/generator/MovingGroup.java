@@ -85,7 +85,7 @@ public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> 
         return (posIndex, i201) -> {
             // reversed move
             int stay = Stones.stones(i201, player);
-            int move = Stones.stones(i201, player.other());
+            int move = Stones.stones(i201, player.opponent());
             int mask = Stones.closed(move);
             if (!closing())
                 mask ^= move;

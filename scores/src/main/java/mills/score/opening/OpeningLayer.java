@@ -5,7 +5,8 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.score.generator.ClopLayer;
 
-import java.util.Comparator;
+import java.util.function.Consumer;
+import java.util.function.LongPredicate;
 
 /**
  * version:     $
@@ -24,15 +25,9 @@ public class OpeningLayer implements ClopLayer {
 
     public static final int MAX_TURN = 18;
 
-    public static final Comparator<OpeningLayer> COMPARATOR = Comparator
-            .comparingInt(OpeningLayer::turn)
-            .thenComparingInt(OpeningLayer::getIndex);
-    
     final Clops clops;
     
     final int turn;
-
-    public static final OpeningLayer START = new OpeningLayer(0, Clops.EMPTY);
 
     public OpeningLayer(int turn, Clops clops) {
         this.turn = turn;
@@ -44,10 +39,6 @@ public class OpeningLayer implements ClopLayer {
         assert placed(turn).sub(clops.pop())!=null;
     }
 
-    public OpeningLayer(int turn) {
-        this(turn, clops(turn));
-    }
-
     public Clops clops() {
         return clops;
     }
@@ -56,36 +47,28 @@ public class OpeningLayer implements ClopLayer {
         return Clops.of(placed(turn), PopCount.EMPTY);
     }
 
-    public String toString() {
-        //if(pop().equals(placed()))
-        //    return String.format("O%d%c%d%d", turn/2,
-        //            player().key(),
-        //            pop().nb, pop().nw);
-        //else
 
+    public int range() {
+        return 0;
+    }
+
+    public boolean get(long i201) {
+        return true;
+    }
+
+    void propagate(LongPredicate source) {
+        // nothing to do.
+    }
+
+    OpeningLayer reduce() {
+        return this;
+    }
+
+    public String toString() {
         return String.format("O%d%c%d%dc%d%d", turn/2,
                     player().key(),
                     pop().nb, pop().nw,
                     clop().nb, clop().nw);
-    }
-
-    public OpeningLayer play(int close) {
-        if(turn>=MAX_TURN)
-            return null;
-
-        PopCount pop = pop().add(player().pop);
-        if(close>0)
-            pop = pop.sub(player().other().pop);
-        PopCount clop = clop();
-
-        for(; close>0; --close)
-            clop = clop.add(player().pop);
-
-        return new OpeningLayer(turn+1, Clops.of(pop, clop));
-    }
-
-    public int turn() {
-        return turn;
     }
 
     public Player player() {
@@ -114,12 +97,90 @@ public class OpeningLayer implements ClopLayer {
         return false;
     }
 
+    public boolean isComplete() {
+        return true;
+    }
+
+    public boolean isEmpty() {
+        return false;
+    }
+
+    Clops nextLayer() {
+        Player player = player();
+        PopCount pop = pop().add(player.pop);
+        PopCount clop = clop();
+        return Clops.of(pop, clop);
+    }
+
+    /**
+     * Precalculate possible clops of next step.
+     * pop+player,
+     * on close:
+     *   pop-player - 0,1,2 broken mills
+     *
+     * @return stream of possible clops
+     */
+    public void nextLayers(Consumer<Clops> next) {
+        if(turn==MAX_TURN)
+            return;
+
+        Clops nextLayer = nextLayer();
+
+        next.accept(nextLayer);
+
+        Player player = player();
+        Player opponent = player.opponent();
+
+        // next pop:
+        PopCount xpop = nextLayer.pop();
+        PopCount clop = clop();
+
+        // any closed?
+        int nc = PopCount.mclop(player.count(xpop));
+        nc -= player.count(clop);
+
+        if(nc==0)
+            return;
+
+        if(nc>2)
+            nc = 2;
+
+        // take an opponent stone
+        xpop = xpop.sub(opponent.pop);
+
+        // # of possible opponent mills
+        int oc = PopCount.mclop(opponent.count(xpop));
+
+        for(int i=0; i<nc; ++i) {
+            clop = clop.add(player.pop);
+
+            if(opponent.count(clop) <= oc) {
+                Clops closed = Clops.of(xpop, clop);
+                next.accept(closed);
+            }
+
+            PopCount clop1 = clop.sub(opponent.pop);
+
+            // no opponent mill to break
+            if (clop1 == null)
+                continue;
+
+            if(opponent.count(clop1) <= oc) {
+                Clops closed = Clops.of(xpop, clop1);
+                next.accept(closed);
+            }
+
+            // can we break two opponent mills?
+            PopCount clop2 = clop1.sub(opponent.pop);
+            if (clop2 != null)
+                next.accept(Clops.of(xpop, clop2));
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        OpeningLayer that = (OpeningLayer) o;
-        return turn == that.turn && clops.equals(that.clops);
+        return o instanceof OpeningLayer that && turn == that.turn && clops.equals(that.clops);
     }
 
     @Override

@@ -35,7 +35,7 @@ public class ClosingGroup<Slices extends ScoreSlices> extends MovingGroup<Slices
         Set<PopCount> clops = new HashSet<>();
 
         for (PopCount clop : PopCount.TABLE) {
-            if(clop.le(mclop) && player.other().pop.le(clop))
+            if(clop.le(mclop) && player.opponent().pop.le(clop))
                 clops.add(clop);
         }
 

@@ -65,7 +65,7 @@ public class GroupElevator {
         @Override
         public void process(int posIndex, long i201) {
             Player player = slice.player();
-            int stay = Stones.stones(i201, player.other());
+            int stay = Stones.stones(i201, player.opponent());
             int move = Stones.stones(i201, player);
             int closed = Stones.closed(move);
             int mask = move==closed ? closed : move^closed;

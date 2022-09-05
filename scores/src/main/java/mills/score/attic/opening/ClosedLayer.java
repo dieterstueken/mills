@@ -64,7 +64,7 @@ public class ClosedLayer extends PlopLayer {
 
         IndexProcessor processor = (posIndex, i201) -> {
             Player player = src.player();
-            int stay = Stones.stones(i201, player.other());
+            int stay = Stones.stones(i201, player.opponent());
             int move = Stones.stones(i201, player);
 
             // break a closed mill

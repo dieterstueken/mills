@@ -163,7 +163,7 @@ abstract public class MapSlice extends ScoreSlice {
 
     int unresolved(long i201) {
         Player player = player();
-        int stay = Stones.stones(i201, player.other());
+        int stay = Stones.stones(i201, player.opponent());
         int move = Stones.stones(i201, player);
         //int closed = Stones.closed(move);
         // include closed, too

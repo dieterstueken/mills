@@ -71,7 +71,7 @@ public class Mover implements Moves.Process {
     }
 
     /**
-     * If swap==false the next player to play is Black else Bhite.
+     * If swap==false the next player to play is Black else White.
      * @param stay opponents stones
      * @param moved stones moved.
      * @return i201 mask
