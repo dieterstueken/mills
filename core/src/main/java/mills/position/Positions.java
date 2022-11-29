@@ -26,12 +26,13 @@ import mills.stones.Stones;
  *
  * The status helps tracking operations on an i201 value.
  * Bits 0,1,2 carry the applied permutations, bit 3 indicates if the i20 part was swapped.
- * Bit 4 indicates if colors have been inverted.
- * Bit 5 indicates if the position has been normalized already.
+ * Bit 4/5 indicate ring torsion of 0,1,2 (applicable for pop counts <=(3,3))
+ * Bit 6 indicates if colors have been inverted.
+ * Bit 7 indicates if the position has been normalized already.
  * Other bits a re currently unused and may be used to indicate closed mills or moved sector index.
  *
  * #### #### #### .... .... .... ....
- *  r2   r0   r1              NI SPPP
+ *  r2   r0   r1            NITT SPPP
  *
  */
 
@@ -39,16 +40,29 @@ public interface Positions {
 
     int WORD = (1<<16)-1;
 
-    int S1 = 16;
-    int S0 = 32;
-    int S2 = 48;
+    byte S1 = 16;
+    byte S0 = 32;
+    byte S2 = 48;
+
+    static byte si(int i) {
+        return switch (i % 3) {
+            case 1, -2 -> S1;
+            case 2, -1 -> S2;
+            default -> S0;
+        };
+    }
 
     long MASK = ~WORD;
 
     int SWP = 1<<3;
-    int INV = 1<<4;
-    int PERMS = (1<<5)-1;
-    int NORMALIZED = 1<<5;
+
+    int TOR = 3<<4;
+
+    int INV = 1<<6;
+
+    int NORMALIZED = 1<<7;
+
+    int PERMS = NORMALIZED-1;
 
     static short i2(long i201) {return (short) ((i201>>>S2) & WORD);}
     static short i0(long i201) {return (short) ((i201>>>S0) & WORD);}
@@ -188,6 +202,14 @@ public interface Positions {
         return permute(i201, perm.ordinal());
     }
 
+    /**
+     * Minimize a triplet by possibly swapping r0/r1
+     * @param r2
+     * @param r0
+     * @param r1
+     * @param stat current status flags
+     * @return a bitwise position including a possible swap.
+     */
     static long m201(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
         if(r0.index < r2.index)
             return i201(r0, r2, r1, stat|SWP);

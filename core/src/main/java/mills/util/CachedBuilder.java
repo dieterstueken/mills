@@ -6,11 +6,14 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.function.Supplier;
 
 /**
- * version:     $
- * created by:  d.stueken
- * created on:  01.03.2021 19:03
- * modified by: $
- * modified on: $
+ * A CachedBuilder either has a valid reference to a result, or it starts a task to compute one.
+ * Starting a new computing task must be synchronized.
+ * If the task becomes ready it caches its result and resets itself.
+ * V build() must be implemented.
+ * newReference() may be overwritten.
+ * Once build() returns null, no further builds are triggered.
+ *
+ * @param <V>
  */
 abstract public class CachedBuilder<V> {
 
@@ -35,6 +38,10 @@ abstract public class CachedBuilder<V> {
         return builder.get();
     }
 
+    /**
+     * Return a possibly cached value or null of not available.
+     * @return a possibly cached value.
+     */
     public V cached() {
         var cached = this.cached;
         if(cached!=null)
@@ -43,6 +50,10 @@ abstract public class CachedBuilder<V> {
             return null;
     }
 
+    /**
+     * Set up a new builder if not already done by another thread.
+     * @return a supplier for the value.
+     */
     private synchronized Supplier<V> newBuilder() {
         // double check
         Supplier<V> builder = this.builder;
@@ -56,7 +67,7 @@ abstract public class CachedBuilder<V> {
 
         ForkJoinTask<V> task = ForkJoinTask.adapt(this::compute);
 
-        // others have to join
+        // others must join it
         this.builder = task::join;
 
         // we invoke the task directly
@@ -68,32 +79,31 @@ abstract public class CachedBuilder<V> {
      * @return the computed value after installing it.
      */
     private V compute() {
-        V value = build();
-        built(value);
+        return cache(build());
+    }
+
+    /**
+     * Set up a built result to cache.
+     * If value is null, cached is set to null, too.
+     * This indicates, that no further results are expected.
+     * @param value to cache.
+     */
+    private synchronized V cache(V value) {
+        try {
+            // set up a new cached value or finally set to null.
+            cached = value == null ? null : newReference(value);
+        } finally {
+            // drop any hard reference again
+            builder = null;
+        }
         return value;
     }
 
     /**
-     * Set up a built result.
-     * If value is null, cached is set to null, too.
-     * This indicates, that no further results are expected.
-     * @param value to set up.
+     * Create a new Reference. May be overwritten.
+     * @param value to refer.
+     * @return a new Reference.
      */
-    private synchronized void built(V value) {
-        if(value==null) {
-            // make this finally empty
-            cached = null;
-            // keep this empty task permanently
-        } else {
-            // transfer value to a SoftReference
-            cached = newReference(value);
-
-            // drop hard reference again
-            builder = null;
-        }
-    }
-
-
     protected Reference<V> newReference(V value) {
         return new SoftReference<>(value);
     }

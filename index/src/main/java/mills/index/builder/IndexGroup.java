@@ -57,6 +57,8 @@ public class IndexGroup implements PosIndex {
 
     public int posIndex(long i201) {
 
+        assert verify(i201);
+
         if (!Positions.normalized(i201))
             i201 = normalize(i201);
         else

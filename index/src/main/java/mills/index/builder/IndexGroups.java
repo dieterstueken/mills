@@ -70,6 +70,7 @@ public class IndexGroups implements IndexProvider {
     public class Provider extends CachedBuilder<IndexGroup> {
         final PopCount pop;
 
+        // debug purpose
         Thread worker;
 
         Provider(final PopCount p_pop) {
