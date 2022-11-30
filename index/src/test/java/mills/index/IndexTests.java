@@ -163,6 +163,19 @@ public class IndexTests {
         System.out.format("memory: %dMb\n", Runtime.getRuntime().totalMemory()/1024/1024);
     }
 
+    @Test
+    void test33() {
+        PopCount p33 = PopCount.of(3,3);
+        IndexGroup group = groups.group(p33);
+        System.out.format("%s groups: %d\n",
+                group.pop(),
+                group.group().size());
+
+        group.group().forEach((clop, c2t) -> {
+            System.out.format("%s: %4d %,13d\n", clop.toString(), c2t.n20(), c2t.range());
+        });
+    }
+
     public void createOOM() {
 
         System.err.format("max memory: %,d\n", Runtime.getRuntime().maxMemory());
