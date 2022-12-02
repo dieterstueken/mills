@@ -148,7 +148,7 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
         return  true;
     }
 
-    public static final Indexer<List> SIZE = List::size;
+    public static final Indexer<List<?>> SIZE = List::size;
 
     public static <E> IndexTable sum(List<? extends E> table, ToIntFunction<? super E> indexer) {
 
@@ -174,7 +174,7 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
     public static <E> IndexTable sum0(final List<? extends E> table, final ToIntFunction<? super E> indexer) {
 
         int size = table.size();
-        int index[] = new int[size];
+        int[] index = new int[size];
         int sum = 0;
 
         for(int i=1; i<size; ++i) {

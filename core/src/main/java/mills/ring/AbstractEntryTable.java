@@ -153,7 +153,7 @@ abstract public class AbstractEntryTable extends AbstractListSet<RingEntry> impl
             return subList(i0, i1);
 
         // have to generate a separate list
-        short indexes[] = new short[count];
+        short[] indexes = new short[count];
         count = 0;
         for(int i=i0; i<i1; ++i) {
             final RingEntry e = get(i);

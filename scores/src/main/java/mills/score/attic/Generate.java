@@ -82,17 +82,14 @@ public class Generate implements Runnable {
         final Pair<ForkJoinTask<ScoreSlices>> slices = situations.map(this.slices);
 
         return slices.parallel2(
-                new Function<Pair<ForkJoinTask<ScoreSlices>>, ForkJoinTask<ScoreSlices>>() {
-                    @Override
-                    public ForkJoinTask<ScoreSlices> apply(final Pair<ForkJoinTask<ScoreSlices>> slices) {
-                        try {
-                            ScoreSlices self = slices.self.join();
-                            ScoreMap downMap = descend(self.map.situation());
-                            ScoreSlices other = slices.other.join();
-                            return ScoreElevator.of(self, other, downMap);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                slices1 -> {
+                    try {
+                        ScoreSlices self = slices1.self.join();
+                        ScoreMap downMap = descend(self.map.situation());
+                        ScoreSlices other = slices1.other.join();
+                        return ScoreElevator.of(self, other, downMap);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
                 }
         );

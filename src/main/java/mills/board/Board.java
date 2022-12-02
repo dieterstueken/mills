@@ -5,9 +5,19 @@ import mills.bits.Ring;
 import mills.bits.Sector;
 import mills.ring.Entries;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
 import javax.swing.event.MouseInputAdapter;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
@@ -43,13 +53,9 @@ public class Board extends JPanel {
         }
 
         void draw(final Graphics2D g) {
-            switch(player()) {
-                case White:
-                    Item.WHITE.draw(g, point);
-                    break;
-                case Black:
-                    Item.BLACK.draw(g, point);
-                    break;
+            switch (player()) {
+                case White -> Item.WHITE.draw(g, point);
+                case Black -> Item.BLACK.draw(g, point);
             }
 
             if(drag.dest==this)
@@ -79,10 +85,10 @@ public class Board extends JPanel {
 
     public class Drag extends MouseInputAdapter {
 
-        Position src = null;
+        final Position src = null;
         Position dest = null;
 
-        Point point = new Point();
+        final Point point = new Point();
 
         boolean touches(double x, double y) {
             double scale = getScale();
@@ -258,11 +264,7 @@ public class Board extends JPanel {
     }
 
     public static void main(String... args) {
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createAndShowGUI();
-            }
-        });
+        javax.swing.SwingUtilities.invokeLater(() -> createAndShowGUI());
     }
 
     private static void createAndShowGUI() {

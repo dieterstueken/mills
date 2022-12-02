@@ -94,7 +94,7 @@ public class Partition {
         ROOT_INDEX = List.copyOf(lookup);
     }
 
-    public static Partition EMPTY = new Partition(EntryTable.of());
+    public static final Partition EMPTY = new Partition(EntryTable.of());
             // AbstractRandomList.constant(ROOTS.size(), AbstractRandomList.constant(Entries.RADIALS.size(), EntryTable.of())));
 
     public static Partition of(PopCount pop) {

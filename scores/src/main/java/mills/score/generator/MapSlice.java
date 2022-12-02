@@ -103,10 +103,8 @@ abstract public class MapSlice extends ScoreSlice {
             if (Score.isLost(current)) {
                 // ignore longer win paths
                 return newScore <= current;
-            } else if (Score.isWon(current))
-                return true;
-            else
-                return false;
+            } else
+                return Score.isWon(current);
         }
 
         throw new IllegalStateException("invalid score");

@@ -42,32 +42,34 @@ public class VerifyIndex {
     }
 
     IndexProcessor processor(PosIndex index) {
-        return new IndexProcessor() {
+        return (posIndex, i201) -> {
 
-            @Override
-            public void process(int posIndex, long i201) {
-
-                for (int i = 0; i < 16; i++) {
-                    long p201 = Positions.permute(i201, i);
-                    long n201 = index.normalize(p201);
-
-                    int black = Stones.stones(p201, Player.Black);
-                    int white = Stones.stones(p201, Player.White);
-                    long m201 = Stones.i201(black, white);
-
-                    if (!Positions.equals(i201, n201) || !Positions.equals(m201, p201)) {
-                        System.err.format("index %d X %d\n", posIndex, i);
-                        System.err.println(Positions.position(i201));
-                        System.err.println(Positions.position(p201));
-                        System.err.println(Positions.position(n201));
-                        System.err.println(Positions.position(m201));
-
-                        n201 = index.normalize(p201);
-
-                        throw new RuntimeException();
-                    }
-
+            for (int i = 0; i < 16; i++) {
+                long p201 = Positions.permute(i201, i);
+                long n201;
+                try {
+                    n201 = index.normalize(p201);
+                } catch(Throwable e) {
+                    index.normalize(p201);
+                    throw e;
                 }
+
+                int black = Stones.stones(p201, Player.Black);
+                int white = Stones.stones(p201, Player.White);
+                long m201 = Stones.i201(black, white);
+
+                if (!Positions.equals(i201, n201) || !Positions.equals(m201, p201)) {
+                    System.err.format("index %d perm %d\n", posIndex, i);
+                    System.err.format("i %016x %s\n", i201, Positions.position(i201));
+                    System.err.format("p %016x %s\n", p201, Positions.position(p201));
+                    System.err.format("n %016x %s\n", n201, Positions.position(n201));
+                    System.err.format("m %016x %s\n", m201, Positions.position(m201));
+
+                    n201 = index.normalize(p201);
+
+                    throw new RuntimeException();
+                }
+
             }
         };
     }

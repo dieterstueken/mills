@@ -147,9 +147,7 @@ public class IndexTests {
                         exists ? "ready " : "",
                         group.group().size());
 
-                group.group().forEach((clop, c2t) -> {
-                    System.out.format("%s: %4d %,13d\n", clop.toString(), c2t.n20(), c2t.range());
-                });
+                group.group().forEach((clop, c2t) -> System.out.format("%s: %4d %,13d\n", clop.toString(), c2t.n20(), c2t.range()));
             }
 
             System.out.format("total: %,d\n", total);
@@ -173,6 +171,7 @@ public class IndexTests {
 
         group.group().forEach((clop, c2t) -> {
             System.out.format("%s: %4d %,13d\n", clop.toString(), c2t.n20(), c2t.range());
+            //c2t.process((i,p) -> System.out.format("%016x\n", p));
         });
     }
 

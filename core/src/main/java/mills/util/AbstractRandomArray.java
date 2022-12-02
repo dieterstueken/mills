@@ -27,7 +27,7 @@ public abstract class AbstractRandomArray<T> extends AbstractRandomList<T> {
 
     static <T> AbstractRandomArray<T> _asList(Object[] data) {
 
-        return new AbstractRandomArray<T>(data.length) {
+        return new AbstractRandomArray<>(data.length) {
 
             @Override
             @SuppressWarnings("unchecked")
@@ -39,7 +39,7 @@ public abstract class AbstractRandomArray<T> extends AbstractRandomList<T> {
             @SuppressWarnings("unchecked")
             public T set(int index, T value) {
                 T t = (T) data[index];
-                if(t==value)
+                if (t == value)
                     return t;
 
                 data[index] = value;
@@ -49,10 +49,10 @@ public abstract class AbstractRandomArray<T> extends AbstractRandomList<T> {
 
             @Override
             public int hashCode() {
-                if(modCount==0) {
+                if (modCount == 0) {
                     this.modCount = Arrays.hashCode(data);
-                    if(this.modCount==0)
-                        this.modCount=1;
+                    if (this.modCount == 0)
+                        this.modCount = 1;
                 }
                 return modCount;
             }

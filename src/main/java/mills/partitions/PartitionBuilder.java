@@ -75,7 +75,7 @@ public class PartitionBuilder<P> extends RecursiveTask<Partitions<P>> {
 
         List<PartitionTable<P>> partitions = Tasks.computeAll(PopCount.TABLE, this::build);
 
-        return new Partitions<P>() {
+        return new Partitions<>() {
 
             @Override
             public PartitionTable<P> get(int index) {

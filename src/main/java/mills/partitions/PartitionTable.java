@@ -32,7 +32,7 @@ abstract public class PartitionTable<P> extends AbstractRandomArray<P> {
     }
 
     public static <P> PartitionTable<P> empty(P empty) {
-        return new PartitionTable<P>(Collections.emptyList(), Entries.TABLE) {
+        return new PartitionTable<>(Collections.emptyList(), Entries.TABLE) {
 
             @Override
             public P get(int index) {
@@ -43,7 +43,7 @@ abstract public class PartitionTable<P> extends AbstractRandomArray<P> {
 
     public static <P> PartitionTable<P> of(List<P> partitions, List<P> table, EntryTable lePop) {
         partitions = List.copyOf(partitions);
-        return new PartitionTable<P>(partitions, lePop) {
+        return new PartitionTable<>(partitions, lePop) {
 
             @Override
             public P get(int index) {

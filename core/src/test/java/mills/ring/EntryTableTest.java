@@ -7,12 +7,14 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class EntryTableTest {
 
     final EntryTable entryTable = EntryTable.of(2, 3, 7, 9);
-    SortedSet<Integer> intTable = new TreeSet<>(Arrays.asList(2, 3, 7, 9));
+    final SortedSet<Integer> intTable = new TreeSet<>(Arrays.asList(2, 3, 7, 9));
 
     @Test
     public void testFindIndex() {
@@ -45,7 +47,7 @@ public class EntryTableTest {
     }
 
     @Test
-    public void testSubSet() throws Exception {
+    public void testSubSet() {
 
         StringBuilder sb = new StringBuilder();
 

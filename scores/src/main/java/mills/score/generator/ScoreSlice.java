@@ -49,7 +49,7 @@ abstract public class ScoreSlice {
     protected int max = 0;
 
     // any positions set
-    protected long[] dirty = new long[256];
+    protected final long[] dirty = new long[256];
 
     public int max() {
         return max;

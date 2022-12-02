@@ -176,7 +176,7 @@ public class Situation {
 
             @Override
             public StringBuilder format(StringBuilder sb) {
-                sb.append(Situation.this.toString()).append(" / ");
+                sb.append(Situation.this).append(" / ");
                 sb = super.format(sb);
                 return sb;
             }

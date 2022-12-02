@@ -40,7 +40,7 @@ public class Diff {
         this.b = b;
     }
 
-    private static final OpenOption READ[] = new OpenOption[]{StandardOpenOption.READ};
+    private static final OpenOption[] READ = new OpenOption[]{StandardOpenOption.READ};
 
     public static MappedByteBuffer open(String name) throws IOException {
         final File file = new File(name);

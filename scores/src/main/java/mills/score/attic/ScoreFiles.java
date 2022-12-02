@@ -64,8 +64,8 @@ public class ScoreFiles {
         return name(situation, "map");
     }
 
-    private static final OpenOption READ[] = new OpenOption[]{StandardOpenOption.READ};
-    private static final OpenOption WRITE[] = new OpenOption[]{StandardOpenOption.READ,
+    private static final OpenOption[] READ = new OpenOption[]{StandardOpenOption.READ};
+    private static final OpenOption[] WRITE = new OpenOption[]{StandardOpenOption.READ,
             StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING};
 
     public boolean exists(Situation situation) {
@@ -155,7 +155,7 @@ public class ScoreFiles {
         return df.format(new Date());
     }
 
-    QueueActor<ScoreFiles> queue = QueueActor.of(this);
+    final QueueActor<ScoreFiles> queue = QueueActor.of(this);
 
     public void print(String message) {
         queue.submit((t)->System.out.format("%s %s\n", t.now(), message));

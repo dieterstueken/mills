@@ -25,7 +25,7 @@ public class ScoreSlice extends MapSlice {
     private int max = 0;
 
     // any positions set
-    public final long any[] = new long[256];
+    public final long[] any = new long[256];
 
     public static ScoreSlice newSlice(ScoreMap map, int index) {
         return new ScoreSlice(map, index);
@@ -141,7 +141,7 @@ public class ScoreSlice extends MapSlice {
 
         if(value > max) {
             String error = String.format("%s %d=%d: %d exceeds max %d",
-                    toString(), offset, posIndex(offset), value, max);
+                    this, offset, posIndex(offset), value, max);
 
             throw new IllegalArgumentException(error);
         }

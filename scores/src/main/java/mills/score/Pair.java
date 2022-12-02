@@ -29,7 +29,7 @@ public class Pair<V> {
     }
 
     public static <T> Pair<T> of(T self, T other) {
-        return new Pair<T>(self, other);
+        return new Pair<>(self, other);
     }
 
     public String toString() {
@@ -44,7 +44,7 @@ public class Pair<V> {
     }
 
     public static <T> Pair<T> join(ForkJoinTask<T> self, ForkJoinTask<T> other) {
-        return new Pair<T>(self.join(), other.join());
+        return new Pair<>(self.join(), other.join());
     }
 
     public boolean equal() {
@@ -128,10 +128,10 @@ public class Pair<V> {
 
     public static <T> ForkJoinTask<Pair<T>> task(final Pair<ForkJoinTask<T>> tasks) {
 
-       return new RecursiveTask<Pair<T>>() {
+       return new RecursiveTask<>() {
            @Override
            protected Pair<T> compute() {
-               if(tasks.equal()) {
+               if (tasks.equal()) {
                    T self = tasks.self.invoke();
                    return of(self, self);
                } else {

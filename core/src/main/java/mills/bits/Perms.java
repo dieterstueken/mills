@@ -3,7 +3,12 @@ package mills.bits;
 import mills.util.Indexed;
 import mills.util.ListSet;
 
-import java.util.*;
+import java.util.AbstractSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.IntStream;
 
 /**
@@ -12,7 +17,7 @@ import java.util.stream.IntStream;
  * Date: 29.09.19
  * Time: 18:03
  */
-public class Perms extends AbstractSet<Perm> implements Indexed {
+public class Perms extends AbstractSet<Perm> implements Indexed, Comparable<Perms> {
 
     public final int perms;
 
@@ -71,6 +76,11 @@ public class Perms extends AbstractSet<Perm> implements Indexed {
     @Override
     public Iterator<Perm> iterator() {
         return new Itr(this);
+    }
+
+    @Override
+    public int compareTo(Perms o) {
+        return Indexed.super.compareTo(o);
     }
 
     static class Itr implements Iterator<Perm> {
@@ -134,7 +144,7 @@ public class Perms extends AbstractSet<Perm> implements Indexed {
     public static final int MSK = 7;
 
     public static Perms of(int perms) {
-        return VALUES.get(perms);
+        return VALUES.get(perms&0xff);
     }
 
     public static Perms of(Perm ... perms) {

@@ -1,6 +1,13 @@
 package mills.ring;
 
-import mills.bits.*;
+import mills.bits.BW;
+import mills.bits.Pattern;
+import mills.bits.Patterns;
+import mills.bits.Perm;
+import mills.bits.Perms;
+import mills.bits.Player;
+import mills.bits.PopCount;
+import mills.bits.Sector;
 
 import java.util.Comparator;
 import java.util.List;
@@ -160,13 +167,12 @@ abstract public class RingEntry extends BW {
 
     public final Pattern sectors(Player player) {
 
-        switch(player) {
-            case Black: return b;
-            case White: return w;
-            case None: return b.or(w).not();
-        }
+        return switch (player) {
+            case Black -> b;
+            case White -> w;
+            case None -> b.or(w).not();
+        };
 
-        return Pattern.NONE;
     }
 
     /**

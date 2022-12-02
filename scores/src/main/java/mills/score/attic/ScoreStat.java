@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ScoreStat extends AbstractRandomArray<AtomicInteger> {
 
-    final AtomicInteger stat[];
+    final AtomicInteger[] stat;
 
     public ScoreStat(int size) {
         super(size);

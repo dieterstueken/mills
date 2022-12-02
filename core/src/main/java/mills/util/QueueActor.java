@@ -104,7 +104,7 @@ abstract public class QueueActor<T> implements AutoCloseable {
     }
 
     public static <T> QueueActor<T> of(T actor) {
-        return new QueueActor<T>() {
+        return new QueueActor<>() {
             @Override
             protected T actor() {
                 return actor;
@@ -125,14 +125,14 @@ abstract public class QueueActor<T> implements AutoCloseable {
 
     public static <T> QueueActor<T> lazy(Supplier<T> factory) {
 
-        return new QueueActor<T>() {
+        return new QueueActor<>() {
 
             Reference<T> ref = emptyRef();
 
             @Override
             protected T actor() {
                 T actor = ref.get();
-                if(actor==null) {
+                if (actor == null) {
                     actor = factory.get();
                     ref = new SoftReference<>(actor);
                 }

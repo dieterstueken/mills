@@ -107,7 +107,7 @@ public class ScoreSlices {
     }
 
     RecursiveTask<ScoreStat> close() {
-        return new RecursiveTask<ScoreStat>() {
+        return new RecursiveTask<>() {
 
             @Override
             protected ScoreStat compute() {

@@ -35,7 +35,7 @@ public class IndexRange extends RecursiveAction {
 
         System.out.format("verify %s\n", pi.pop());
 
-        List<Runnable> tasks = new AbstractList<Runnable>() {
+        List<Runnable> tasks = new AbstractList<>() {
             public int size() {
                 return 100;
             }
@@ -47,26 +47,17 @@ public class IndexRange extends RecursiveAction {
                 final int start = Math.min(i1, i2);
                 final int end = Math.max(i1, i2);
 
-                final IndexProcessor processor = new IndexProcessor() {
-                    @Override
-                    public void process(int posIndex, long i201) {
+                final IndexProcessor processor = (posIndex, i201) -> {
 
-                        if (posIndex < start || posIndex >= end)
-                            throw new IndexOutOfBoundsException();
+                    if (posIndex < start || posIndex >= end)
+                        throw new IndexOutOfBoundsException();
 
-                        long k201 = pi.i201(posIndex);
-                        if (!Positions.equals(k201, i201))
-                            throw new RuntimeException();
-                    }
+                    long k201 = pi.i201(posIndex);
+                    if (!Positions.equals(k201, i201))
+                        throw new RuntimeException();
                 };
 
-                return new Runnable() {
-
-                    @Override
-                    public void run() {
-                        pi.process(processor, start, end);
-                    }
-                };
+                return () -> pi.process(processor, start, end);
             }
         };
 

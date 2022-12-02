@@ -27,7 +27,7 @@ public class PlopSets implements Moves.Process {
 
     final IndexProvider indexes;
 
-    Map<Clops, PlopSet> plops = new ConcurrentHashMap<>();
+    final Map<Clops, PlopSet> plops = new ConcurrentHashMap<>();
 
     PlopSets(IndexProvider indexes, Plop plop) {
         this.plop = plop;

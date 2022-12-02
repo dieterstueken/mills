@@ -154,7 +154,7 @@ public class ScoreMap implements Position.Factory, Closeable {
         return new Position(i201);
     }
 
-    public final Set<Position> debug = new HashSet<Position>();
+    public final Set<Position> debug = new HashSet<>();
 
     public void debug(Position position) {
         debug.add(position);
@@ -169,13 +169,10 @@ public class ScoreMap implements Position.Factory, Closeable {
     }
 
     public Thread load() {
-        Thread thread = new Thread() {
-            public void run() {
-                for (int i = 0; i < scores.limit(); i += 4096)
-                    scores.get(i);
-            }
-
-        };
+        Thread thread = new Thread(() -> {
+            for (int i = 0; i < scores.limit(); i += 4096)
+                scores.get(i);
+        });
 
         thread.start();
 

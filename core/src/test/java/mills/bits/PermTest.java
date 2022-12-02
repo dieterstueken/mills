@@ -1,6 +1,6 @@
 package mills.bits;
 
-import mills.position.Positions;
+import mills.position.Normalizer;
 import mills.ring.Entries;
 import mills.ring.RingEntry;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ public class PermTest {
                 Perm pc = then.compose(first);
 
                 assertEquals(pc.ordinal(), then.compose(first.ordinal()), "Perm.compose");
-                assertEquals(pc.ordinal(), Positions.compose(then.ordinal(), first.ordinal()), "Perm.compose");
+                assertEquals(pc.ordinal(), Normalizer.compose(then.ordinal(), first.ordinal()), "Perm.compose");
 
                 System.out.format(" %s", pc);
 

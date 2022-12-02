@@ -7,11 +7,10 @@ package mills.util;
  * modified by: $
  * modified on: $
  */
-public interface Indexed extends Comparable<Indexed> {
+public interface Indexed {
 
     int getIndex();
 
-    @Override
     default int compareTo(Indexed o) {
         return Integer.compare(getIndex(), o.getIndex());
     }

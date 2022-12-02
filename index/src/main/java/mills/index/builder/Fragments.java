@@ -21,7 +21,7 @@ public class Fragments {
 
     final IndexedEntryTable root;
 
-    List<List<IndexedEntryTable>> fragments;
+    final List<List<IndexedEntryTable>> fragments;
 
     Fragments(IndexedEntryTable root, List<List<IndexedEntryTable>> fragments) {
         this.root = root;

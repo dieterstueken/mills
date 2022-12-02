@@ -89,7 +89,7 @@ abstract public class Move {
     long i201 = 0;
 
     // debug
-    final List<Position> input = new AbstractRandomArray<Position>(1) {
+    final List<Position> input = new AbstractRandomArray<>(1) {
 
         @Override
         public Position get(int index) {
@@ -102,7 +102,7 @@ abstract public class Move {
     }
 
     // debug
-    public final List<Position> moved = new AbstractRandomList<Position>() {
+    public final List<Position> moved = new AbstractRandomList<>() {
 
         @Override
         public Position get(int index) {

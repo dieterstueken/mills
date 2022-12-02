@@ -2,7 +2,11 @@ package mills.util;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class ListSetTest {
 
-    List<Integer> base = List.of(1, 5, 7, 11);
+    final List<Integer> base = List.of(1, 5, 7, 11);
 
     @Test
     public void testNaturalOrder() {

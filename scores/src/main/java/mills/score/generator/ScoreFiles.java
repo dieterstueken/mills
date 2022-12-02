@@ -15,7 +15,9 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.OpenOption;
 import java.util.Set;
 
-import static java.nio.file.StandardOpenOption.*;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  * Created by IntelliJ IDEA.
@@ -32,7 +34,7 @@ public class ScoreFiles {
 
         if (root.exists()) {
             if (!root.isDirectory())
-                throw new FileAlreadyExistsException("file already exist: " + root.toString());
+                throw new FileAlreadyExistsException("file already exist: " + root);
         }
 
         root.mkdirs();
@@ -58,7 +60,7 @@ public class ScoreFiles {
         File file = file(scores.index(), scores.player());
 
         if(file.exists())
-            throw new FileAlreadyExistsException("file already exist: " + file.toString());
+            throw new FileAlreadyExistsException("file already exist: " + file);
 
         try(FileChannel fc = FileChannel.open(file.toPath(), SAVE)) {
             fc.write(scores.scores);
@@ -70,7 +72,7 @@ public class ScoreFiles {
         File file = file(index, player);
 
         if(file.length() != index.range())
-            throw new IOException("unexpected file size: " + file.toString());
+            throw new IOException("unexpected file size: " + file);
 
         try(FileChannel fc = FileChannel.open(file.toPath(), LOAD)) {
             int size = index.range();
@@ -78,7 +80,7 @@ public class ScoreFiles {
             size -= fc.read(scores);
 
             if(size!=0)
-                throw new IOException("incomplete read: " + file.toString());
+                throw new IOException("incomplete read: " + file);
 
             return new ScoreMap(index, player, scores);
         }
@@ -90,7 +92,7 @@ public class ScoreFiles {
         int size = index.range();
 
         if (file.length() != size)
-            throw new IOException("unexpected file size: " + file.toString());
+            throw new IOException("unexpected file size: " + file);
 
         FileChannel fc = FileChannel.open(file.toPath(), readonly ? READ : WRITE);
         MappedByteBuffer scores = fc.map(readonly ? FileChannel.MapMode.READ_ONLY : FileChannel.MapMode.READ_WRITE, 0, size);

@@ -129,15 +129,32 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
         return this;
     }
 
+    /**
+     * Apply this permutation on a given perm leaving other bits untouched.
+     * @param perm previous permutation.
+     * @return composed permutation.
+     */
     public int compose(int perm) {
         int n = 4*(perm&7);
+
+        // cut off new permutation
         return (composed>>>n)&7;
     }
 
-    public Perm compose(final Perm before) {
+    public Perm compose(Perm before) {
         return get(compose(before.ordinal()));
     }
 
+    /**
+     * Compose p0 and p1 preserving additional flags from p0.
+     * @param p0 current permutation.
+     * @param p1 additional permutation.
+     * @return composition of p0 * p1
+     */
+    public static int compose(int p0, int p1) {
+        int n = p0&7;
+        return p0^n | get(n).compose(p1);
+    }
 
     @Override
     public String toString() {

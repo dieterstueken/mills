@@ -13,7 +13,7 @@ import mills.util.Indexed;
  * Class BW holds a pair of patterns occupied by black and white stones on a single 8 bit ringTable.
  * All combinations are kept by RING_TABLE.table, so no further instances are needed.
  */
-public class BW extends Patterns implements Indexed {
+public class BW extends Patterns implements Indexed, Comparable<BW> {
 
     public final PopCount pop;
 
@@ -77,5 +77,10 @@ public class BW extends Patterns implements Indexed {
         return PopCount.of(
                 Pattern.mcount(r2.b, r0.b, r1.b),
                 Pattern.mcount(r2.w, r0.w, r1.w));
+    }
+
+    @Override
+    public int compareTo(BW o) {
+        return Indexed.super.compareTo(o);
     }
 }

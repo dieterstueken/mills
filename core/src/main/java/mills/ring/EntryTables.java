@@ -4,7 +4,12 @@ import mills.util.AbstractListSet;
 import mills.util.AbstractRandomList;
 
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
@@ -24,7 +29,7 @@ public class EntryTables {
     private final List<Map<List<RingEntry>, IndexedEntryArray>> maps = AbstractRandomList.preset(RingEntry.MAX_INDEX-2, null);
 
     // generated maps so far
-    private Map<Short, Map<List<RingEntry>, IndexedEntryArray>> metamap = new ConcurrentSkipListMap<>();
+    private final Map<Short, Map<List<RingEntry>, IndexedEntryArray>> metamap = new ConcurrentSkipListMap<>();
 
     public EntryTables() {
         // prefetch some maps needed anyway

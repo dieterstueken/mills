@@ -120,7 +120,7 @@ abstract class ScoreElevator extends ScoreWorker {
                 // something went wrong
 
                 String error = String.format("%s: indifferent results on %s %d/%d: %d x %d",
-                        ScoreElevator.this.toString(), slice, offset, slice.posIndex(offset), current, score);
+                        ScoreElevator.this, slice, offset, slice.posIndex(offset), current, score);
 
                 throw new IllegalStateException(error);
             }
@@ -202,7 +202,7 @@ abstract class ScoreElevator extends ScoreWorker {
             return new ScoreElevator(source, target) {
 
                 public String name() {
-                    return String.format("ScoreElevator [%s]", downMap.toString());
+                    return String.format("ScoreElevator [%s]", downMap);
                 }
 
                 @Override

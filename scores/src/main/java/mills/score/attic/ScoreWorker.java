@@ -56,7 +56,7 @@ public abstract class ScoreWorker extends RecursiveTask<ScoreSlices> {
 
         return new RecursiveAction() {
 
-            int id = ++task;
+            final int id = ++task;
             //int index = -1;
 
             private ForkJoinTask<?> parallel() {

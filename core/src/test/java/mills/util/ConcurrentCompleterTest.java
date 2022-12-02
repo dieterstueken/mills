@@ -32,7 +32,7 @@ class ConcurrentCompleterTest {
 
         protected DebugCompleter newSubtask() {
             DebugCompleter completer = new DebugCompleter(this, todo);
-            System.out.println("new subtask: " + completer.toString());
+            System.out.println("new subtask: " + completer);
             return completer;
         }
 

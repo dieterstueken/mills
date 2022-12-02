@@ -165,7 +165,7 @@ public class Pattern extends Sectors implements Indexed {
         return result;
     }
 
-    private static final char SIG[] = {'_', '+', '?', 'x'};
+    private static final char[] SIG = {'_', '+', '?', 'x'};
 
     public String toString() {
         StringBuilder sb = new StringBuilder(32);

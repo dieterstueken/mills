@@ -96,13 +96,19 @@ public class RingTableTest {
     public void testStat() {
         Set<Integer> meq = new TreeSet<>();
         Set<Integer> mlt = new TreeSet<>();
+        Set<Integer> min = new TreeSet<>();
+        Set<Integer> mmin = new TreeSet<>();
 
         for (RingEntry e : Entries.TABLE) {
             mlt.add(e.pmlt());
             meq.add(e.pmeq());
+            min.add(e.pmin());
+            if(e.isMin())
+                mmin.add(e.pmin());
         }
 
-        System.out.format("meq: %d, mlt: %d\n", meq.size(), mlt.size());
+        System.out.format("meq: %d, mlt: %d, min: %d, mmin: %d\n",
+                meq.size(), mlt.size(), min.size(), mmin.size());
     }
 
     @Test

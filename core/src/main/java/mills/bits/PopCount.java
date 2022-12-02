@@ -20,7 +20,7 @@ import java.util.function.Predicate;
  * PopCounts<100 are provided by a pre calculated lookup table.
  */
 
-public class PopCount implements Indexed {
+public class PopCount implements Indexed, Comparable<PopCount> {
 
     public final byte nb;
     public final byte nw;
@@ -352,5 +352,10 @@ public class PopCount implements Indexed {
 
             System.out.println();
         }
+    }
+
+    @Override
+    public int compareTo(PopCount o) {
+        return Indexed.super.compareTo(o);
     }
 }

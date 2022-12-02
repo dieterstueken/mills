@@ -22,16 +22,15 @@ public class ScoreTest {
         int[] s = {1, 3, 0, 4, 2};
 
         System.out.print("  ");
-        for(int i=0; i<s.length; i++)
-            System.out.format("%3d", s[i]);
+        for (int k : s) System.out.format("%3d", k);
         System.out.println();
 
-        for(int i=0; i<s.length; i++) {
-            System.out.format("%3d", s[i]);
+        for (int k : s) {
+            System.out.format("%3d", k);
 
-            for(int j=0; j<s.length; j++)
+            for (int j = 0; j < s.length; j++)
                 //System.out.format("%3d", compare(s[i], s[j]));
-                System.out.print(Score.betterThan(s[i], s[j]) ? " + " : " - ");
+                System.out.print(Score.betterThan(k, s[j]) ? " + " : " - ");
 
             System.out.println();
         }

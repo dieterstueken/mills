@@ -13,8 +13,8 @@ import java.util.stream.IntStream;
 public class MovedGroupTest {
     static final IndexProvider indexes = IndexProvider.load();
 
-    PopCount p33 = PopCount.of(3,3);
-    Player w = Player.White;
+    final PopCount p33 = PopCount.of(3,3);
+    final Player w = Player.White;
 
     @Test
     public void process() {

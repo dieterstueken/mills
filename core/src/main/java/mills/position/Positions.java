@@ -56,7 +56,7 @@ public interface Positions {
 
     int SWP = 1<<3;
 
-    int TOR = 3<<4;
+    int TOR = 7<<3;
 
     int INV = 1<<6;
 
@@ -67,10 +67,10 @@ public interface Positions {
     static short i2(long i201) {return (short) ((i201>>>S2) & WORD);}
     static short i0(long i201) {return (short) ((i201>>>S0) & WORD);}
     static short i1(long i201) {return (short) ((i201>>>S1) & WORD);}
-    static int stat(long i201) {return (int) (i201 & WORD);}
+    static short stat(long i201) {return (short) (i201 & WORD);}
 
     static long mask(long i201) {return i201 & MASK;}
-    static int perms(long i201) {return (int) (i201 & PERMS);}
+    static short perms(long i201) {return (short) (i201 & PERMS);}
     static Perm perm(long i201) {return Perm.get(stat(i201));}
 
     static boolean normalized(long i201) {
@@ -90,12 +90,12 @@ public interface Positions {
     }
 
     static long inverted(long i201) {
-        RingEntry r2 = r2(i201).inverted();
-        RingEntry r0 = r0(i201).inverted();
-        RingEntry r1 = r1(i201).inverted();
+        short i2 = r2(i201).inverted;
+        short i0 = r0(i201).inverted;
+        short i1 = r1(i201).inverted;
         int stat = stat(i201);
 
-        return i201(r2, r0, r1, stat^INV);
+        return i201(i2, i0, i1, stat^INV);
     }
 
     static PopCount pop(long i201) {
@@ -138,10 +138,6 @@ public interface Positions {
         return (e2.index<<16) + e0.index;
     }
 
-    static long i201(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
-        return i201(r2.index, r0.index, r1.index, stat);
-    }
-
     static long i201(short i2, short i0, short i1, int stat) {
         long i201 = stat&WORD;
         i201 |= ((long) i2) << S2;
@@ -150,24 +146,14 @@ public interface Positions {
         return i201;
     }
 
+    static long i201(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
+        return Positions.i201(r2.index, r0.index, r1.index, stat);
+    }
+
     static long i201(short i2, short i0, short i1) {
         return i201(i2, i0, i1, 0);
     }
 
-    /**
-     * Compose two operations including swap bit.
-     * @param pm1 first permutation
-     * @param pm2 second permutation
-     * @return composed permutation
-     */
-    static int compose(int pm1, int pm2) {
-        int result = Perm.get(pm1).compose(pm2);
-
-        // compose possible swap and inv flags
-        result |= (pm1 ^ pm2) & (SWP|INV);
-
-        return result;
-    }
 
     // decompose, permute and compose an i201 index
     static long permute(long i201, int perm) {
@@ -183,67 +169,20 @@ public interface Positions {
         r0 = r0.permute(perm);
         r1 = r1.permute(perm);
 
+        pm = Perm.compose(pm, perm);
+
         if((perm&INV)!=0) {
             r2 = r2.inverted();
             r0 = r0.inverted();
             r1 = r1.inverted();
+            pm ^= INV;
         }
 
-        pm = compose(perm, pm);
-
-        // apply swap
-        if((perm&SWP)!=0)
-            return i201(r0, r2, r1, pm);
-        else
-            return i201(r2, r0, r1, pm);
-    }
-
-    static long permute(final long i201, Perm perm) {
-        return permute(i201, perm.ordinal());
-    }
-
-    /**
-     * Minimize a triplet by possibly swapping r0/r1
-     * @param r2
-     * @param r0
-     * @param r1
-     * @param stat current status flags
-     * @return a bitwise position including a possible swap.
-     */
-    static long m201(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
-        if(r0.index < r2.index)
-            return i201(r0, r2, r1, stat|SWP);
-        else
-            return i201(r2, r0, r1, stat);
+        return Twist.get(perm).build(r2, r0, r1, pm);
     }
 
     static long normalize(RingEntry r2, RingEntry r0, RingEntry r1) {
-
-        long m201 = m201(r2, r0, r1, 0);
-        
-        int m2 = r2.min();
-        int m0 = r0.min();
-
-        // user smaller one or both if equal
-        int mlt = m2<m0 ? r2.min : m0<m2 ? r0.min : r2.min|r0.min;
-
-        for (Perm p : Perms.of(mlt & 0xfe)) {
-
-            RingEntry p2 = r2.permute(p);
-            RingEntry p0 = r0.permute(p);
-            RingEntry p1 = r1.permute(p);
-
-            int perm = p.ordinal();
-
-            long i201 = m201(p2, p0, p1, perm);
-
-            if (i201 < m201) {
-                // compare including current perm
-                m201 = i201;
-            }
-        }
-
-        return m201 | NORMALIZED;
+        return Normalizer.normalize(r2, r0, r1, 0);
     }
 
     static long normalize(final long i201) {
@@ -254,18 +193,9 @@ public interface Positions {
         RingEntry r2 = Positions.r2(i201);
         RingEntry r0 = Positions.r0(i201);
         RingEntry r1 = Positions.r1(i201);
+        int perms = perms(i201);
 
-        long n201 = normalize(r2, r0, r1);
-
-        int p201 = perms(n201);
-
-        // changed permutations
-        p201 ^= compose(perms(i201), p201);
-
-        // apply change
-        n201 ^= p201;
-
-        return n201 | NORMALIZED;
+        return Normalizer.normalize(r2, r0, r1, perms);
     }
 
     /**

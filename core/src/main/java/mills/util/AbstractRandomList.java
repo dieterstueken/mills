@@ -1,6 +1,12 @@
 package mills.util;
 
-import java.util.*;
+import java.util.AbstractList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.RandomAccess;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
@@ -22,7 +28,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
 
 
     public static <T> AbstractRandomArray<T> constant(int size, T value) {
-        return new AbstractRandomArray<T>(size) {
+        return new AbstractRandomArray<>(size) {
 
             @Override
             public T get(int index) {
@@ -41,7 +47,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
     }
 
     public static <T> AbstractRandomArray<T> virtual(int size, IntFunction<? extends T> generate) {
-        return new AbstractRandomArray<T>(size) {
+        return new AbstractRandomArray<>(size) {
 
             @Override
             public T get(int index) {
@@ -62,7 +68,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
     }
 
     public static <U, T> AbstractRandomList<T> transform(List<U> source, Function<? super U, ? extends T> mapper) {
-         return new AbstractRandomList<T>() {
+         return new AbstractRandomList<>() {
 
              @Override
              public int size() {
@@ -118,7 +124,6 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         return AbstractRandomArray._asList(values);
     }
 
-    @SuppressWarnings("unchecked")
     public static <U, T> List<T> map(List<U> source, Function<? super U, ? extends T> mapper) {
         int size = source.size();
 
@@ -129,14 +134,13 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
             return Collections.singletonList(mapper.apply(source.get(0)));
 
         // back to forth
-        Object values[] = new Object[size];
+        Object[] values = new Object[size];
         for(int i=size-1; i>=0; --i)
             values[i] = mapper.apply(source.get(i));
 
         return AbstractRandomArray._asList(values);
     }
 
-    @SuppressWarnings("unchecked")
     public static <U, T> List<T> collect(Collection<U> source, Function<? super U, ? extends T> mapper) {
         int size = source.size();
 
@@ -146,7 +150,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
         if(size==1)
             return Collections.singletonList(mapper.apply(source.iterator().next()));
 
-        Object values[] = new Object[size];
+        Object[] values = new Object[size];
         int i=0;
         for (U v : source) {
             values[i++] = v;

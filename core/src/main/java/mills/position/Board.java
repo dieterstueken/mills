@@ -7,7 +7,14 @@ import mills.ring.RingEntry;
 
 import java.util.List;
 
-import static mills.bits.Sector.*;
+import static mills.bits.Sector.E;
+import static mills.bits.Sector.N;
+import static mills.bits.Sector.NE;
+import static mills.bits.Sector.NW;
+import static mills.bits.Sector.S;
+import static mills.bits.Sector.SE;
+import static mills.bits.Sector.SW;
+import static mills.bits.Sector.W;
 
 /**
  * version:     $
@@ -72,29 +79,29 @@ public class Board {
 
     static Sector sector(int ix, int iy) {
         int k = (ix+1) + 10*(iy+1);
-        switch(k) {
-            case 0: return NW;
-            case 1: return N;
-            case 2: return NE;
-            case 10: return W;
-            case 12: return E;
-            case 20: return SW;
-            case 21: return S;
-            case 22: return SE;
-        }
+        return switch (k) {
+            case 0 -> NW;
+            case 1 -> N;
+            case 2 -> NE;
+            case 10 -> W;
+            case 12 -> E;
+            case 20 -> SW;
+            case 21 -> S;
+            case 22 -> SE;
+            default -> null;
+        };
 
-        return null;
     }
 
     static RingEntry ring(long i201, int ir) {
 
-        switch(ir) {
-            case 1: return Positions.r0(i201);
-            case 2: return Positions.r1(i201);
-            case 3: return Positions.r2(i201);
-        }
+        return switch (ir) {
+            case 1 -> Positions.r0(i201);
+            case 2 -> Positions.r1(i201);
+            case 3 -> Positions.r2(i201);
+            default -> null;
+        };
 
-        return null;
     }
 
     public static void main(String ... args) {

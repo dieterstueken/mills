@@ -113,26 +113,24 @@ abstract public class Moves {
         int n=0;
 
         // try all possible mv
-        for(int i=0; i< moves.length; ++i) {
-            final int m = moves[i];
-
+        for (final int m : moves) {
             // must not change any opponents stone
-            if((m&stay)!=0)
+            if ((m & stay) != 0)
                 continue;
 
             // must match any masked bit.
-            if((m&mask)==0)
+            if ((m & mask) == 0)
                 continue;
 
             // must match any free bit.
-            if((m&free)==0)
+            if ((m & free) == 0)
                 continue;
 
             ++n;
 
             // target may abort further processing by returning true
-            if(target.process(stay, move, m) == ABORT)
-                return -n-1;
+            if (target.process(stay, move, m) == ABORT)
+                return -n - 1;
         }
 
         return n;
