@@ -4,6 +4,7 @@ import mills.bits.Clops;
 import mills.bits.PopCount;
 import mills.index.builder.IndexGroup;
 import mills.index.builder.IndexGroups;
+import mills.position.Positions;
 import mills.util.CachedBuilder;
 import org.junit.jupiter.api.Test;
 
@@ -204,6 +205,24 @@ public class IndexTests {
         long i201 = ix.i201(pi0);
         int pi1 = ix.posIndex(i201);
         assertEquals(pi1, pi0);
+    }
+
+    @Test
+    public void permIndexes() {
+        groups().forEach(this::permIndexes);
+    }
+
+    void permIndexes(PosIndex index) {
+        System.out.format("permIndexes %s\n", Clops.of(index));
+        index.process(this::testPerms);
+    }
+
+    void testPerms(int posIndex, long i201) {
+        for(int i=0; i<16; ++i) {
+            long p201 = Positions.permute(i201, i);
+            long m201 = Positions.normalize(p201);
+            assertEquals(m201, i201);
+        }
     }
 
     static <T> T timer(String name, Supplier<T> proc) {

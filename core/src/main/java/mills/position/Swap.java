@@ -13,27 +13,27 @@ import java.util.List;
  */
 public enum Swap implements Twist {
 
-    T0(I201),
-    S0(SWAP),
-    T1(Twist.i021(I201)) {
+    T0(I201),   // III 201
+    S0(SWAP),   // XII 021
+    T1(Twist.i012(I201)) { // /// 012
         @Override
         public Twist invert() {
             return T2;
         }
     },
-    S1(Twist.i021(SWAP)),
-    T2(Twist.i120(I201)) {
+    S1(Twist.i012(SWAP)), // >I< 102
+    T2(Twist.i120(I201)) {  // \\\ 120
         @Override
         public Twist invert() {
             return T1;
         }
     },
-    S2(Twist.i120(I201));
+    S2(Twist.i120(I201)); // IX 210
 
-    final Builder next;
+    final Builder builder;
 
     Swap(Builder next) {
-        this.next = next;
+        this.builder = next;
     }
 
     @Override
@@ -42,7 +42,7 @@ public enum Swap implements Twist {
     }
 
     public long build(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
-        return next.build(r2, r0, r1, stat);
+        return builder.build(r2, r0, r1, stat);
     }
 
     @Override

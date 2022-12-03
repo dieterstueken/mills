@@ -9,7 +9,6 @@ import mills.ring.IndexedEntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomArray;
 import mills.util.ConcurrentCompleter;
-import mills.util.Indexed;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,12 +31,9 @@ class T0Builder extends ConcurrentCompleter {
 
     int size = 0;
 
-    final boolean limit;
-
     T0Builder(CountedCompleter<?> parent, AtomicInteger todo, GroupBuilder group) {
         super(parent, todo);
         this.group = group;
-        this.limit = group.pop.le(PopCount.P33);
     }
 
     T0Builder(GroupBuilder group) {
@@ -107,13 +103,6 @@ class T0Builder extends ConcurrentCompleter {
         add(index);
     }
 
-    RingEntry limit(RingEntry r2, RingEntry r0) {
-        if(limit)
-            return r2.index>r0.index ? r2 : r0;
-        else
-            return null;
-    }
-
     void build(RingEntry r2) {
 
         PopCount pop0 = group.pop.sub(r2.pop);
@@ -149,10 +138,9 @@ class T0Builder extends ConcurrentCompleter {
             for (IndexedEntryTable t1 : t1tables) {
                 PopCount clop = t1.get(0).clop(rad).add(clop20);
 
-                RingEntry limit = limit(r2, r0);
+                RingEntry limit = group.limit(r2, r0);
                 if(limit!=null) {
-                    RingEntry l = Indexed.min(r0.minimized(), limit);
-                    EntryTable l1 = t1.tailSet(l);
+                    EntryTable l1 = t1.tailSet(limit);
                     if(l1.isEmpty())
                         continue;
 

@@ -8,7 +8,7 @@ import mills.ring.Entries;
 import mills.ring.RingEntry;
 import mills.stones.Stones;
 
-/**
+/*
  * Created by IntelliJ IDEA.
  * User: stueken
  * Date: 14.08.11
@@ -147,7 +147,7 @@ public interface Positions {
     }
 
     static long i201(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
-        return Positions.i201(r2.index, r0.index, r1.index, stat);
+        return i201(r2.index, r0.index, r1.index, stat);
     }
 
     static long i201(short i2, short i0, short i1) {
@@ -181,8 +181,40 @@ public interface Positions {
         return Twist.get(perm).build(r2, r0, r1, pm);
     }
 
+    static long m201(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
+        if(r0.index < r2.index)
+            return i201(r0, r2, r1, stat|SWP);
+        else
+            return i201(r2, r0, r1, stat);
+    }
+
     static long normalize(RingEntry r2, RingEntry r0, RingEntry r1) {
-        return Normalizer.normalize(r2, r0, r1, 0);
+
+        long m201 = m201(r2, r0, r1, 0);
+
+        int m2 = r2.min();
+        int m0 = r0.min();
+
+        // user smaller one or both if equal
+        int mlt = m2<m0 ? r2.min : m0<m2 ? r0.min : r2.min|r0.min;
+
+        for (Perm p : Perms.of(mlt & 0xfe)) {
+
+            RingEntry p2 = r2.permute(p);
+            RingEntry p0 = r0.permute(p);
+            RingEntry p1 = r1.permute(p);
+
+            int perm = p.ordinal();
+
+            long i201 = m201(p2, p0, p1, perm);
+
+            if (i201 < m201) {
+                // compare including current perm
+                m201 = i201;
+            }
+        }
+
+        return m201 | NORMALIZED;
     }
 
     static long normalize(final long i201) {
@@ -193,9 +225,18 @@ public interface Positions {
         RingEntry r2 = Positions.r2(i201);
         RingEntry r0 = Positions.r0(i201);
         RingEntry r1 = Positions.r1(i201);
-        int perms = perms(i201);
 
-        return Normalizer.normalize(r2, r0, r1, perms);
+        long n201 = normalize(r2, r0, r1);
+
+        int p201 = perms(n201);
+
+        // changed permutations
+        p201 ^= Normalizer.compose(perms(i201), p201);
+
+        // apply change
+        n201 ^= p201;
+
+        return n201 | NORMALIZED;
     }
 
     /**

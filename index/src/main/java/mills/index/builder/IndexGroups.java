@@ -69,12 +69,18 @@ public class IndexGroups implements IndexProvider {
 
     public class Provider extends CachedBuilder<IndexGroup> {
         final PopCount pop;
+        final boolean jump;
 
         // debug purpose
         Thread worker;
 
-        Provider(final PopCount p_pop) {
-            pop = p_pop;
+        Provider(final PopCount pop, boolean jump) {
+            this.pop = pop;
+            this.jump = jump;
+        }
+
+        Provider(final PopCount pop) {
+            this(pop, false);
         }
 
         @Override
@@ -86,7 +92,7 @@ public class IndexGroups implements IndexProvider {
         protected IndexGroup build() {
             debug.start(pop);
             worker = Thread.currentThread();
-            GroupBuilder builder = new GroupBuilder(partitions, pop);
+            GroupBuilder builder = GroupBuilder.create(partitions, pop, jump);
             IndexGroup result = new IndexGroup(pop, g->builder.build(g::newGroupIndex));
             debug.done(result);
             worker = null;

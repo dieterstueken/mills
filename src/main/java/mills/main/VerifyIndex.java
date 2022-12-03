@@ -47,12 +47,8 @@ public class VerifyIndex {
             for (int i = 0; i < 16; i++) {
                 long p201 = Positions.permute(i201, i);
                 long n201;
-                try {
-                    n201 = index.normalize(p201);
-                } catch(Throwable e) {
-                    index.normalize(p201);
-                    throw e;
-                }
+
+                n201 = index.normalize(p201);
 
                 int black = Stones.stones(p201, Player.Black);
                 int white = Stones.stones(p201, Player.White);

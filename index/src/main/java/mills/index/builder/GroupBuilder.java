@@ -5,6 +5,7 @@ import mills.bits.PopCount;
 import mills.index.tables.R0Table;
 import mills.ring.EntryMap;
 import mills.ring.EntryTable;
+import mills.ring.RingEntry;
 import mills.util.AbstractRandomList;
 import mills.util.ListSet;
 import mills.util.PopMap;
@@ -30,7 +31,7 @@ class GroupBuilder {
 
     final PopMap<C2Builder> builders = PopMap.allocate(PopCount.NCLOPS);
 
-    GroupBuilder(Partitions partitions, PopCount pop) {
+    private GroupBuilder(Partitions partitions, PopCount pop) {
         this.partitions = partitions;
         this.pop = pop;
         this.t2 = partitions.minPops.get(pop);
@@ -67,5 +68,28 @@ class GroupBuilder {
     private void buildEntries() {
         T0Builder builder = new T0Builder(this);
         partitions.pool.invoke(builder);
+    }
+
+    RingEntry limit(RingEntry r2, RingEntry r0) {
+        return null;
+    }
+
+    static GroupBuilder jumping(Partitions partitions, PopCount pop) {
+        return new GroupBuilder(partitions, pop) {
+            RingEntry limit(RingEntry r2, RingEntry r0) {
+                RingEntry limit = r2.index > r0.index ? r2 : r0;
+                if (r0.min() < limit.index)
+                    limit = r0;
+
+                return limit;
+            }
+        };
+    }
+
+    static GroupBuilder create(Partitions partitions, PopCount pop, boolean jump) {
+        if(jump)
+            return jumping(partitions, pop);
+        else
+            return new GroupBuilder(partitions, pop);
     }
 }
