@@ -4,6 +4,7 @@ import mills.bits.Clops;
 import mills.bits.PopCount;
 import mills.index.builder.IndexGroup;
 import mills.index.builder.IndexGroups;
+import mills.position.Normalizer;
 import mills.position.Positions;
 import mills.util.CachedBuilder;
 import org.junit.jupiter.api.Test;
@@ -13,12 +14,14 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.LongUnaryOperator;
 import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * version:     IndexCompare$
@@ -219,10 +222,27 @@ public class IndexTests {
 
     void testPerms(int posIndex, long i201) {
         for(int i=0; i<16; ++i) {
+
             long p201 = Positions.permute(i201, i);
-            long m201 = Positions.normalize(p201);
-            assertEquals(m201, i201);
+
+            assertOp(p201, i201, Positions::normalize);
+            assertOp(p201, i201, Normalizer.NORMAL::build);
         }
+    }
+
+    static void assertOp(long i201, long r201, LongUnaryOperator op) {
+        long m201 = op.applyAsLong(i201);
+
+        if(!Positions.equals(m201,r201)) {
+            System.err.format("(%s)->(%s) != (%s)\n",
+                    Positions.format(i201),
+                    Positions.format(m201),
+                    Positions.format(r201));
+
+            op.applyAsLong(i201);
+        }
+
+        assertTrue(Positions.equals(m201,r201));
     }
 
     static <T> T timer(String name, Supplier<T> proc) {

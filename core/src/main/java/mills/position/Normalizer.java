@@ -1,31 +1,20 @@
 package mills.position;
 
-import mills.bits.Perm;
 import mills.ring.RingEntry;
 
-import static mills.position.Positions.*;
+import static mills.position.Positions.NORMALIZED;
+import static mills.position.Positions.SWP;
+import static mills.position.Positions.compose;
+import static mills.position.Positions.perms;
 
 /**
  * created on:  01.12.2022 22:41
  */
 public class Normalizer implements Builder {
 
-    public long normalize(final long i201) {
-
-        if(Positions.normalized(i201))
-            return i201;
-
-        RingEntry r2 = Positions.r2(i201);
-        RingEntry r0 = Positions.r0(i201);
-        RingEntry r1 = Positions.r1(i201);
-        int perms = perms(i201);
-
-        return normalize(r2, r0, r1, perms);
-    }
-
-    public long normalize(RingEntry r2, RingEntry r0, RingEntry r1, int perms) {
+    public long build(RingEntry r2, RingEntry r0, RingEntry r1, int perms) {
         if(Positions.normalized(perms))
-            return build(r2, r0, r1, perms);
+            return swap(r2, r0, r1, perms);
 
         if(r0.min() < r2.min()) {
             return minimize(r0, r2, r1, perms^Positions.SWP);
@@ -53,26 +42,20 @@ public class Normalizer implements Builder {
         // initial value, assume r2 is minimized
         assert r2.isMin();
 
-        long m201 = build(r2, r0, r1, 0);
-
-        if (r2 == r1) {
-            // shortcut: r2==r1==r0
-            assert r0 == r1;
-            return m201;
-        }
+        long m201 = swap(r2, r0, r1, 0);
 
         // only minima of r2 to analyze except 0
-        int msk = 0xfe & r2.min;
+        int msk = mlt(r2, r0, r1)/2;
 
-        while(msk!=0) {
-            int perm = Integer.highestOneBit(msk);
-            msk ^= perm;
+        for(int perm=1; msk!=0 && perm<8; ++perm, msk/=2) {
+            if((msk&1)==0)
+                continue;
 
             RingEntry p2 = r2.permute(perm);
             RingEntry p0 = r0.permute(perm);
             RingEntry p1 = r1.permute(perm);
 
-            long i201 = build(p2, p0, p1, perm);
+            long i201 = swap(p2, p0, p1, perm);
 
             if (i201 < m201)
                 m201 = i201;
@@ -81,46 +64,60 @@ public class Normalizer implements Builder {
         return m201;
     }
 
-    public long build(final RingEntry r2, final RingEntry r0, final RingEntry r1, final int stat) {
-        return Positions.i201(r2.index, r0.index, r1.index, stat);
+    protected long swap(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
+        // possible swap of r2:r0
+        if(r0.index<r2.index)
+            return Positions.i201(r0, r2, r1, stat^SWP);
+        else
+            return Positions.i201(r2, r0, r1, stat);
     }
 
-    static final Normalizer NORMAL = new Normalizer();
+    public static final Normalizer NORMAL = new Normalizer();
 
-    static final Normalizer JUMPS = new Normalizer() {
+    public static final Normalizer JUMP = new Normalizer() {
 
         protected long minimize(RingEntry r2, RingEntry r0, RingEntry r1, int perms) {
 
+            // general swap of r0:r1
             if(r1.min()<r2.min())
                 return super.minimize(r1, r2, r0, Swap.T2.applyTo(perms));
 
-            if(r1==r2 || r1==r0)
-                return NORMAL.minimize(r1, r2, r0, Swap.T2.applyTo(perms));
+            //if(r1==r2 || r1==r0)
+            //    return super.minimize(r1, r2, r0, Swap.T2.applyTo(perms));
 
             return super.minimize(r2, r0, r1, perms);
         }
 
         @Override
-        public long build(final RingEntry r2, final RingEntry r0, final RingEntry r1, final int stat) {
+        public long swap(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
             // possible swap of r0:r1
             if(r1.index<r0.index)
-                return Swap.S2.build(r2, r1, r0, stat);
+                return super.swap(r2, r1, r0, Swap.T2.applyTo(stat));
             else
-                return super.build(r2, r0, r1, stat);
+                return super.swap(r2, r0, r1, stat);
         }
     };
 
-    /**
-     * Compose two operations including swap bit.
-     * @param pm1 first permutation
-     * @param pm2 second permutation
-     * @return composed permutation
-     */
-    public static int compose(int pm1, int pm2) {
-        pm1 = Perm.compose(pm1, pm2);
-        pm1 = Twist.compose(pm1, pm2);
-        pm1 ^= pm2& INV;
-        return pm1;
+    int mlt(RingEntry r2, RingEntry r0, RingEntry r1) {
+
+        int m2 = r2.min();
+        int m0 = r0.min();
+
+        int mlt = r2.min&0xff;
+
+        // take r0 into account, too
+        if(m0==m2) {
+            // no additional flags from r0, only reductions of r1 are relevant
+            if(r2==r0)
+                mlt &= r1.mlt;
+            else // additional flags from shifted r0
+                mlt |= r0.min&0xff;
+        } else {
+            // also any reductions of r0 (no jumps)
+            mlt &= r0.mlt|r0.meq;
+        }
+
+        return mlt;
     }
 
     /**

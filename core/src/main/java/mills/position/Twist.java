@@ -53,28 +53,38 @@ public interface Twist extends Indexed, Builder {
     Builder SWAP = (r2, r0, r1, stat) -> Positions.i201(r0, r2, r1, stat^SWP);
 
     static Builder i012(Builder target) {
-        return (r2, r0, r1, stat) -> target.build(r0, r1, r2, stat(stat, 2));
+        return (r2, r0, r1, stat) -> target.build(r0, r1, r2, applyTTS(stat, (byte)2));
     }
 
     static Builder i120(Builder target) {
-        return (r2, r0, r1, stat) -> target.build(r1, r2, r0, stat(stat, 4));
+        return (r2, r0, r1, stat) -> target.build(r1, r2, r0, applyTTS(stat, (byte)4));
     }
 
     default int applyTo(int perm) {
-        return stat(perm, this.tts());
+        return applyTTS(perm, this.tts());
     }
 
     static int compose(int stat0, int stat1) {
-        return stat(stat0, tts(stat1));
+        return applyTTS(stat0, tts(stat1));
     }
 
-    static int stat(int stat0, int t1) {
+    static int invert(int stat) {
+        int tts = tts(stat)+2;
 
-        byte t0 = tts(stat0);
+        // tts == 2 | 4: swap
+        if((tts&6)==4)
+            stat ^= 2<<OFF;
+
+        return stat;
+    }
+
+    static int applyTTS(int stat0, byte tt1) {
+
+        byte tt0 = tts(stat0);
 
         // apply changed bits
-        t0 ^= Swap.compose(t0, (byte) t1);
-        stat0 ^= t0 << OFF;
+        tt0 ^= Swap.compose(tt0, tt1);
+        stat0 ^= tt0 << OFF;
 
         return stat0;
     }

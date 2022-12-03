@@ -59,6 +59,7 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
     public static final int ROT = 1;
     public static final int INV = 2;
     public static final int MIR = 4;
+    public static final int MSK = 7;
 
     // pre calculated permutations
     private final int composed = composed(ordinal());
@@ -119,14 +120,12 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
     // return inverse operation
     @Override
     public Perm invert() {
-        switch(this) {
-            case R3: return R1;
-            case R1: return R3;
-            default:
-        }
-
-        // all others are self inverting.
-        return this;
+        return switch (this) {
+            case R3 -> R1;
+            case R1 -> R3;
+            // all others are self inverting.
+            default -> this;
+        };
     }
 
     /**
@@ -135,10 +134,10 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
      * @return composed permutation.
      */
     public int compose(int perm) {
-        int n = 4*(perm&7);
+        int n = 4*(perm&MSK);
 
         // cut off new permutation
-        return (composed>>>n)&7;
+        return (composed>>>n)&MSK;
     }
 
     public Perm compose(Perm before) {
@@ -152,8 +151,23 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
      * @return composition of p0 * p1
      */
     public static int compose(int p0, int p1) {
-        int n = p0&7;
-        return p0^n | get(n).compose(p1);
+        int perm = p0&MSK;
+        p0 ^= perm; // clear current perm bits
+        p0 |= get(perm).compose(p1);
+        return p0;
+    }
+
+    /**
+     * Invert the permutation bits of a status code
+     * @param stat status code
+     * @return permuted status code
+     */
+    public static int invert(int stat) {
+        // is R1 | R3
+        if((stat&5)==1)
+            stat ^= 2;
+
+        return stat;
     }
 
     @Override
@@ -162,6 +176,7 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
     }
 
     /////////////////////// static utilities ///////////////////////
+
 
     private static int composed(int m) {
         m &= 7;

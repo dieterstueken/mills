@@ -41,7 +41,7 @@ abstract public class RingEntry extends BW {
     // bit mask of stable permutations (==min for minimized tables)
     public final byte meq;
 
-    // bit mask of permutations which reduces this entry (==min for minimized tables)
+    // bit mask of permutations which reduces this entry (==0 for minimized tables)
     public final byte mlt;
 
     // bit mask of minimized permutations

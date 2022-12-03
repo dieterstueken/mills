@@ -56,8 +56,6 @@ public interface Positions {
 
     int SWP = 1<<3;
 
-    int TOR = 7<<3;
-
     int INV = 1<<6;
 
     int NORMALIZED = 1<<7;
@@ -81,6 +79,14 @@ public interface Positions {
     static RingEntry r0(long i201) {return Entries.of(i0(i201));}
     static RingEntry r1(long i201) {return Entries.of(i1(i201));}
 
+    static String format(long i201) {
+        short i2 = i2(i201);
+        short i0 = i0(i201);
+        short i1 = i1(i201);
+        int pm = stat(i201);
+
+        return String.format("%d,%d,%d,%02X", i2, i0, i1, pm);
+    }
 
     static long stones(int black, int white) {
         short i2 = Stones.i2(black, white);
@@ -154,6 +160,30 @@ public interface Positions {
         return i201(i2, i0, i1, 0);
     }
 
+    /**
+     * Compose two operations including swaps.
+     * @param pm1 first permutation
+     * @param pm2 second permutation
+     * @return composed permutation
+     */
+    static int compose(int pm1, int pm2) {
+        int pm3 = Perm.compose(pm1, pm2);
+        pm3 |= Twist.compose(pm1, pm2);
+        pm3 |= pm1^pm2&INV;
+        return pm3;
+    }
+
+    /**
+     * Calculate the inversion of a given status code.
+     * @param stat status to invert.
+     * @return the inverted status.
+     */
+    static int invert(int stat) {
+        int inv = Perm.invert(stat);
+        inv |= Twist.invert(stat);
+        inv |= stat&INV;
+        return inv;
+    }
 
     // decompose, permute and compose an i201 index
     static long permute(long i201, int perm) {
@@ -180,6 +210,17 @@ public interface Positions {
 
         return Twist.get(perm).build(r2, r0, r1, pm);
     }
+
+    /**
+     * Revert a position to its original state.
+     */
+    static long revert(long i201) {
+        int perms = perms(i201);
+        perms = invert(perms);
+        return permute(i201, perms);
+    }
+
+    Builder NORMALIZER = Positions::normalize;
 
     static long m201(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
         if(r0.index < r2.index)
@@ -217,26 +258,31 @@ public interface Positions {
         return m201 | NORMALIZED;
     }
 
-    static long normalize(final long i201) {
+    static long normalize(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
 
-        if(Positions.normalized(i201))
-            return i201;
-
-        RingEntry r2 = Positions.r2(i201);
-        RingEntry r0 = Positions.r0(i201);
-        RingEntry r1 = Positions.r1(i201);
+        if(normalized(stat))
+            return i201(r2, r0, r1, stat);
 
         long n201 = normalize(r2, r0, r1);
-
-        int p201 = perms(n201);
-
-        // changed permutations
-        p201 ^= Normalizer.compose(perms(i201), p201);
-
-        // apply change
-        n201 ^= p201;
+        
+        // compute and apply status changes
+        stat ^= compose(stat, perms(n201));
+        n201 ^= stat;
 
         return n201 | NORMALIZED;
+    }
+
+    static long normalize(final long i201) {
+
+        if(normalized(i201))
+            return i201;
+
+        RingEntry r2 = r2(i201);
+        RingEntry r0 = r0(i201);
+        RingEntry r1 = r1(i201);
+        int perms = perms(i201);
+
+        return normalize(r2, r0, r1, perms);
     }
 
     /**
