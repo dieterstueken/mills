@@ -1,5 +1,13 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'Mills'
 
 include "core"
 include "index"
 include "scores"
+include "native"

@@ -1,5 +1,7 @@
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id "java"
+    id "idea"
+}
 
 version = '1.0'
 
@@ -44,4 +46,5 @@ dependencies {
     implementation project(':index')
     implementation project(':scores')
 }
+
 

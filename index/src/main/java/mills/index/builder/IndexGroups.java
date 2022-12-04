@@ -34,7 +34,7 @@ public class IndexGroups implements IndexProvider {
 
     final Debug debug;
 
-    final Partitions partitions = Partitions.create(new ForkJoinPool());
+    final Partitions partitions = Partitions.create(ForkJoinPool.commonPool());
 
     final List<Provider> providers;
 

@@ -14,6 +14,6 @@ public class ThreadedFormatter extends SimpleFormatter {
     @Override
     public String formatMessage(LogRecord record) {
         String message = super.formatMessage(record);
-        return String.format("[%d] %s", record.getThreadID(), message);
+        return String.format("[%d] %s", record.getLongThreadID(), message);
     }
 }
