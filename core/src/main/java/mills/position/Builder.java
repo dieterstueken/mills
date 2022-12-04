@@ -1,6 +1,5 @@
 package mills.position;
 
-import mills.ring.Entries;
 import mills.ring.RingEntry;
 
 /**
@@ -15,14 +14,14 @@ public interface Builder {
     long build(RingEntry r2, RingEntry r0, RingEntry r1, int stat);
 
     default long build(short i2, short i0, short i1, int stat) {
-        return build(Entries.of(i2), Entries.of(i0), Entries.of(i1), stat);
+        return build(RingEntry.of(i2), RingEntry.of(i0), RingEntry.of(i1), stat);
     }
 
     default long build(long i201) {
         RingEntry r2= Positions.r2(i201);
         RingEntry r0 = Positions.r0(i201);
         RingEntry r1 = Positions.r1(i201);
-        int stat = Positions.stat(i201);
+        short stat = Positions.stat(i201);
         return build(r2, r0, r1, stat);
     }
 }

@@ -4,7 +4,6 @@ import mills.bits.Clops;
 import mills.bits.Perm;
 import mills.bits.Perms;
 import mills.bits.PopCount;
-import mills.ring.Entries;
 import mills.ring.RingEntry;
 import mills.stones.Stones;
 
@@ -54,13 +53,13 @@ public interface Positions {
 
     long MASK = ~WORD;
 
-    int SWP = 1<<3;
+    short SWP = 1<<3;
 
-    int INV = 1<<6;
+    short INV = 1<<6;
 
-    int NORMALIZED = 1<<7;
+    short NORMALIZED = 1<<7;
 
-    int PERMS = NORMALIZED-1;
+    short PERMS = NORMALIZED-1;
 
     static short i2(long i201) {return (short) ((i201>>>S2) & WORD);}
     static short i0(long i201) {return (short) ((i201>>>S0) & WORD);}
@@ -75,9 +74,9 @@ public interface Positions {
         return (i201&NORMALIZED) != 0;
     }
 
-    static RingEntry r2(long i201) {return Entries.of(i2(i201));}
-    static RingEntry r0(long i201) {return Entries.of(i0(i201));}
-    static RingEntry r1(long i201) {return Entries.of(i1(i201));}
+    static RingEntry r2(long i201) {return RingEntry.of(i2(i201));}
+    static RingEntry r0(long i201) {return RingEntry.of(i0(i201));}
+    static RingEntry r1(long i201) {return RingEntry.of(i1(i201));}
 
     static String format(long i201) {
         short i2 = i2(i201);
@@ -166,9 +165,9 @@ public interface Positions {
      * @param pm2 second permutation
      * @return composed permutation
      */
-    static int compose(int pm1, int pm2) {
-        int pm3 = Perm.compose(pm1, pm2);
-        pm3 |= Twist.compose(pm1, pm2);
+    static short compose(short pm1, short pm2) {
+        short pm3 = Perm.compose(pm1, pm2);
+        pm3 |= Swap.compose(pm1, pm2);
         pm3 |= pm1^pm2&INV;
         return pm3;
     }
@@ -178,9 +177,9 @@ public interface Positions {
      * @param stat status to invert.
      * @return the inverted status.
      */
-    static int invert(int stat) {
-        int inv = Perm.invert(stat);
-        inv |= Twist.invert(stat);
+    static short invert(short stat) {
+        short inv = Perm.invert(stat);
+        inv |= Swap.invert(stat);
         inv |= stat&INV;
         return inv;
     }
@@ -192,7 +191,7 @@ public interface Positions {
         RingEntry r2 = r2(i201);
         RingEntry r0 = r0(i201);
         RingEntry r1 = r1(i201);
-        int pm = perms(i201);
+        short pm = perms(i201);
 
         // permute each
         r2 = r2.permute(perm);
@@ -208,14 +207,14 @@ public interface Positions {
             pm ^= INV;
         }
 
-        return Twist.get(perm).build(r2, r0, r1, pm);
+        return Swap.of((short)perm).build(r2, r0, r1, pm);
     }
 
     /**
      * Revert a position to its original state.
      */
     static long revert(long i201) {
-        int perms = perms(i201);
+        short perms = perms(i201);
         perms = invert(perms);
         return permute(i201, perms);
     }
@@ -237,7 +236,7 @@ public interface Positions {
         int m0 = r0.min();
 
         // user smaller one or both if equal
-        int mlt = m2<m0 ? r2.min : m0<m2 ? r0.min : r2.min|r0.min;
+        int mlt = m2<m0 ? r2.pmin : m0<m2 ? r0.pmin : r2.pmin |r0.pmin;
 
         for (Perm p : Perms.of(mlt & 0xfe)) {
 
@@ -266,7 +265,7 @@ public interface Positions {
         long n201 = normalize(r2, r0, r1);
         
         // compute and apply status changes
-        stat ^= compose(stat, perms(n201));
+        stat ^= compose((short)stat, perms(n201));
         n201 ^= stat;
 
         return n201 | NORMALIZED;
@@ -280,7 +279,7 @@ public interface Positions {
         RingEntry r2 = r2(i201);
         RingEntry r0 = r0(i201);
         RingEntry r1 = r1(i201);
-        int perms = perms(i201);
+        short perms = perms(i201);
 
         return normalize(r2, r0, r1, perms);
     }
@@ -332,7 +331,7 @@ public interface Positions {
         // search all minima permutations of e0 excluding already verified meq.
 
 
-        int msk = 0xff & e0.min & ~meq;
+        int msk = 0xff & e0.pmin & ~meq;
 
         long bitseq = Perms.of(msk).bitseq;
         while (bitseq != 0) {

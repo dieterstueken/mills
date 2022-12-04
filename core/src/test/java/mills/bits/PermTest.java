@@ -42,7 +42,7 @@ public class PermTest {
                 Perm pc = then.compose(first);
 
                 assertEquals(pc.ordinal(), then.compose(first.ordinal()), "Perm.compose");
-                assertEquals(pc.ordinal(), Positions.compose(then.ordinal(), first.ordinal()), "Perm.compose");
+                assertEquals(pc.ordinal(), Positions.compose(then.perm(), first.perm()), "Perm.compose");
 
                 System.out.format(" %s", pc);
 

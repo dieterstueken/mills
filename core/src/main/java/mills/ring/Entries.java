@@ -16,16 +16,10 @@ public interface Entries {
     /**
      * Immutable tables.
      */
-    IndexedEntryTable TABLE = new RingTable();
+    IndexedEntryTable TABLE = RingEntry.TABLE;
     EntryTable RADIALS = TABLE.subList(0, 81);
     EntryTable MINIMIZED = TABLE.filter(RingEntry::isMin);
-    RingEntry EMPTY = of(0);
-
-    List<EntryTable> SISTERS = RingEntry.sisters(MINIMIZED);
-
-    static RingEntry of(int index) {
-        return TABLE.get(index);
-    }
+    RingEntry EMPTY = RingEntry.of(0);
 
     Predicate<RingEntry> ALL  = e -> true;
     Predicate<RingEntry> NONE = e -> false;

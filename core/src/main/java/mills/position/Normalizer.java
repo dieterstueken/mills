@@ -23,11 +23,11 @@ public class Normalizer implements Builder {
     protected long minimize(RingEntry r2, RingEntry r0, RingEntry r1, int perms) {
 
         if(!r2.isMin()) {
-            int perm = r2.mix;
+            short perm = r2.mix;
             r2 = r2.permute(perm);
             r0 = r0.permute(perm);
             r1 = r1.permute(perm);
-            perms = compose(perms, perm);
+            perms = compose((short)perms, perm);
         }
 
         long n201 = minimize(r2, r0, r1);
@@ -78,7 +78,7 @@ public class Normalizer implements Builder {
 
             // general swap of r0:r1
             if(r1.min()<r2.min())
-                return super.minimize(r1, r2, r0, Swap.T2.applyTo(perms));
+                return super.minimize(r1, r2, r0, Swap.T120.permute(perms));
 
             //if(r1==r2 || r1==r0)
             //    return super.minimize(r1, r2, r0, Swap.T2.applyTo(perms));
@@ -90,7 +90,7 @@ public class Normalizer implements Builder {
         public long swap(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
             // possible swap of r0:r1
             if(r1.index<r0.index)
-                return super.swap(r2, r1, r0, Swap.T2.applyTo(stat));
+                return super.swap(r2, r1, r0, Swap.T120.permute(stat));
             else
                 return super.swap(r2, r0, r1, stat);
         }
@@ -101,7 +101,7 @@ public class Normalizer implements Builder {
         int m2 = r2.min();
         int m0 = r0.min();
 
-        int mlt = r2.min&0xff;
+        int mlt = r2.pmin&0xff;
 
         // take r0 into account, too
         if(m0==m2) {
@@ -109,7 +109,7 @@ public class Normalizer implements Builder {
             if(r2==r0)
                 mlt &= r1.mlt;
             else // additional flags from shifted r0
-                mlt |= r0.min&0xff;
+                mlt |= r0.pmin &0xff;
         } else {
             // also any reductions of r0 (no jumps)
             mlt &= r0.mlt|r0.meq;
@@ -125,8 +125,8 @@ public class Normalizer implements Builder {
      * @return the permuted position.
      */
     public static long prepend(long i201, int first) {
-        int second = perms(i201);
-        int result = compose(first, second);
+        short second = perms(i201);
+        short result = compose((short)first, second);
         int changed = second^result;
         i201 ^= changed;
         return i201;

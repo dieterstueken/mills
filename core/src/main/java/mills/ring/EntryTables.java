@@ -4,12 +4,7 @@ import mills.util.AbstractListSet;
 import mills.util.AbstractRandomList;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
@@ -155,7 +150,7 @@ public class EntryTables {
         if(key>MAX_VALUE)
             throw new IndexOutOfBoundsException("too many entries");
 
-        IndexedEntryArray entry = new IndexedEntryArray(indices, (short) key);
+        IndexedEntryArray entry = IndexedEntryArray.of(indices, (short) key);
         tables.add(entry);
 
         return entry;
@@ -187,7 +182,7 @@ public class EntryTables {
             return EntryTable.of();
 
         if(index < RingEntry.MAX_INDEX)
-            return Entries.of(index).singleton;
+            return RingEntry.of(index).singleton;
 
         if(index == RingEntry.MAX_INDEX)
             return Entries.TABLE;

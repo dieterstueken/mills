@@ -32,7 +32,7 @@ public class RingTableTest {
 
             int index = BW.index(b, w);
 
-            RingEntry f = Entries.of(index);
+            RingEntry f = RingEntry.of(index);
 
             if (e != f)
                 fail(String.format("%d %d %d\n", index, e.index, f.index));

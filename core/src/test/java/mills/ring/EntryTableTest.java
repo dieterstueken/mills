@@ -7,9 +7,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class EntryTableTest {
 
@@ -20,7 +18,7 @@ public class EntryTableTest {
     public void testFindIndex() {
 
         for(int i=0; i<11; ++i) {
-            RingEntry e = Entries.of(i);
+            RingEntry e = RingEntry.of(i);
             int index = entryTable.indexOf(e);
             int lower = entryTable.lowerBound(e.index());
             int upper = entryTable.upperBound(e.index());
@@ -52,14 +50,14 @@ public class EntryTableTest {
         StringBuilder sb = new StringBuilder();
 
         for(int i=0; i<11; ++i) {
-            RingEntry e1 = Entries.of(i);
+            RingEntry e1 = RingEntry.of(i);
 
             for(int k=i; k<11; ++k) {
 
                 sb.setLength(0);
                 sb.append("subset: ").append(i).append(" - ").append(k);
 
-                RingEntry e2 = Entries.of(k);
+                RingEntry e2 = RingEntry.of(k);
                 EntryTable st = entryTable.subSet(e1, e2);
 
                 String sep = " {";
@@ -89,7 +87,7 @@ public class EntryTableTest {
 
         testIndexOf(Entries.TABLE);
         testIndexOf(Entries.MINIMIZED);
-        testIndexOf(Entries.of(77).singleton);
+        testIndexOf(RingEntry.of(77).singleton);
         testIndexOf(EntryTable.of());
 
     }
@@ -122,13 +120,5 @@ public class EntryTableTest {
 
             System.out.format("%3d: %3d %3d\n", i, i1, i2);
         }
-    }
-
-    @Test
-    public void testSisters() {
-        Entries.TABLE.forEach(e->{
-            EntryTable sisters = Entries.SISTERS.get(e.index);
-            assertEquals(sisters, e.sisters());
-        });
     }
 }

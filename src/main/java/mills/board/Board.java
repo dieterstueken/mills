@@ -3,21 +3,11 @@ package mills.board;
 import mills.bits.Player;
 import mills.bits.Ring;
 import mills.bits.Sector;
-import mills.ring.Entries;
+import mills.ring.RingEntry;
 
-import javax.swing.JFrame;
-import javax.swing.JMenuBar;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
-import java.awt.BasicStroke;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
@@ -146,7 +136,7 @@ public class Board extends JPanel {
         }
     }
 
-    final Stones stones = new Stones(Entries.of(1234), Entries.of(4567), Entries.of(42));
+    final Stones stones = new Stones(RingEntry.of(1234), RingEntry.of(4567), RingEntry.of(42));
     final List<Position> positions = new ArrayList<>(24);
     final Drag drag = new Drag();
     final List<Line2D> links = new ArrayList<>(32);

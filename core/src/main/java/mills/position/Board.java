@@ -2,19 +2,11 @@ package mills.position;
 
 import mills.bits.Player;
 import mills.bits.Sector;
-import mills.ring.Entries;
 import mills.ring.RingEntry;
 
 import java.util.List;
 
-import static mills.bits.Sector.E;
-import static mills.bits.Sector.N;
-import static mills.bits.Sector.NE;
-import static mills.bits.Sector.NW;
-import static mills.bits.Sector.S;
-import static mills.bits.Sector.SE;
-import static mills.bits.Sector.SW;
-import static mills.bits.Sector.W;
+import static mills.bits.Sector.*;
 
 /**
  * version:     $
@@ -106,9 +98,9 @@ public class Board {
 
     public static void main(String ... args) {
 
-        RingEntry e0 = Entries.of(1234);
-        RingEntry e2 = Entries.of(5514);
-        RingEntry e1 = Entries.of(2456);
+        RingEntry e0 = RingEntry.of(1234);
+        RingEntry e2 = RingEntry.of(5514);
+        RingEntry e1 = RingEntry.of(2456);
 
         long i201 = Positions.i201(e2, e0, e1, 0);
         show(i201);

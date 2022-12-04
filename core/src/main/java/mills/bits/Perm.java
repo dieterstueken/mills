@@ -71,6 +71,10 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
         return 1<<ordinal();
     }
 
+    public short perm() {
+        return (short) ordinal();
+    }
+
     /**
      * @return number of right rotations performed.
      */
@@ -150,7 +154,7 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
      * @param p1 additional permutation.
      * @return composition of p0 * p1
      */
-    public static int compose(int p0, int p1) {
+    public static short compose(short p0, int p1) {
         int perm = p0&MSK;
         p0 ^= perm; // clear current perm bits
         p0 |= get(perm).compose(p1);
@@ -162,7 +166,7 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
      * @param stat status code
      * @return permuted status code
      */
-    public static int invert(int stat) {
+    public static short invert(short stat) {
         // is R1 | R3
         if((stat&5)==1)
             stat ^= 2;

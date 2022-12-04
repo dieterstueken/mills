@@ -65,8 +65,8 @@ class NormalizerTest {
 
     private void testI201(short i2, short i0, short i1) {
         long i201 = Positions.i201(i2, i0, i1);
-        long m201 = Positions.NORMALIZER.build(i201);
-        //long m201 = Normalizer.NORMAL.build(i201);
+        //long m201 = Positions.NORMALIZER.build(i201);
+        long m201 = Normalizer.NORMAL.build(i201);
 
         //assertOp(i201, m201, Normalizer.NORMAL::build);
         //assertOp(m201, i201, Positions::revert);
