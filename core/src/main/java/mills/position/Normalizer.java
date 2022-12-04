@@ -1,11 +1,9 @@
 package mills.position;
 
+import mills.bits.Perms;
 import mills.ring.RingEntry;
 
-import static mills.position.Positions.NORMALIZED;
-import static mills.position.Positions.SWP;
-import static mills.position.Positions.compose;
-import static mills.position.Positions.perms;
+import static mills.position.Positions.*;
 
 /**
  * created on:  01.12.2022 22:41
@@ -14,7 +12,7 @@ public class Normalizer implements Builder {
 
     public long build(RingEntry r2, RingEntry r0, RingEntry r1, int perms) {
         if(Positions.normalized(perms))
-            return swap(r2, r0, r1, perms);
+            return Positions.i201(r2, r0, r1, perms);
 
         if(r0.min() < r2.min()) {
             return minimize(r0, r2, r1, perms^Positions.SWP);
@@ -45,11 +43,11 @@ public class Normalizer implements Builder {
         long m201 = swap(r2, r0, r1, 0);
 
         // only minima of r2 to analyze except 0
-        int msk = mlt(r2, r0, r1)/2;
+        int bitseq = Perms.of(mlt(r2, r0, r1)).bitseq;
 
-        for(int perm=1; msk!=0 && perm<8; ++perm, msk/=2) {
-            if((msk&1)==0)
-                continue;
+        while(bitseq!=0) {
+            int perm = bitseq&0x3;
+            bitseq >>>= 4;
 
             RingEntry p2 = r2.permute(perm);
             RingEntry p0 = r0.permute(perm);

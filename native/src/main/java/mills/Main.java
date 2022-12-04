@@ -1,48 +1,84 @@
 package mills;
 
-import mills.index.builder.IndexGroup;
-import mills.index.builder.IndexGroups;
+import mills.position.Normalizer;
+import mills.position.Positions;
 
-import java.util.function.Supplier;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.LongUnaryOperator;
+import java.util.stream.IntStream;
 
-public class Main {
+import static mills.ring.RingEntry.MAX_INDEX;
+
+class Main {
 
     public static void main(String ... args) {
-
-        IndexGroups groups = new IndexGroups();
-
-        timer("time", () -> {
-            long total = 0;
-
-            for (IndexGroups.Provider provider : groups.providers()) {
-                boolean exists = provider.cached() != null;
-                IndexGroup group = provider.get();
-
-                total += group.range();
-
-                System.out.format("%s %sgroups: %d\n",
-                        group.pop(),
-                        exists ? "ready " : "",
-                        group.group().size());
-
-                group.group().forEach((clop, c2t) -> {
-                    System.out.format("%s: %4d %,13d\n", clop.toString(), c2t.n20(), c2t.range());
-                });
-            }
-
-            System.out.format("total: %,d\n", total);
-
-            return null;
-        });
+        new Main().normalizerTest();
     }
 
-    static <T> T timer(String name, Supplier<T> proc) {
-        double start = System.currentTimeMillis();
-        T t = proc.get();
-        double stop = System.currentTimeMillis();
+    static final long PRIME = 1009;
 
-        System.out.format("%s: %.3fs\n", name, (stop - start) / 1000);
+    static short index(int index) {
+        long m = index*PRIME;
+        return (short) (m%MAX_INDEX);
+    }
 
-        return t;
+    long start=System.currentTimeMillis();
+    final AtomicInteger count = new AtomicInteger();
+
+    volatile double limit;
+    final double INCREMENT = Math.pow(3, 1/3.0);
+
+    void normalizerTest() {
+        count.set(0);
+        limit = 3;
+        long start = System.currentTimeMillis();
+
+        IntStream.range(0, MAX_INDEX).parallel().forEach(this::testI201);
+
+        long stop = System.currentTimeMillis();
+        System.out.format("%4d: %.1f\n", count.get(), (stop - start) / 1000.0);
+    }
+
+
+    private void testI201(int i2) {
+        short s2 = index(i2);
+        for (int i0 = 0; i0 < MAX_INDEX; ++i0) {
+            short s0 = index(i0);
+            for (int i1 = 0; i1 < MAX_INDEX; ++i1) {
+                short s1 = index(i0);
+                testI201(s2, s0, s1);
+            }
+        }
+
+        int i = count.incrementAndGet();
+
+        if(i>limit+0.5) {
+            limit *= INCREMENT;
+            long stop = System.currentTimeMillis();
+            System.out.format("%4d: %.1f\n", i-1, (stop - start) / 1000.0);
+        }
+    }
+
+    private void testI201(short i2, short i0, short i1) {
+        long i201 = Positions.i201(i2, i0, i1);
+        //long m201 = Positions.NORMALIZER.build(i201);
+        long m201 = Normalizer.NORMAL.build(i201);
+
+        //assertOp(i201, m201, Normalizer.NORMAL::build);
+        //assertOp(m201, i201, Positions::revert);
+    }
+
+    static void assertOp(long i201, long r201, LongUnaryOperator op) {
+        long m201 = op.applyAsLong(i201);
+
+        if(!Positions.equals(m201,r201)) {
+            System.err.format("(%s)->(%s) != (%s)\n",
+                    Positions.format(i201),
+                    Positions.format(m201),
+                    Positions.format(r201));
+
+                    op.applyAsLong(i201);
+                    throw new AssertionError();
+        }
     }
 }

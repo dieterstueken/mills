@@ -25,7 +25,7 @@ import java.util.function.UnaryOperator;
 
     M^i * X^j * R^k with i,j,k of [0,1]
 
-    Thus there are 8 possible combinations:
+    Thus, there are 8 possible combinations:
 
     A B
     D C

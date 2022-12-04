@@ -2,8 +2,7 @@ package mills.position;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.LongUnaryOperator;
 import java.util.stream.IntStream;
 
@@ -25,34 +24,51 @@ class NormalizerTest {
         long m = index*PRIME;
         return (short) (m%MAX_INDEX);
     }
-    static final ForkJoinPool pool = new ForkJoinPool();
 
+    long start=System.currentTimeMillis();
+    final AtomicInteger count = new AtomicInteger();
+
+    volatile double limit;
+    final double INCREMENT = Math.pow(3, 1/3.0);
 
     @Test
     void normalizerTest() {
+        count.set(0);
+        limit = 3;
         long start = System.currentTimeMillis();
-        for(int i2=0; i2<MAX_INDEX; ++i2) {
-            short s2 = index(i2);
-            pool.invoke(ForkJoinTask.adapt(() -> testI201(s2)));
-            long stop = System.currentTimeMillis();
-            System.out.format("%.1f: %d\n", (stop-start)/1000.0, i2);
-        }
+
+        IntStream.range(0, MAX_INDEX).parallel().forEach(this::testI201);
+
+        long stop = System.currentTimeMillis();
+        System.out.format("%4d: %.1f\n", count.get(), (stop - start) / 1000.0);
     }
 
-    private void testI201(short s2) {
-        IntStream.range(0, MAX_INDEX).parallel()
-                .forEach(i0 -> {
-                    short s0 = index(i0);
-                    IntStream.range(0, MAX_INDEX).parallel()
-                            .forEach(i1 -> testI201(s2, s0, index(i1)));
-                });
+
+    private void testI201(int i2) {
+        short s2 = index(i2);
+        for (int i0 = 0; i0 < MAX_INDEX; ++i0) {
+            short s0 = index(i0);
+            for (int i1 = 0; i1 < MAX_INDEX; ++i1) {
+                short s1 = index(i0);
+                testI201(s2, s0, s1);
+            }
+        }
+        
+        int i = count.incrementAndGet();
+
+        if(i>limit+0.5) {
+            limit *= INCREMENT;
+            long stop = System.currentTimeMillis();
+            System.out.format("%4d: %.1f\n", i-1, (stop - start) / 1000.0);
+        }
     }
 
     private void testI201(short i2, short i0, short i1) {
         long i201 = Positions.i201(i2, i0, i1);
         long m201 = Positions.NORMALIZER.build(i201);
+        //long m201 = Normalizer.NORMAL.build(i201);
 
-        assertOp(i201, m201, Normalizer.NORMAL::build);
+        //assertOp(i201, m201, Normalizer.NORMAL::build);
         //assertOp(m201, i201, Positions::revert);
     }
 
