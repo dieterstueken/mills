@@ -125,4 +125,7 @@ This is represented by a mask of bits (represented by a byte) like
 [RingEntry.mlt](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/ring/RingEntry.java#L37).
 
 Several other mask are representing other questions, i.e. if the index stays stable
- ([RingEntry.meq](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/ring/RingEntry.java#L34)).   
+ ([RingEntry.meq](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/ring/RingEntry.java#L34)). 
+
+line 1
+line 2
