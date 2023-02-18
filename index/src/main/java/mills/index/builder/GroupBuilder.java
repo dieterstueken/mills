@@ -1,17 +1,14 @@
 package mills.index.builder;
 
-import mills.bits.Clops;
 import mills.bits.PopCount;
-import mills.index.tables.R0Table;
-import mills.ring.EntryMap;
+import mills.index.tables.C2Table;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
-import mills.util.AbstractRandomList;
 import mills.util.ListSet;
 import mills.util.PopMap;
 
 import java.util.List;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * Created by IntelliJ IDEA.
@@ -31,6 +28,8 @@ class GroupBuilder {
 
     final PopMap<C2Builder> builders = PopMap.allocate(PopCount.NCLOPS);
 
+    final C2Table[] tables = new C2Table[PopCount.NCLOPS];
+
     private GroupBuilder(Partitions partitions, PopCount pop) {
         this.partitions = partitions;
         this.pop = pop;
@@ -43,31 +42,37 @@ class GroupBuilder {
                 .filter(mclop::ge).toList());
 
         clops.forEach(this::setupBuilder);
+
+        buildEntries();
     }
 
     private void setupBuilder(PopCount clop) {
         builders.put(clop, new C2Builder(clop, t2));
     }
 
-    <R extends Clops> PopMap<R> build(BiFunction<PopCount, EntryMap<R0Table>, R> generator) {
+    private void buildEntries() {
+        T0Builder builder = new T0Builder(this);
+        partitions.pool.invoke(builder);
+    }
 
-        buildEntries();
-
-        List<R> tmp = AbstractRandomList.preset(PopCount.NCLOPS, null);
+    public PopMap<C2Table> build(Function<C2Builder, C2Table> generator) {
 
         clops.parallelStream()
                 .map(builders::get)
-                .map(b -> b.build(generator))
-                .forEach(result -> tmp.set(result.clop().index, result));
+                .map(generator)
+                .forEach(this::put);
 
-        List<R> results = clops.transform(c -> tmp.get(c.index)).copyOf();
+        List<C2Table> results = clops.transform(this::get).copyOf();
 
         return PopMap.of(clops, results);
     }
 
-    private void buildEntries() {
-        T0Builder builder = new T0Builder(this);
-        partitions.pool.invoke(builder);
+    private void put(C2Table result) {
+        tables[result.clop().index] = result;
+    }
+
+    private C2Table get(PopCount pop) {
+        return tables[pop.index];
     }
 
     RingEntry limit(RingEntry r2, RingEntry r0) {

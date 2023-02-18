@@ -6,8 +6,6 @@ import mills.ring.EntryMap;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
 
-import java.util.function.BiFunction;
-
 import static java.util.function.Predicate.not;
 
 /**
@@ -31,8 +29,7 @@ class C2Builder {
         t0Tables.put(r2, t0Table);
     }
 
-    <Result> Result build(BiFunction<PopCount, EntryMap<R0Table>, Result> group) {
-        var filtered = t0Tables.filterValues(not(R0Table::isEmpty));
-        return group.apply(clop, filtered);
+    EntryMap<R0Table> tables() {
+        return t0Tables.filterValues(not(R0Table::isEmpty));
     }
 }

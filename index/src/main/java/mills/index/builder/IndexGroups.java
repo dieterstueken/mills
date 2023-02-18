@@ -93,7 +93,7 @@ public class IndexGroups implements IndexProvider {
             debug.start(pop);
             worker = Thread.currentThread();
             GroupBuilder builder = GroupBuilder.create(partitions, pop, jump);
-            IndexGroup result = new IndexGroup(pop, g->builder.build(g::newGroupIndex));
+            IndexGroup result = new IndexGroup(pop, builder);
             debug.done(result);
             worker = null;
             return result;

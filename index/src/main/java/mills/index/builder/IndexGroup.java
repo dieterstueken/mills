@@ -11,8 +11,6 @@ import mills.util.IndexTable;
 import mills.util.ListMap;
 import mills.util.PopMap;
 
-import java.util.function.Function;
-
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -27,14 +25,24 @@ public class IndexGroup implements PosIndex {
 
     final IndexTable it;
 
-    IndexGroup(PopCount pop, Function<IndexGroup, PopMap<C2Table>> builder) {
+    IndexGroup(PopCount pop, GroupBuilder builder) {
         this.pop = pop;
-        this.group = builder.apply(this);
+        this.group = builder.build(Table::new);
         this.it = IndexTable.sum(group.values(), C2Table::range);
     }
 
-    C2Table newGroupIndex(PopCount clop, EntryMap<R0Table> r0Tables) {
-        return new C2Table(pop, clop, r0Tables.keySet(), r0Tables.values()) {};
+    /**
+     * This table holds a reference to the group to prevent early garbage collection.
+     */
+    class Table extends C2Table {
+
+        Table(PopCount pop, PopCount clop, EntryMap<R0Table> tables) {
+            super(pop, clop, tables.keySet(), tables.values());
+        }
+
+        Table(C2Builder builder) {
+            this(pop, builder.clop, builder.tables());
+        }
     }
 
     public ListMap<PopCount, C2Table> group() {
