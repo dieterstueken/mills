@@ -2,7 +2,6 @@ package mills.index.builder;
 
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
-import mills.index.PosIndex;
 import mills.util.CachedBuilder;
 
 import java.lang.ref.Reference;
@@ -59,8 +58,8 @@ public class IndexGroups implements IndexProvider {
         return providers;
     }
 
-    public PosIndex build(PopCount pop, PopCount clop) {
-        return group(pop).getIndex(clop);
+    public IndexGroup build(PopCount pop) {
+        return group(pop);
     }
 
     public void close() {

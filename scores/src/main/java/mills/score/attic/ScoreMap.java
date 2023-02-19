@@ -1,10 +1,11 @@
-package mills.score;
+package mills.score.attic;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
 import mills.position.Position;
+import mills.position.Situation;
 import mills.stones.Moves;
 
 import java.io.Closeable;
@@ -26,14 +27,23 @@ public class ScoreMap implements Position.Factory, Closeable {
 
     private final PosIndex index;
 
-    final Player player;
+    final Situation situation;
 
-    public ScoreMap(final ByteBuffer scores, final PosIndex index, Player player) {
+    public ScoreMap(ByteBuffer scores, PosIndex index, Situation situation) {
         this.scores = scores;
         this.index = index;
-        this.player = player;
+        this.situation = situation;
 
+        assert situation.pop.equals(index.pop());
         assert scores.limit() >= index.range();
+    }
+
+    public String toString() {
+        return situation.toString();
+    }
+
+    public Player player() {
+        return situation.player;
     }
 
     public void force() {
@@ -95,6 +105,12 @@ public class ScoreMap implements Position.Factory, Closeable {
         return pos==null ? null : pos.posIndex;
     }
 
+    //public static final Ordering<Position> INDEX_ORDER = Ordering.<Integer>natural().onResultOf(ScoreMap::posIndex);
+
+    public Situation situation() {
+        return situation;
+    }
+
     public class Position extends mills.position.Position {
 
         final Position normalized;
@@ -121,7 +137,7 @@ public class ScoreMap implements Position.Factory, Closeable {
         @Override
         public StringBuilder format(StringBuilder sb) {
             sb = super.format(sb);
-            sb.insert(3, player.name().charAt(0));
+            sb.insert(3, player().name().charAt(0));
             sb.append(" ").append(posIndex).append(" : ");
             sb.append(score);
             return sb;

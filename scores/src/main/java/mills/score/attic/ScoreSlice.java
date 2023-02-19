@@ -2,7 +2,6 @@ package mills.score.attic;
 
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
-import mills.score.ScoreMap;
 import mills.util.AbstractRandomArray;
 import mills.util.QueueActor;
 

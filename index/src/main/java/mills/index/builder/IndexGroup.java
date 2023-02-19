@@ -1,6 +1,7 @@
 package mills.index.builder;
 
 import mills.bits.PopCount;
+import mills.index.GroupIndex;
 import mills.index.IndexProcessor;
 import mills.index.PosIndex;
 import mills.index.tables.C2Table;
@@ -8,7 +9,6 @@ import mills.index.tables.R0Table;
 import mills.position.Positions;
 import mills.ring.EntryMap;
 import mills.util.IndexTable;
-import mills.util.ListMap;
 import mills.util.PopMap;
 
 /**
@@ -17,7 +17,7 @@ import mills.util.PopMap;
  * Date: 02.09.22
  * Time: 19:09
  */
-public class IndexGroup implements PosIndex {
+public class IndexGroup implements GroupIndex {
 
     final PopCount pop;
 
@@ -45,7 +45,7 @@ public class IndexGroup implements PosIndex {
         }
     }
 
-    public ListMap<PopCount, C2Table> group() {
+    public PopMap<C2Table> group() {
         return group;
     }
 

@@ -2,7 +2,6 @@ package mills.score.attic;
 
 import mills.bits.Player;
 import mills.position.Position;
-import mills.score.ScoreMap;
 import mills.stones.Mover;
 import mills.stones.Moves;
 import mills.stones.Stones;

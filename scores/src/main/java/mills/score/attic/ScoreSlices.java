@@ -3,11 +3,8 @@ package mills.score.attic;
 import mills.bits.Player;
 import mills.index.IndexProcessor;
 import mills.score.Score;
-import mills.score.ScoreMap;
 import mills.stones.Stones;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.RecursiveTask;
@@ -120,11 +117,7 @@ public class ScoreSlices {
 
                 invokeAll(tasks);
 
-                try {
-                    map.close();
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+                map.close();
 
                 return stat;
             }

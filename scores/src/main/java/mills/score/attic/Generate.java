@@ -5,7 +5,6 @@ import mills.bits.PopCount;
 import mills.position.Situation;
 import mills.score.Pair;
 import mills.score.Score;
-import mills.score.ScoreMap;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

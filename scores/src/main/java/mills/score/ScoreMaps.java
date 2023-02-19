@@ -1,5 +1,7 @@
 package mills.score;
 
+import mills.score.attic.ScoreMap;
+
 import java.io.Closeable;
 import java.io.IOException;
 

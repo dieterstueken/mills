@@ -3,12 +3,12 @@ package mills.score.attic;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
 import mills.position.Situation;
-import mills.score.ScoreMap;
 import mills.util.QueueActor;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -86,10 +86,14 @@ public class ScoreFiles {
         return new ScoreMap(scores, posIndex, situation) {
 
             @Override
-            public void close() throws IOException {
-                final FileChannel fc = FileChannel.open(file.toPath(), WRITE);
-                fc.write(scores);
-                fc.close();
+            public void close() {
+                try {
+                    final FileChannel fc = FileChannel.open(file.toPath(), WRITE);
+                    fc.write(scores);
+                    fc.close();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
         };
     }
@@ -107,8 +111,12 @@ public class ScoreFiles {
         return new ScoreMap(scores, posIndex, situation) {
 
             @Override
-            public void close() throws IOException {
-                fc.close();
+            public void close() {
+                try {
+                    fc.close();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
         };
     }

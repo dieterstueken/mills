@@ -158,6 +158,10 @@ public interface ListSet<T> extends RandomList<T>, SortedSet<T> {
     }
 
     static <T extends Comparable<? super T>> ListSet<T> of(List<T> values) {
+        // fast track
+        if(values instanceof ListSet)
+            return (ListSet<T>)values;
+
         return of(values, Comparator.naturalOrder());
     }
 

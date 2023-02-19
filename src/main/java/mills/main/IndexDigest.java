@@ -31,12 +31,12 @@ public class IndexDigest {
 
     IndexDigest() throws NoSuchAlgorithmException {}
 
-    ForkJoinTask<PosIndex> start(int nb, int nw) {
+    ForkJoinTask<? extends PosIndex> start(int nb, int nw) {
         PopCount pop = PopCount.of(nb, nw);
         return ForkJoinTask.adapt(() -> indexes.build(pop)).fork();
     }
 
-    int analyze(ForkJoinTask<PosIndex> task) {
+    int analyze(ForkJoinTask<? extends PosIndex> task) {
         if(task!=null) {
             PosIndex posIndex = task.join();
             List<Position> posList = posIndex.positions();
@@ -54,12 +54,12 @@ public class IndexDigest {
         System.out.format("start %d\n", Entries.TABLE.size());
         double start = System.currentTimeMillis();
 
-        ForkJoinTask<PosIndex> task = null;
+        ForkJoinTask<? extends PosIndex> task = null;
         long total = 0;
         //for(PopCount pop:PopCount.TABLE) {
         for(int nb=0; nb<10; ++nb)
         for(int nw=0; nw<10; ++nw) {
-            ForkJoinTask<PosIndex> next = start(nb, nw);
+            ForkJoinTask<? extends PosIndex> next = start(nb, nw);
             total += analyze(task);
             task = next;
         }
