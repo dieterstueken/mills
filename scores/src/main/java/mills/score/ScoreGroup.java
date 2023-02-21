@@ -1,12 +1,15 @@
 package mills.score;
 
 import mills.bits.Player;
+import mills.bits.PopCount;
+import mills.index.GroupIndex;
 import mills.index.PosIndex;
 import mills.util.PopMap;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
@@ -20,72 +23,66 @@ import java.util.List;
  */
 public class ScoreGroup implements AutoCloseable {
 
-    File root;
-    Player player;
+    final File root;
 
     final PopMap<ScoreMap> maps;
 
-    ScoreGroup(PopMap<? extends PosIndex> group, Player player, File root, boolean create) {
+    ScoreGroup(GroupIndex index, File root, boolean create) {
         this.root = root;
-        this.player = player;
 
-        List<ScoreMap> list = group.values().stream().map(index -> open(index, create)).toList();
+        List<ScoreMap> scores = index.group().values().stream().map(ix->open(ix, create)).toList();
 
-        this.maps = PopMap.of(group.keySet(), list);
+        this.maps = PopMap.of(index.group().keySet(), scores);
+    }
+
+    public Player player() {
+        return Player.White;
+    }
+
+    public ScoreMap get(PopCount clop) {
+        return maps.get(clop);
     }
 
     ScoreMap open(PosIndex index, boolean create) {
         try {
+            String name = String.format("m%sc%s%s.map", index.pop(), index.clop(), player());
+            File file = new File(root, name);
+
             if (create)
-                return wopen(index);
+                return wopen(index, file);
             else
-                return ropen(index);
+                return ropen(index, file);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    ScoreMap ropen(PosIndex index) throws IOException {
-        String name = String.format("m%sc%s%s.map", index.pop(), index.clop(), player);
-        File map = new File(root, name);
+    ScoreMap ropen(PosIndex index, File file) throws IOException {
 
         int size = index.range();
 
-        FileChannel fc = FileChannel.open(map.toPath(), StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
-        MappedByteBuffer scores = fc.map(FileChannel.MapMode.READ_WRITE, 0, size);
+        FileChannel fc = FileChannel.open(file.toPath(), StandardOpenOption.READ);
+        MappedByteBuffer scores = fc.map(FileChannel.MapMode.READ_ONLY, 0, size);
 
-        return new ScoreMap(scores, index, player);
+        return new ScoreMap(scores, index, player());
     }
 
-    ScoreMap wopen(PosIndex index) throws IOException {
+    ScoreMap wopen(PosIndex index, File file) throws IOException {
 
-        String name = String.format("m%sc%s%s.map", index.pop(), index.clop(), player);
-        File map = new File(root, name);
-        if(map.exists())
-            throw new IOException("output file already exists: " + name);
-
-        name = String.format("m%sc%s%s.tmp", index.pop(), index.clop(), player);
-        File tmp = new File(root, name);
+        if(file.exists())
+            throw new IOException("output file already exists: " + file.getName());
 
         int size = index.range();
+        ByteBuffer scores = ByteBuffer.allocateDirect(size);
 
-        FileChannel fc = FileChannel.open(tmp.toPath(), StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
-        MappedByteBuffer scores = fc.map(FileChannel.MapMode.READ_WRITE, 0, size);
-
-        for(int i=0; i<size; i+=4096) {
-            scores.put(i, (byte)0);
-        }
-
-        scores.force();
-
-        return new ScoreMap(scores, index, player) {
+        return new ScoreMap(scores, index, player()) {
             @Override
             public void close() {
                 super.close();
                 try {
+                    FileChannel fc = FileChannel.open(file.toPath(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+                    fc.write(scores);
                     fc.close();
-                    if (!tmp.renameTo(map))
-                        throw new IOException("failed to rename to " + map.getName());
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
@@ -94,7 +91,7 @@ public class ScoreGroup implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         maps.values().forEach(ScoreMap::close);
     }
 }

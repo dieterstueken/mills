@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 /**
  * Class PopCount defines the population of black and white stones.
  * PopCounts are always positive.
- * PopCounts<100 are provided by a pre calculated lookup table.
+ * PopCounts<100 are provided by a precalculated lookup table.
  */
 
 public class PopCount implements Indexed, Comparable<PopCount> {

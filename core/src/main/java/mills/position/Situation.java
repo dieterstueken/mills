@@ -13,7 +13,7 @@ import java.util.Objects;
  * Date: 22.12.12
  * Time: 14:43
  */
-public class Situation {
+public class Situation implements Comparable<Situation> {
 
     public final PopCount pop;
 
@@ -62,6 +62,18 @@ public class Situation {
 
     public Situation swap() {
         return new Situation(pop.swap(), stock, player.opponent());
+    }
+
+    public Situation next() {
+        Player o = player.opponent();
+        if(stock>0)
+            return Situation.of(pop.add(player.pop), stock-1, o);
+
+        PopCount next = pop.sub(o.pop);
+        if(PopCount.P33.le(next))
+            return Situation.of(next, 0, o);
+
+        return null;
     }
 
     public PopCount popMax() {
@@ -167,6 +179,18 @@ public class Situation {
         int result = pop.hashCode();
         result += 100 * stock;
         result += 10000 * player.ordinal();
+        return result;
+    }
+
+    @Override
+    public int compareTo(final Situation o) {
+        int result = Integer.compare(o.stock, stock);
+        if(result==0)
+            result = Integer.compare(o.pop.nb, pop.nb);
+        if(result==0)
+            result = Integer.compare(o.pop.nw, pop.nw);
+        if(result==0)
+            result = player.compareTo(o.player);
         return result;
     }
 
