@@ -65,15 +65,10 @@ public class Situation implements Comparable<Situation> {
     }
 
     public Situation next() {
-        Player o = player.opponent();
-        if(stock>0)
-            return Situation.of(pop.add(player.pop), stock-1, o);
-
-        PopCount next = pop.sub(o.pop);
-        if(PopCount.P33.le(next))
-            return Situation.of(next, 0, o);
-
-        return null;
+        Player opp = player.opponent();
+        PopCount next = stock==0 ? pop : this.pop.add(player.pop);
+        int stock = Math.max(0, this.stock-1);
+        return Situation.of(next, stock, opp);
     }
 
     public PopCount popMax() {

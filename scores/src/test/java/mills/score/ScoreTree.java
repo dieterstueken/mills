@@ -4,7 +4,12 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.position.Situation;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.NavigableSet;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Created by IntelliJ IDEA.
@@ -27,30 +32,26 @@ public class ScoreTree {
         if(s==null)
             return;
 
-        Player opp = s.player.opponent();
-        Situation next = s.next();
-
-        if(s.stock==0) {
-            Situation opps = Situation.of(s.pop, opp);
-            process(s, opps, next);
-        } else {
-            PopCount px = next.pop.sub(opp.pop);
-            Situation stroke = Situation.of(px, next.stock, opp);
-            process(s, next, stroke);
-        }
+        process(s, s.next());
 
         System.out.format("%s:", s);
         clops(s).forEach(c->System.out.format(" %s", c));
         System.out.println();
     }
 
-    void process(Situation s, Situation next, Situation stroke) {
+    void process(Situation s, Situation next) {
         Set<PopCount> clops = clops(s);
 
         // regular turn
         add(next, clops);
 
         // strokes
+
+        // todo: may close or destroy 1 or 2 mills
+        Player opp = s.player.opponent();
+        PopCount px = next.pop.sub(opp.pop);
+        Situation stroke = Situation.of(px, next.stock, opp);
+
         if(stroke!=null) {
 
             PopCount mclop = s.pop.mclop(false);
