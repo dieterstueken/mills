@@ -3,7 +3,6 @@ package mills.score.generator;
 import mills.bits.Player;
 import mills.bits.PopCount;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -15,7 +14,7 @@ import java.util.stream.Stream;
  * Date: 02.11.19
  * Time: 09:32
  */
-public class LayerGroup<T extends IndexLayer> implements Layer {
+public class LayerGroup<T extends ClopLayer> implements Layer {
 
     final PopCount pop;
 
@@ -30,11 +29,7 @@ public class LayerGroup<T extends IndexLayer> implements Layer {
     }
 
     LayerGroup(PopCount pop, Player player, Stream<? extends T> layers) {
-        this(pop, player, layers.collect(Collectors.toMap(IndexLayer::clop, Function.identity())));
-    }
-
-    public <R extends IndexLayer> LayerGroup<R> map(Function<? super T,? extends R> map) {
-        return of(pop, player, group.values().stream().map(map));
+        this(pop, player, layers.collect(Collectors.toMap(ClopLayer::clop, Function.identity())));
     }
 
     @Override
@@ -47,16 +42,6 @@ public class LayerGroup<T extends IndexLayer> implements Layer {
         return player;
     }
 
-    public int range() {
-        int range=0;
-
-        for (T layer : group.values()) {
-            range += layer.index().range();
-        }
-
-        return range;
-    }
-
     public Stream<? extends T> stream() {
         return group.values().stream();
     }
@@ -65,19 +50,4 @@ public class LayerGroup<T extends IndexLayer> implements Layer {
     public String toString() {
         return String.format("%s%s[%d]", pop, player.key(), group.size());
     }
-
-    //////////////////////////////////////////
-
-    public static <T extends IndexLayer> LayerGroup<T> of(PopCount pop, Player player, Map<PopCount, T> group) {
-        return new LayerGroup<>(pop, player, group);
-    }
-
-    public static <T extends IndexLayer> LayerGroup<T> of(PopCount pop, Player player) {
-        return of(pop, player, new HashMap<>());
-    }
-
-    public static <T extends IndexLayer> LayerGroup<T> of(PopCount pop, Player player, Stream<? extends T> values) {
-        return new LayerGroup<>(pop, player, values);
-    }
-
 }

@@ -2,7 +2,6 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.index.IndexProvider;
 import mills.index.PosIndex;
 import mills.score.Score;
 
@@ -34,15 +33,12 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
 
     final Generator generator;
 
-    final IndexProvider indexes;
-
     final PopCount pop;
 
     final Set<PopCount> clops;
 
     GroupGenerator(Generator generator, PopCount pop) {
         this.generator = generator;
-        this.indexes = generator.indexes;
         this.pop = pop;
         this.clops = MovingGroup.clops(pop);
 
@@ -57,7 +53,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
     }
 
     PosIndex buildIndex(PopCount clop) {
-        return indexes.build(pop, clop);
+        return generator.indexes.build(pop, clop);
     }
 
     public GroupGenerator submit() {
@@ -92,7 +88,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
     boolean exists(Player player) {
         for (PopCount clop : clops) {
             if(!generator.files.file(pop, clop, player).isFile())
-            return false;
+                return false;
         }
 
         return true;

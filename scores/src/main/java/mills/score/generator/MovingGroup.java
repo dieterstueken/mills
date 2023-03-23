@@ -101,4 +101,15 @@ public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> 
         }
         return count;
     }
+
+
+    public int range() {
+        int range=0;
+
+        for (Slices slices : group.values()) {
+            range += slices.index().range();
+        }
+
+        return range;
+    }
 }

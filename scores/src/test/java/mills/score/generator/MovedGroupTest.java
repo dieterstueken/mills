@@ -8,6 +8,9 @@ import mills.score.Score;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveTask;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 public class MovedGroupTest {
@@ -18,7 +21,7 @@ public class MovedGroupTest {
 
     @Test
     public void process() {
-        MovingGroups target = MovingGroups.create(p33, w, this::moved, this::closed);
+        MovingGroups target = createGroups(p33, w, this::moved, this::closed);
 
         System.out.format("%9s: %9d\n", target.moved, target.moved.range());
 
@@ -35,6 +38,31 @@ public class MovedGroupTest {
 
         //MovedPosition pos = target.position(target, 562950021120016L);
         //pos.toString();
+    }
+
+
+    static MovingGroups createGroups(PopCount pop, Player player,
+                                      Function<PopCount, ? extends ScoreMap> moved,
+                                      Function<PopCount, ? extends ScoreSet> closed) {
+
+        ForkJoinTask<MovingGroup<? extends MapSlices>> movedTask = new RecursiveTask<>() {
+            @Override
+            protected MovingGroup<? extends MapSlices> compute() {
+                return MovingGroup.create(pop, player, moved);
+            }
+        };
+
+        ForkJoinTask<MovingGroup<? extends ScoreSlices>> closedTask = new RecursiveTask<>() {
+            @Override
+            protected MovingGroup<? extends ScoreSlices> compute() {
+                return ClosingGroup.closed(pop, player, closed);
+            }
+        };
+
+        ForkJoinTask.invokeAll(movedTask, closedTask);
+
+        // todo: parallel
+        return new MovingGroups(movedTask.join(), closedTask.join());
     }
     
     ScoreMap moved(PopCount clop) {

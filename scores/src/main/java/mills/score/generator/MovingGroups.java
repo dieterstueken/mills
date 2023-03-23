@@ -1,14 +1,10 @@
 package mills.score.generator;
 
-import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
 import mills.position.Positions;
 import mills.score.Score;
 
-import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.RecursiveTask;
-import java.util.function.Function;
 import java.util.function.LongConsumer;
 import java.util.function.ToIntBiFunction;
 import java.util.stream.IntStream;
@@ -27,30 +23,6 @@ public class MovingGroups {
     public MovingGroups(MovingGroup<? extends MapSlices> moved, MovingGroup<? extends ScoreSlices> closed) {
         this.moved = moved;
         this.closed = closed;
-    }
-
-    public static MovingGroups create(PopCount pop, Player player,
-                               Function<PopCount, ? extends ScoreMap> moved,
-                               Function<PopCount, ? extends ScoreSet> closed) {
-
-        ForkJoinTask<MovingGroup<? extends MapSlices>> movedTask = new RecursiveTask<>() {
-            @Override
-            protected MovingGroup<? extends MapSlices> compute() {
-                return MovingGroup.create(pop, player, moved);
-            }
-        };
-
-        ForkJoinTask<MovingGroup<? extends ScoreSlices>> closedTask = new RecursiveTask<>() {
-                    @Override
-                    protected MovingGroup<? extends ScoreSlices> compute() {
-                        return ClosingGroup.closed(pop, player, closed);
-                    }
-                };
-
-        ForkJoinTask.invokeAll(movedTask, closedTask);
-
-        // todo: parallel
-        return new MovingGroups(movedTask.join(), closedTask.join());
     }
 
     public IntStream propagate(MovingGroups target, Score score) {
