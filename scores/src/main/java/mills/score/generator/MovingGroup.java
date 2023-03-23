@@ -23,7 +23,7 @@ import java.util.stream.Stream;
  * Date: 27.12.19
  * Time: 18:09
  */
-public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> {
+public class MovingGroup<Slices extends ScoreSlices<?>> extends LayerGroup<Slices> {
 
     public boolean closing() {
         return false;

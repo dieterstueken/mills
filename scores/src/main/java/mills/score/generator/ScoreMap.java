@@ -21,6 +21,11 @@ public class ScoreMap extends ScoreSet {
     }
 
     @Override
+    public String toString() {
+        return "ScoreMap(" + super.toString() + ")";
+    }
+
+    @Override
     public int getScore(int index) {
         int value = scores.get(index);
         value &= 0xff;  // clip off sign bit
@@ -31,10 +36,6 @@ public class ScoreMap extends ScoreSet {
     public void setScore(int posIndex, int score) {
         byte value = (byte) (score&0xff);
         scores.put(posIndex, value);
-    }
-
-    public static ScoreMap allocate(IndexLayer layer) {
-        return allocate(layer.index(), layer.player());
     }
 
     public static ScoreMap allocate(PosIndex index, Player player) {

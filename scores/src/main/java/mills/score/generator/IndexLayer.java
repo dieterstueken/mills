@@ -4,32 +4,34 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.PosIndex;
 
-public interface IndexLayer extends ClopLayer {
+public class IndexLayer implements ClopLayer {
 
-    PosIndex index();
+    public final PosIndex index;
 
-    default PopCount pop() {
+    public final Player player;
+
+    public IndexLayer(PosIndex index, Player player) {
+        this.index = index;
+        this.player = player;
+    }
+
+    public PosIndex index() {
+        return index;
+    }
+
+    public PopCount pop() {
         return index().pop();
     }
 
-    default PopCount clop() {
+    public PopCount clop() {
         return index().clop();
     }
 
-    Player player();
+    public Player player() {
+        return player;
+    }
 
-    static IndexLayer of(PosIndex index, Player player) {
-        return new IndexLayer() {
-
-            @Override
-            public PosIndex index() {
-                return index;
-            }
-
-            @Override
-            public Player player() {
-                return player;
-            }
-        };
+    public String toString() {
+        return String.format("%s%c%s", pop(), player().key(), clop());
     }
 }

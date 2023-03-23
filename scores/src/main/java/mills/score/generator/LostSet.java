@@ -22,15 +22,7 @@ public class LostSet extends ScoreSet {
     }
 
     @Override
-    ScoreSlice openSlice(int index) {
-        ScoreSlice slice = super.openSlice(index);
-        slice.dirty[Score.LOST.value] = -1;
-        slice.max = Score.LOST.value;
-        return slice;
-    }
-
-    @Override
     public String toString() {
-        return super.toString() + " lost";
+        return "LostSet(" + super.toString() + ")";
     }
 }

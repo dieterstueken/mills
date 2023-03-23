@@ -13,30 +13,35 @@ import java.util.stream.Stream;
  * Date: 19.05.13
  * Time: 17:04
  */
-abstract public class ScoreSlices implements IndexLayer {
+public class ScoreSlices<Scores extends ScoreSet> {
 
-    abstract public ScoreSet scores();
+    protected ScoreSet scores;
 
-    abstract List<? extends ScoreSlice> slices();
+    protected List<? extends ScoreSlice<Scores>> slices;
+
+    ScoreSlices(ScoreSet scores, List<? extends ScoreSlice<Scores>> slices) {
+        this.scores = scores;
+        this.slices = slices;
+    }
 
     public int size() {
-        return slices().size();
+        return slices.size();
     }
 
-    public Stream<? extends ScoreSlice> stream() {
-        return slices().stream();
+    public Stream<? extends ScoreSlice<Scores>> stream() {
+        return slices.stream();
     }
 
-    public ScoreSlice get(int posIndex) {
-        return slices().get(posIndex / MapSlice.SIZE);
+    public ScoreSlice<Scores> get(int posIndex) {
+        return slices.get(posIndex / MapSlice.SIZE);
     }
 
     public int posIndex(long i201) {
-        return scores().posIndex(i201);
+        return scores.posIndex(i201);
     }
 
     public String toString() {
-        return String.format("ScoreSlices %s (%d)", scores(), max());
+        return String.format("ScoreSlices %s (%d)", scores, max());
     }
 
     /**
@@ -46,46 +51,28 @@ abstract public class ScoreSlices implements IndexLayer {
     public int max() {
         int max = 0;
 
-        for (ScoreSlice slice : slices())
+        for (var slice : slices)
             max = Math.max(max, slice.max());
 
         return max;
     }
 
-    public void close() {
-        slices().parallelStream().forEach(ScoreSlice::close);
-        scores().close();
-    }
-
-    @Override
     public PosIndex index() {
-        return scores().index();
+        return scores.index();
     }
 
-    @Override
     public Player player() {
-        return scores().player();
+        return scores.player();
     }
 
     public int getScore(long i201) {
-        int posIndex = scores().index.posIndex(i201);
+        int posIndex = scores.index.posIndex(i201);
         return get(posIndex).getScore(posIndex);
     }
 
-    static ScoreSlices of(ScoreSet scores) {
+    static ScoreSlices<ScoreSet> of(ScoreSet scores) {
         int size = ScoreSlice.sliceCount(scores);
-        List<? extends ScoreSlice> slices = AbstractRandomList.generate(size, scores::openSlice);
-        return new ScoreSlices() {
-
-            @Override
-            public ScoreSet scores() {
-                return scores;
-            }
-
-            @Override
-            List<? extends ScoreSlice> slices() {
-                return slices;
-            }
-        };
+        List<? extends ScoreSlice<ScoreSet>> slices = AbstractRandomList.generate(size, index -> new ScoreSlice<>(scores, index));
+        return new ScoreSlices<>(scores, slices);
     }
 }

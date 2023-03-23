@@ -15,7 +15,7 @@ import mills.util.QueueActor;
  * Date: 17.11.12
  * Time: 19:43
  */
-abstract public class MapSlice extends ScoreSlice {
+public class MapSlice extends ScoreSlice<ScoreMap>{
 
     final QueueActor<MapSlice> work = QueueActor.of(this);
 
@@ -24,13 +24,9 @@ abstract public class MapSlice extends ScoreSlice {
 
     int pending = 0;
 
-    abstract public ScoreMap scores();
-
     public void close() {
-        super.close();
         work.close();
 
-        var scores = scores();
         for(int offset=0; offset<size(); ++offset) {
             int posIndex = base+offset;
             int value = scores.getScore(posIndex);
@@ -39,8 +35,8 @@ abstract public class MapSlice extends ScoreSlice {
         }
     }
 
-    protected MapSlice(int index, Mover mover) {
-        super(index);
+    MapSlice(ScoreMap scores, int index, Mover mover) {
+        super(scores, index);
 
         this.mover = mover;
     }
@@ -49,20 +45,14 @@ abstract public class MapSlice extends ScoreSlice {
 
         Mover mover = Moves.moves(scores.canJump()).mover(true);
 
-        return new MapSlice(index, mover) {
-
-            @Override
-            public ScoreMap scores() {
-                return scores;
-            }
-        };
+        return new MapSlice(scores, index, mover);
     }
 
     void setScore(short offset, int score) {
         mark(offset, score);
 
         int posIndex = posIndex(offset);
-        scores().setScore(posIndex, score);
+        scores.setScore(posIndex, score);
     }
     
     public void mark(short offset, int score) {
@@ -190,6 +180,7 @@ abstract public class MapSlice extends ScoreSlice {
         }
     }
 
+    @Override
     int init() {
         return new Initializer().initialize();
     }
