@@ -1,6 +1,5 @@
 package mills.score.generator;
 
-import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.position.Positions;
 import mills.score.Score;
