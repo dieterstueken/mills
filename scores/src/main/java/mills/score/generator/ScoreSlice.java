@@ -18,7 +18,7 @@ import mills.score.Score;
  * Thus, a short may be used as local index.
  * A lookup bitmap for each score tags those parts of a slice containing that score.
  */
-public class ScoreSlice<Scores extends ScoreSet> {
+public class ScoreSlice {
 
     // either %= SIZE or & MAX_VALUE
     public static final int SIZE = Short.MAX_VALUE + 1;
@@ -32,7 +32,7 @@ public class ScoreSlice<Scores extends ScoreSet> {
 
     /////////////////////////////////////////////////
     
-    protected final Scores scores;
+    protected final ScoreMap scores;
 
     protected final int base;
 
@@ -55,24 +55,10 @@ public class ScoreSlice<Scores extends ScoreSet> {
     }
 
     public long marked(Score score) {
-        long marked = this.dirty[score.value];
-        //this.dirty[score] = 0;
-        return marked;
+        return this.dirty[score.value];
     }
 
-    public void mark(short offset, int score) {
-
-        // scores < 0 just pass by
-        if (score > max)
-            max = score;
-
-        if(score>0)
-            dirty[score] |= mask(offset);
-        else if(score<0)
-            dirty[0] |= mask(offset);
-    }
-
-    protected ScoreSlice(Scores scores, int index) {
+    protected ScoreSlice(ScoreMap scores, int index) {
         this.scores = scores;
         this.base = SIZE * index;
     }

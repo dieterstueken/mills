@@ -15,7 +15,11 @@ import mills.util.QueueActor;
  * Date: 17.11.12
  * Time: 19:43
  */
-public class MapSlice extends ScoreSlice<ScoreMap>{
+
+/**
+ * Class MapSlice is a writeable ScoreSlice.
+ */
+public class MapSlice extends ScoreSlice {
 
     final QueueActor<MapSlice> work = QueueActor.of(this);
 
@@ -54,17 +58,23 @@ public class MapSlice extends ScoreSlice<ScoreMap>{
         int posIndex = posIndex(offset);
         scores.setScore(posIndex, score);
     }
-    
+
+    // set max and pending thresholds.
     public void mark(short offset, int score) {
         if(score<0) {
-            pending = Math.max(pending, -score);
-        } else
-            super.mark(offset, score);
+            if(-score>pending)
+                pending = -score;
+            dirty[0] |= mask(offset);
+        } else {
+            if (score > max)
+                max = score;
+
+            dirty[score] |= mask(offset);
+        }
 
         if(max+pending>=255)
             throw new IllegalStateException("score overflow");
     }
-
 
     /**
      * Return if new score is not better than current score
