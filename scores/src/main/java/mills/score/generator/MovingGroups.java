@@ -1,12 +1,11 @@
 package mills.score.generator;
 
+import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.index.IndexProcessor;
 import mills.position.Positions;
 import mills.score.Score;
 
 import java.util.function.LongConsumer;
-import java.util.function.ToIntBiFunction;
 import java.util.stream.IntStream;
 
 /**
@@ -30,14 +29,12 @@ public class MovingGroups {
         //if(score.value>3)
         //    DEBUG = true;
 
-        ToIntBiFunction<MovingGroup<?>, ScoreSlice> processors = (group, slice) -> {
-            LongConsumer analyzer = m201 -> target.propagate(this, m201, score.next());
-            IndexProcessor processor = group.processor(target, analyzer);
-            return slice.processScores(processor, score);
-        };
+        Score next = score.next();
+        LongConsumer analyzer = m201 -> target.propagate(this, m201, next);
+        Player targetPlayer = target.moved.player;
 
-        IntStream movingTasks = moved.propagate(score, processors);
-        IntStream closingTasks = closed.propagate(score, processors);
+        IntStream movingTasks = moved.propagate(score, targetPlayer, analyzer);
+        IntStream closingTasks = closed.propagate(score, targetPlayer, analyzer);
 
         return concat(closingTasks, movingTasks);
     }

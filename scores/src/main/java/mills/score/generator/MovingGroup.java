@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.LongConsumer;
-import java.util.function.ToIntBiFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -55,31 +54,42 @@ public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> 
         return new MovingGroup<>(pop, player, mapSlices);
     }
 
-    public IntStream propagate(Score score, ToIntBiFunction<MovingGroup<?>, ScoreSlice> processors) {
+
+    /**
+     * Return a stream of propagations to perform. Each returns a count of propagations.
+     * The stream may be performed in parallel.
+     *
+     * @param score to analyze.
+     * @param targetPlayer next player of target level.
+     * @param analyzer receiving i201 positions.
+     * @return an IntStream to be processed.
+     */
+    public IntStream propagate(Score score, Player targetPlayer, LongConsumer analyzer) {
 
         List<? extends ScoreSlice> slices = group.values().stream()
                 .flatMap(ScoreSlices::stream)
-                .filter(slice -> slice.hasScores(score)).toList();
+                .filter(slice -> slice.any(score)).toList();
 
+        // collect into a temporary array.
+        // concat is null transparent.
         if(slices.isEmpty())
             return null;
 
         return slices.parallelStream() //parallelStream()
-                .filter(slice -> slice.any(score))
-                .mapToInt(slice -> processors.applyAsInt(this, slice));
+                .mapToInt(slice -> slice.processScores(processor(targetPlayer, analyzer), score));
     }
 
     /**
      * Create an IndexProcessor to process Scores of score for each of our slices,
      * The moved positions are then propagated to MovedGroup target.
-     * @param target receiving new scores.
+     * @param targetPlayer of target to receive the result.
      * @param analyzer to analyze moved positions.
      * @return an IndexProcessor to process a single slice.
      */
-    IndexProcessor processor(MovingGroups target, LongConsumer analyzer) {
+    IndexProcessor processor(Player targetPlayer, LongConsumer analyzer) {
 
         // backtrace moves: move Black
-        boolean swap = target.moved.player()!=Player.White;
+        boolean swap = targetPlayer!=Player.White;
         Mover mover = Moves.moves(canJump()).mover(swap);
 
         return (posIndex, i201) -> {
