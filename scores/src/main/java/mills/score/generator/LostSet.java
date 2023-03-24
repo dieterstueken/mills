@@ -23,10 +23,23 @@ public class LostSet extends ScoreSet {
 
     @Override
     ScoreSlice openSlice(int index) {
-        ScoreSlice slice = super.openSlice(index);
-        slice.dirty[Score.LOST.value] = -1;
-        slice.max = Score.LOST.value;
-        return slice;
+        return new ScoreSlice(index) {
+
+            @Override
+            public int max() {
+                return Score.LOST.value;
+            }
+
+            @Override
+            public long marked(Score score) {
+                return score==Score.LOST ? 0xfffffff : 0;
+            }
+
+            @Override
+            public LostSet scores() {
+                return LostSet.this;
+            }
+        };
     }
 
     @Override

@@ -1,12 +1,10 @@
 package mills.score.generator;
 
 import mills.bits.Player;
-import mills.index.IndexProcessor;
 import mills.score.Score;
 import mills.stones.Mover;
 import mills.stones.Moves;
 import mills.stones.Stones;
-import mills.util.QueueActor;
 
 /**
  * Created by IntelliJ IDEA.
@@ -15,148 +13,36 @@ import mills.util.QueueActor;
  * Date: 17.11.12
  * Time: 19:43
  */
-abstract public class MapSlice extends ScoreSlice {
+public class MapSlice extends ScoreSlice {
 
-    final QueueActor<MapSlice> work = QueueActor.of(this);
+    final ScoreMap scores;
 
     // to calculate pending moves
     final Mover mover;
 
-    int pending = 0;
+    // max score occurred
+    protected int max = 0;
 
-    abstract public ScoreMap scores();
+    // any positions set
+    protected final long[] dirty = new long[256];
 
-    public void close() {
-        super.close();
-        work.close();
-
-        var scores = scores();
-        for(int offset=0; offset<size(); ++offset) {
-            int posIndex = base+offset;
-            int value = scores.getScore(posIndex);
-            if(value>max)
-                scores.setScore(posIndex,0);
-        }
+    public ScoreMap scores() {
+        return scores();
     }
 
-    protected MapSlice(int index, Mover mover) {
+    public int max() {
+        return max;
+    }
+
+    public long marked(Score score) {
+        return this.dirty[score.value];
+    }
+
+
+    protected MapSlice(ScoreMap scores, int index) {
         super(index);
-
-        this.mover = mover;
-    }
-
-    static MapSlice of(ScoreMap scores, int index) {
-
-        Mover mover = Moves.moves(scores.canJump()).mover(true);
-
-        return new MapSlice(index, mover) {
-
-            @Override
-            public ScoreMap scores() {
-                return scores;
-            }
-        };
-    }
-
-    void setScore(short offset, int score) {
-        mark(offset, score);
-
-        int posIndex = posIndex(offset);
-        scores().setScore(posIndex, score);
-    }
-    
-    public void mark(short offset, int score) {
-        if(score<0) {
-            pending = Math.max(pending, -score);
-        } else
-            super.mark(offset, score);
-
-        if(max+pending>=255)
-            throw new IllegalStateException("score overflow");
-    }
-
-
-    /**
-     * Return if new score is not better than current score
-     *
-     * current score: 0 L W count
-     * newScore W:    W W < W
-     * newScore L:    C > W --count
-     *
-     * @param current score
-     * @param newScore score
-     * @return true if new score can be ignored.
-     */
-    private boolean resolved(int current, int newScore) {
-
-        assert newScore > 0;
-
-        // is not a longer win path
-        if (Score.isWon(newScore)) {
-            if (Score.isWon(current)) {
-                // ignore longer win paths
-                return newScore >= current;
-            } else
-                // everything else propagates won
-                return false;
-        } else if (Score.isLost(newScore)) {
-            if (Score.isLost(current)) {
-                // ignore longer win paths
-                return newScore <= current;
-            } else
-                return Score.isWon(current);
-        }
-
-        throw new IllegalStateException("invalid score");
-    }
-
-    /**
-     * Propagate incoming score.
-     * All smaller scores have already been processed.
-     * @param index of target position
-     * @param i201 target position
-     * @param newScore incoming new score (incremented)
-     * @return new current score
-     */
-    public void propagate(int index, long i201, int newScore) {
-        short offset = offset(index);
-        int score = getScore(offset);
-
-        if(!resolved(score, newScore)) {
-            work.submit(slice -> slice.setupScore(offset, i201, newScore));
-        }
-    }
-
-    private void setupScore(short offset, long i201, int newScore) {
-
-        int current = getScore(offset);
-        if(resolved(current, newScore))
-            return;
-
-        if(Score.isWon(newScore)) {
-            // no further checks necessary
-            setScore(offset, newScore);
-        } else // propagate loss
-        if(current<0) {
-            // count down
-            ++current;
-            if(current==0)
-                setScore(offset, newScore);
-            else
-                setScore(offset, current);
-        } else {
-
-            // count remaining
-            int unresolved = unresolved(i201);
-
-            // must be at least 1 since we just propagate a position.
-            assert unresolved > 1;
-
-            if (unresolved == 1)
-                setScore(offset, newScore);
-            else
-                setScore(offset, 1 - unresolved);
-        }
+        this.scores = scores;
+        this.mover = Moves.moves(scores.canJump()).mover(true);;
     }
 
     int unresolved(long i201) {
@@ -170,27 +56,23 @@ abstract public class MapSlice extends ScoreSlice {
         return mover.normalize().size();
     }
 
-    class Initializer implements IndexProcessor {
-
-        int count = 0;
-
-        @Override
-        public void process(int posIndex, long i201) {
-            int unresolved = unresolved(i201);
-            if(unresolved==0) {
-                short offset = offset(posIndex);
-                setScore(offset, Score.LOST.value);
-                ++count;
-            }
-        }
-
-        int initialize() {
-            MapSlice.this.process(this);
-            return count;
-        }
+    // set max and pending thresholds.
+    protected void mark(short offset, int score) {
+        if (score > max)
+            max = score;
+        dirty[score] |= mask(offset);
     }
 
     int init() {
-        return new Initializer().initialize();
+        int count = 0;
+
+        for(short offset=0; offset<size(); ++offset) {
+            int score = getScore(offset);
+            mark(offset, score);
+            if(score!=0)
+                ++count;
+        }
+
+        return count;
     }
 }

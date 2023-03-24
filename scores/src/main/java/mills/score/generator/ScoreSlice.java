@@ -15,8 +15,7 @@ import mills.score.Score;
 
 /**
  * Class ScoreSlice provides a slice of 32k scores.
- * Thus a short may be used as local index.
- *
+ * Thus, a short may be used as local index.
  * A lookup bitmap for each score tags those parts of a slice containing that score.
  */
 abstract public class ScoreSlice {
@@ -31,55 +30,17 @@ abstract public class ScoreSlice {
         return (scores.size() + SIZE - 1) / SIZE;
     }
 
-    static ScoreSlice of(ScoreSet scores, int index) {
-        return new ScoreSlice(index) {
-
-            @Override
-            public ScoreSet scores() {
-                return scores;
-            }
-        };
-    }
-
     /////////////////////////////////////////////////
 
     public final int base;
 
-    // max score occurred
-    protected int max = 0;
-
-    // any positions set
-    protected final long[] dirty = new long[256];
-
-    public int max() {
-        return max;
-    }
-
-    public boolean hasScores(Score score) {
-        return score.value<=max;
-    }
+    abstract public int max();
 
     public boolean any(Score score) {
-        return dirty[score.value]!=0;
+        return marked(score)!=0;
     }
 
-    public long marked(Score score) {
-        long marked = this.dirty[score.value];
-        //this.dirty[score] = 0;
-        return marked;
-    }
-
-    public void mark(short offset, int score) {
-
-        // scores < 0 just pass by
-        if (score > max)
-            max = score;
-
-        if(score>0)
-            dirty[score] |= mask(offset);
-        else if(score<0)
-            dirty[0] |= mask(offset);
-    }
+    abstract public long marked(Score score);
 
     protected ScoreSlice(int index) {
         this.base = SIZE * index;
@@ -87,7 +48,7 @@ abstract public class ScoreSlice {
 
     @Override
     public String toString() {
-            return String.format("%s[%d]@%d", scores(), sliceIndex(), max);
+            return String.format("%s[%d]@%d", scores(), sliceIndex(), max());
         }
 
     abstract public ScoreSet scores();
@@ -164,12 +125,7 @@ abstract public class ScoreSlice {
         assert posIndex>=base;
         assert posIndex<base+SIZE;
 
-        int score = scores().getScore(posIndex);
-
-        if(max>0 && score>max) // should not happen if map.max was updated properly
-            score -= 256;
-
-        return score;
+        return scores().getScore(posIndex);
     }
 
     /**
@@ -222,9 +178,5 @@ abstract public class ScoreSlice {
 
     public void process(IndexProcessor processor) {
         scores().process(processor, base, base + size());
-    }
-
-    public void close() {
-
     }
 }

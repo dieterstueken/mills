@@ -15,9 +15,7 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.OpenOption;
 import java.util.Set;
 
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -82,7 +80,13 @@ public class ScoreFiles {
             if(size!=0)
                 throw new IOException("incomplete read: " + file);
 
-            return new ScoreMap(index, player, scores);
+            return new ScoreMap(index, player, scores) {
+                @Override
+                MapSlice openSlice(int index) {
+                    MapSlice slice = super.openSlice(index);
+
+                }
+            };
         }
     }
 

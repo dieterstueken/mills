@@ -54,11 +54,11 @@ public class GroupElevator {
 
     class Processor implements IndexProcessor {
 
-        final MapSlice slice;
+        final TargetSlice slice;
 
         final Mover mover = Moves.TAKE.mover(moved.player==Player.Black);
 
-        Processor(MapSlice slice) {
+        Processor(TargetSlice slice) {
             this.slice = slice;
         }
 

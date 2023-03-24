@@ -99,9 +99,7 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
         return stat;
     }
 
-    ScoreSlice openSlice(int index) {
-        return ScoreSlice.of(this, index);
-    }
+    abstract ScoreSlice openSlice(int index);
 
     public ScoredPosition position(long i201) {
         return position(i201, player);
