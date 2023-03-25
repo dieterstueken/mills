@@ -40,7 +40,7 @@ public class TargetSlice extends MapSlice<ScoreTarget> {
     public int getScore(int posIndex) {
 
         int score = super.getScore(posIndex);
-        if(256-score > pending) {
+        if(score+pending > 255) {
             score -= 256;
         }
 
