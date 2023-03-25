@@ -22,8 +22,8 @@ public class LostSet extends ScoreSet {
     }
 
     @Override
-    ScoreSlice openSlice(int index) {
-        return new ScoreSlice(index) {
+    ScoreSlice<LostSet> openSlice(int index) {
+        return new ScoreSlice<>(this, index) {
 
             @Override
             public int max() {

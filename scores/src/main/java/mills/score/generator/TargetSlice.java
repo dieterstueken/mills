@@ -1,6 +1,5 @@
 package mills.score.generator;
 
-import mills.index.IndexProcessor;
 import mills.score.Score;
 import mills.util.QueueActor;
 
@@ -10,21 +9,46 @@ import mills.util.QueueActor;
  * Date: 24.03.23
  * Time: 14:08
  */
-public class TargetSlice extends MapSlice {
+public class TargetSlice extends MapSlice<ScoreTarget> {
 
-    final QueueActor<MapSlice> work = QueueActor.of(this);
+    final QueueActor<TargetSlice> work = QueueActor.of(this);
 
     int pending = 0;
 
-    TargetSlice(ScoreMap scores, int index) {
+    TargetSlice(ScoreTarget scores, int index) {
         super(scores, index);
+        process(this::setup);
+    }
+
+    private void setup(int posIndex, long i201) {
+        int unresolved = unresolved(i201);
+        if(unresolved==0) {
+            short offset = offset(posIndex);
+            setScore(offset, Score.LOST.value);
+        }
+    }
+
+    /**
+     * Return pending scores with negative values.
+     *
+     * @param posIndex of score
+     * @return signed score value.
+     */
+    public int getScore(int posIndex) {
+
+        int score = super.getScore(posIndex);
+        if(256-score > pending) {
+            score -= 256;
+        }
+
+        return score;
     }
 
     void setScore(short offset, int score) {
         mark(offset, score);
 
         int posIndex = posIndex(offset);
-        scores().setScore(posIndex, score);
+        scores.setScore(posIndex, score);
     }
 
     // set max and pending thresholds.
@@ -124,40 +148,20 @@ public class TargetSlice extends MapSlice {
         }
     }
 
-    class Initializer implements IndexProcessor {
-
-        int count = 0;
-
-        @Override
-        public void process(int posIndex, long i201) {
-            int unresolved = unresolved(i201);
-            if(unresolved==0) {
-                short offset = offset(posIndex);
-                setScore(offset, Score.LOST.value);
-                ++count;
-            }
-        }
-
-        int initialize() {
-            TargetSlice.this.process(this);
-            return count;
-        }
-    }
-
-    int init() {
-        return new Initializer().initialize();
-    }
-
+    /**
+     * Finalize this slice by resetting all pending entries to drawn.
+     */
     public void close() {
-        super.close();
+
+        // wait for all work to finish.
         work.close();
 
-        var scores = scores();
-        for(int offset=0; offset<size(); ++offset) {
+        for(short offset=0; offset<size(); ++offset) {
             int posIndex = base+offset;
-            int value = scores.getScore(posIndex);
-            if(value>max)
-                scores.setScore(posIndex,0);
+            int value = getScore(posIndex);
+            if(value>max) {
+                scores.setScore(posIndex, Score.DRAWN.value);
+            }
         }
     }
 }

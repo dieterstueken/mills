@@ -18,7 +18,7 @@ import mills.score.Score;
  * Thus, a short may be used as local index.
  * A lookup bitmap for each score tags those parts of a slice containing that score.
  */
-abstract public class ScoreSlice {
+abstract public class ScoreSlice<Scores extends ScoreSet> {
 
     // either %= SIZE or & MAX_VALUE
     public static final int SIZE = Short.MAX_VALUE + 1;
@@ -32,7 +32,13 @@ abstract public class ScoreSlice {
 
     /////////////////////////////////////////////////
 
-    public final int base;
+    protected final Scores scores;
+
+    protected final int base;
+
+    public Scores scores() {
+        return scores;
+    }
 
     abstract public int max();
 
@@ -42,31 +48,30 @@ abstract public class ScoreSlice {
 
     abstract public long marked(Score score);
 
-    protected ScoreSlice(int index) {
+    protected ScoreSlice(Scores scores, int index) {
+        this.scores = scores;
         this.base = SIZE * index;
     }
 
     @Override
     public String toString() {
-            return String.format("%s[%d]@%d", scores(), sliceIndex(), max());
-        }
-
-    abstract public ScoreSet scores();
+        return String.format("%s[%d]@%d", scores(), sliceIndex(), max());
+    }
 
     public PopCount pop() {
-        return scores().pop();
+        return scores.pop();
     }
 
     public PopCount clop() {
-        return scores().clop();
+        return scores.clop();
     }
 
     public Player player() {
-        return scores().player();
+        return scores.player();
     }
 
     public int size() {
-        int size = scores().size()-base;
+        int size = scores.size()-base;
         return Math.min(size, SIZE);
     }
 
@@ -97,7 +102,7 @@ abstract public class ScoreSlice {
             throw new IllegalArgumentException("negative offset");
 
         int posIndex = posIndex(offset);
-        long i201 = scores().i201(posIndex);
+        long i201 = scores.i201(posIndex);
 
         //if(offset<0) // tag closed positions
         //    i201 |= Positions.CLOSED;
@@ -107,12 +112,12 @@ abstract public class ScoreSlice {
 
     // debug
     public Position position(long i201) {
-        return scores().position(i201);
+        return scores.position(i201);
     }
 
     public Position position(short offset) {
         long i201 = i201(offset);
-        return scores().position(i201);
+        return scores.position(i201);
     }
 
     public int getScore(short offset) {
@@ -141,7 +146,7 @@ abstract public class ScoreSlice {
         if(marked==0)
             return 0;
 
-        ScoreSet.IndexCounter counter = scores().new IndexCounter(processor, score.value);
+        ScoreSet.IndexCounter counter = scores.new IndexCounter(processor, score.value);
 
         if(marked==-1) {
             // process all
@@ -169,7 +174,7 @@ abstract public class ScoreSlice {
 
             assert end>start : "empty range";
 
-            scores().process(counter, start, end);
+            scores.process(counter, start, end);
             start += len*BLOCK;
         }
 
@@ -177,6 +182,6 @@ abstract public class ScoreSlice {
     }
 
     public void process(IndexProcessor processor) {
-        scores().process(processor, base, base + size());
+        scores.process(processor, base, base + size());
     }
 }

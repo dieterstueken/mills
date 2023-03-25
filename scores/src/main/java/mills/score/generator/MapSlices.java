@@ -14,7 +14,7 @@ public abstract class MapSlices extends ScoreSlices {
 
     abstract public ScoreMap scores();
 
-    abstract List<? extends MapSlice> slices();
+    abstract List<? extends TargetSlice> slices();
 
     public MapSlice get(int posIndex) {
         return slices().get(posIndex / MapSlice.SIZE);
@@ -22,7 +22,7 @@ public abstract class MapSlices extends ScoreSlices {
 
     static MapSlices of(ScoreMap scores) {
         int size = ScoreSlice.sliceCount(scores);
-        List<? extends MapSlice> slices = AbstractRandomList.generate(size, scores::openSlice);
+        List<MapSlice<ScoreMap>> slices = AbstractRandomList.generate(size, scores::openSlice);
         return new MapSlices() {
 
             @Override
@@ -31,7 +31,7 @@ public abstract class MapSlices extends ScoreSlices {
             }
 
             @Override
-            List<? extends MapSlice> slices() {
+            List<? extends TargetSlice> slices() {
                 return slices;
             }
         };

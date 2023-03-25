@@ -13,9 +13,7 @@ import mills.stones.Stones;
  * Date: 17.11.12
  * Time: 19:43
  */
-public class MapSlice extends ScoreSlice {
-
-    final ScoreMap scores;
+public class MapSlice<Scores extends ScoreMap> extends ScoreSlice<Scores> {
 
     // to calculate pending moves
     final Mover mover;
@@ -26,10 +24,6 @@ public class MapSlice extends ScoreSlice {
     // any positions set
     protected final long[] dirty = new long[256];
 
-    public ScoreMap scores() {
-        return scores();
-    }
-
     public int max() {
         return max;
     }
@@ -39,10 +33,15 @@ public class MapSlice extends ScoreSlice {
     }
 
 
-    protected MapSlice(ScoreMap scores, int index) {
-        super(index);
-        this.scores = scores;
+    protected MapSlice(Scores scores, int index) {
+        super(scores, index);
         this.mover = Moves.moves(scores.canJump()).mover(true);;
+    }
+
+    public int getScore(int posIndex) {
+        int score = super.getScore(posIndex);
+        assert score <= max;
+        return score;
     }
 
     int unresolved(long i201) {
@@ -63,16 +62,15 @@ public class MapSlice extends ScoreSlice {
         dirty[score] |= mask(offset);
     }
 
-    int init() {
-        int count = 0;
-
-        for(short offset=0; offset<size(); ++offset) {
-            int score = getScore(offset);
-            mark(offset, score);
-            if(score!=0)
-                ++count;
-        }
-
-        return count;
+    public static MapSlice<ScoreMap> of(ScoreMap scores, int index) {
+        return new MapSlice<>(scores, index) {
+            {
+                // initialize statistics.
+                for(short offset=0; offset<size(); ++offset) {
+                    int score = getScore(offset);
+                    mark(offset, score);
+                }
+            }
+        };
     }
 }

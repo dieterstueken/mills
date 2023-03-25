@@ -243,7 +243,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
 
         Stream<MapSlices> slices = clops.parallelStream()
                 .map(this::buildIndex)
-                .map(index -> ScoreMap.allocate(index, player))
+                .map(index -> ScoreTarget.allocate(index, player))
                 .map(MapSlices::of);
 
         MovingGroup<MapSlices> group = new MovingGroup<>(pop, player, slices);
