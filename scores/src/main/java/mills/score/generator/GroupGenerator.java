@@ -140,12 +140,12 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
             log(score, count);
         }
 
-        Stream<? extends MapSlices> slices = self.moved.group.values().parallelStream();
+        Stream<? extends TargetSlices> slices = self.moved.group.values().parallelStream();
         if (other != self)
             slices = Stream.concat(slices, other.moved.group.values().parallelStream());
 
-        return slices.peek(MapSlices::close)
-                .map(MapSlices::scores);
+        return slices.peek(TargetSlices::close)
+                .map(TargetSlices::scores);
     }
 
     Map<Player, MovingGroups> generate() {
@@ -184,7 +184,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
                 ForkJoinTask<ClosingGroup<? extends ScoreSlices>> closingTask = closingTask(player);
                 closingTask.fork();
 
-                MovingGroup<MapSlices> moving = moving(player);
+                MovingGroup<TargetSlices> moving = moving(player);
 
                 return new MovingGroups(moving, closingTask.join());
             }
@@ -230,7 +230,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
         };
     }
 
-    MovingGroup<MapSlices> moving(Player player) {
+    MovingGroup<TargetSlices> moving(Player player) {
 
         LOGGER.log(Level.INFO, ()->String.format("moving: %s%c", pop, player.key()));
 
@@ -241,17 +241,13 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
                 throw new IllegalStateException("score file already exists: " + file);
         }
 
-        Stream<MapSlices> slices = clops.parallelStream()
+        Stream<ScoreTarget> targets = clops.parallelStream()
                 .map(this::buildIndex)
-                .map(index -> ScoreTarget.allocate(index, player))
-                .map(MapSlices::of);
+                .map(index -> ScoreTarget.allocate(index, player));
 
-        MovingGroup<MapSlices> group = new MovingGroup<>(pop, player, slices);
+        MovingGroup<TargetSlices> group = MovingGroup.create(pop, player, targets);
 
-        if(!group.canJump()) {
-            int count = group.stream().parallel().mapToInt(MapSlices::init).sum();
-            LOGGER.log(Level.INFO, ()->String.format("init: %s%c %d", pop, player.key(), count));
-        }
+        LOGGER.log(Level.INFO, ()->String.format("init: %s%c", pop, player.key()));
 
         return group;
     }

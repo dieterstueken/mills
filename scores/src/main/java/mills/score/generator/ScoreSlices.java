@@ -17,17 +17,17 @@ abstract public class ScoreSlices implements IndexLayer {
 
     abstract public ScoreSet scores();
 
-    abstract List<? extends ScoreSlice> slices();
+    abstract List<? extends ScoreSlice<?>> slices();
 
     public int size() {
         return slices().size();
     }
 
-    public Stream<? extends ScoreSlice> stream() {
+    public Stream<? extends ScoreSlice<?>> stream() {
         return slices().stream();
     }
 
-    public ScoreSlice get(int posIndex) {
+    public ScoreSlice<?> get(int posIndex) {
         return slices().get(posIndex / MapSlice.SIZE);
     }
 
@@ -52,11 +52,6 @@ abstract public class ScoreSlices implements IndexLayer {
         return max;
     }
 
-    public void close() {
-        slices().parallelStream().forEach(ScoreSlice::close);
-        scores().close();
-    }
-
     @Override
     public PosIndex index() {
         return scores().index();
@@ -74,7 +69,7 @@ abstract public class ScoreSlices implements IndexLayer {
 
     static ScoreSlices of(ScoreSet scores) {
         int size = ScoreSlice.sliceCount(scores);
-        List<? extends ScoreSlice> slices = AbstractRandomList.generate(size, scores::openSlice);
+        List<? extends ScoreSlice<?>> slices = AbstractRandomList.generate(size, scores::openSlice);
         return new ScoreSlices() {
 
             @Override
@@ -83,7 +78,7 @@ abstract public class ScoreSlices implements IndexLayer {
             }
 
             @Override
-            List<? extends ScoreSlice> slices() {
+            List<? extends ScoreSlice<?>> slices() {
                 return slices;
             }
         };

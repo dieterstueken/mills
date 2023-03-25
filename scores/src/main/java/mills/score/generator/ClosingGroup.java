@@ -60,9 +60,9 @@ public class ClosingGroup<Slices extends ScoreSlices> extends MovingGroup<Slices
 
     public static ClosingGroup<? extends ScoreSlices> build(LayerGroup<IndexLayer> layers, LayerGroup<ScoreMap> target) {
 
-        ClosingGroup<MapSlices> slices = new ClosingGroup<>(layers.pop, layers.player,
+        ClosingGroup<TargetSlices> slices = new ClosingGroup<>(layers.pop, layers.player,
                 layers.stream().map(ScoreTarget::allocate)
-                .map(MapSlices::of));
+                .map(TargetSlices::of));
         
         GroupElevator elevator = new GroupElevator(target, slices);
 

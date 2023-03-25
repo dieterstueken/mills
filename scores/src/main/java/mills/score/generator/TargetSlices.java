@@ -10,20 +10,21 @@ import java.util.List;
  * Date: 05.01.20
  * Time: 10:29
  */
-public abstract class MapSlices extends ScoreSlices {
+public abstract class TargetSlices extends ScoreSlices {
 
     abstract public ScoreMap scores();
 
     abstract List<? extends TargetSlice> slices();
 
-    public MapSlice get(int posIndex) {
+    public TargetSlice get(int posIndex) {
         return slices().get(posIndex / MapSlice.SIZE);
     }
 
-    static MapSlices of(ScoreMap scores) {
+    static TargetSlices of(ScoreTarget scores) {
         int size = ScoreSlice.sliceCount(scores);
-        List<MapSlice<ScoreMap>> slices = AbstractRandomList.generate(size, scores::openSlice);
-        return new MapSlices() {
+        List<TargetSlice> slices = AbstractRandomList.generate(size, scores::openSlice);
+        slices.parallelStream().forEach(TargetSlice::init);
+        return new TargetSlices() {
 
             @Override
             public ScoreMap scores() {
@@ -37,10 +38,8 @@ public abstract class MapSlices extends ScoreSlices {
         };
     }
 
-    int init() {
-        if(!scores().canJump()) {
-            return slices().parallelStream().mapToInt(MapSlice::init).sum();
-        } else
-            return 0;
+    public void close() {
+        slices().parallelStream().forEach(TargetSlice::close);
+        scores().close();
     }
 }

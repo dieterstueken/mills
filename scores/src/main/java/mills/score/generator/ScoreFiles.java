@@ -7,6 +7,7 @@ import mills.index.PosIndex;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -15,7 +16,9 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.OpenOption;
 import java.util.Set;
 
-import static java.nio.file.StandardOpenOption.*;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  * Created by IntelliJ IDEA.
@@ -80,13 +83,7 @@ public class ScoreFiles {
             if(size!=0)
                 throw new IOException("incomplete read: " + file);
 
-            return new ScoreMap(index, player, scores) {
-                @Override
-                MapSlice openSlice(int index) {
-                    MapSlice slice = super.openSlice(index);
-
-                }
-            };
+            return new ScoreMap(index, player, scores);
         }
     }
 
@@ -101,6 +98,16 @@ public class ScoreFiles {
         FileChannel fc = FileChannel.open(file.toPath(), readonly ? READ : WRITE);
         MappedByteBuffer scores = fc.map(readonly ? FileChannel.MapMode.READ_ONLY : FileChannel.MapMode.READ_WRITE, 0, size);
 
-        return new ScoreMap(index, player, scores);
+        return new ScoreMap(index, player, scores) {
+            @Override
+            public void close() {
+                super.close();
+                try {
+                    fc.close();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        };
     }
 }

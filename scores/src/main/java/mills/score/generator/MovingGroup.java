@@ -8,9 +8,9 @@ import mills.stones.Mover;
 import mills.stones.Moves;
 import mills.stones.Stones;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.LongConsumer;
 import java.util.stream.IntStream;
@@ -35,7 +35,7 @@ public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> 
     public static Set<PopCount> clops(PopCount pop) {
         PopCount mclop = pop.mclop().min(PopCount.P99.sub(pop).swap());
 
-        Set<PopCount> clops = new HashSet<>();
+        Set<PopCount> clops = new TreeSet<>();
 
         for (PopCount clop : PopCount.TABLE) {
             if(clop.le(mclop))
@@ -45,15 +45,14 @@ public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> 
         return clops;
     }
 
-    public static MovingGroup<MapSlices> create(PopCount pop, Player player, Function<PopCount, ? extends ScoreMap> generator) {
-
-        Stream<MapSlices> mapSlices = clops(pop).parallelStream()
-                .map(generator)
-                .map(MapSlices::of);
-
-        return new MovingGroup<>(pop, player, mapSlices);
+    public static MovingGroup<TargetSlices> create(PopCount pop, Player player, Stream<? extends ScoreTarget> scores) {
+        return new MovingGroup<>(pop, player, scores.map(TargetSlices::of));
     }
 
+    public static MovingGroup<TargetSlices> create(PopCount pop, Player player, Function<PopCount, ? extends ScoreTarget> generator) {
+        Stream<ScoreTarget> targets = clops(pop).parallelStream().map(generator);
+        return create(pop, player, targets);
+    }
 
     /**
      * Return a stream of propagations to perform. Each returns a count of propagations.

@@ -17,6 +17,9 @@ public class TargetSlice extends MapSlice<ScoreTarget> {
 
     TargetSlice(ScoreTarget scores, int index) {
         super(scores, index);
+    }
+
+    void init() {
         process(this::setup);
     }
 

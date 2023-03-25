@@ -32,10 +32,9 @@ public class MapSlice<Scores extends ScoreMap> extends ScoreSlice<Scores> {
         return this.dirty[score.value];
     }
 
-
     protected MapSlice(Scores scores, int index) {
         super(scores, index);
-        this.mover = Moves.moves(scores.canJump()).mover(true);;
+        this.mover = Moves.moves(scores.canJump()).mover(true);
     }
 
     public int getScore(int posIndex) {

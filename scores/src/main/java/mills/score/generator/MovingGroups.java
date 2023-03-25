@@ -1,5 +1,6 @@
 package mills.score.generator;
 
+import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.position.Positions;
 import mills.score.Score;
@@ -15,10 +16,10 @@ import java.util.stream.IntStream;
  */
 public class MovingGroups {
     
-    final MovingGroup<? extends MapSlices> moved;
+    final MovingGroup<? extends TargetSlices> moved;
     final MovingGroup<? extends ScoreSlices> closed;
 
-    public MovingGroups(MovingGroup<? extends MapSlices> moved, MovingGroup<? extends ScoreSlices> closed) {
+    public MovingGroups(MovingGroup<? extends TargetSlices> moved, MovingGroup<? extends ScoreSlices> closed) {
         this.moved = moved;
         this.closed = closed;
     }
@@ -51,10 +52,10 @@ public class MovingGroups {
 
     void propagate(MovingGroups source, long i201, Score newScore) {
         PopCount clop = Positions.clop(i201);
-        MapSlices slices = moved.group.get(clop);
+        TargetSlices slices = moved.group.get(clop);
         if(slices!=null) {
             int posIndex = slices.scores().index.posIndex(i201);
-            MapSlice mapSlice = slices.get(posIndex);
+            TargetSlice mapSlice = slices.get(posIndex);
             mapSlice.propagate(posIndex, i201, newScore.value);
             //ScoredPosition debug = debug(source, i201);
         }

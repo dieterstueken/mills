@@ -42,12 +42,12 @@ public class MovedGroupTest {
 
 
     static MovingGroups createGroups(PopCount pop, Player player,
-                                      Function<PopCount, ? extends ScoreMap> moved,
+                                      Function<PopCount, ? extends ScoreTarget> moved,
                                       Function<PopCount, ? extends ScoreSet> closed) {
 
-        ForkJoinTask<MovingGroup<? extends MapSlices>> movedTask = new RecursiveTask<>() {
+        ForkJoinTask<MovingGroup<? extends TargetSlices>> movedTask = new RecursiveTask<>() {
             @Override
-            protected MovingGroup<? extends MapSlices> compute() {
+            protected MovingGroup<? extends TargetSlices> compute() {
                 return MovingGroup.create(pop, player, moved);
             }
         };
@@ -65,10 +65,10 @@ public class MovedGroupTest {
         return new MovingGroups(movedTask.join(), closedTask.join());
     }
     
-    ScoreMap moved(PopCount clop) {
+    ScoreTarget moved(PopCount clop) {
         PosIndex index = indexes.build(p33, clop);
         ByteBuffer buffer = ByteBuffer.allocateDirect(index.range());
-        return new ScoreMap(index, Player.White, buffer);
+        return new ScoreTarget(index, Player.White, buffer);
     }
 
     LostSet closed(PopCount clop) {
