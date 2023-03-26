@@ -7,7 +7,6 @@ import mills.index.PosIndex;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -16,9 +15,7 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.OpenOption;
 import java.util.Set;
 
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -56,7 +53,9 @@ public class ScoreFiles {
     static final Set<OpenOption> LOAD = Set.of(READ);
     static final Set<OpenOption> SAVE = Set.of(CREATE, WRITE);
 
-    void save(ScoreMap scores) throws IOException {
+    static final int BLOCK = 1<<12;
+
+    int save(ScoreMap scores) throws IOException {
 
         File file = file(scores.index(), scores.player());
 
@@ -64,7 +63,22 @@ public class ScoreFiles {
             throw new FileAlreadyExistsException("file already exist: " + file);
 
         try(FileChannel fc = FileChannel.open(file.toPath(), SAVE)) {
-            fc.write(scores.scores);
+            ByteBuffer buffer = scores.scores;
+            int size = scores.size();
+            int count = 0;
+            for(int pos=0; pos<size; ++pos) {
+                int score = scores.getScore(pos);
+                if(score!=0 || pos==size-1) {
+                    buffer.position(pos);
+                    int last = Math.min(pos|(BLOCK-1), size-1);
+                    buffer.limit(last+1);
+                    int n = fc.write(scores.scores, pos);
+                    buffer.clear();
+                    pos = last;
+                    ++count;
+                }
+            }
+            return count;
         }
     }
 
@@ -95,19 +109,9 @@ public class ScoreFiles {
         if (file.length() != size)
             throw new IOException("unexpected file size: " + file);
 
-        FileChannel fc = FileChannel.open(file.toPath(), readonly ? READ : WRITE);
-        MappedByteBuffer scores = fc.map(readonly ? FileChannel.MapMode.READ_ONLY : FileChannel.MapMode.READ_WRITE, 0, size);
-
-        return new ScoreMap(index, player, scores) {
-            @Override
-            public void close() {
-                super.close();
-                try {
-                    fc.close();
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
-        };
+        try(FileChannel fc = FileChannel.open(file.toPath(), readonly ? READ : WRITE)) {
+            MappedByteBuffer scores = fc.map(readonly ? FileChannel.MapMode.READ_ONLY : FileChannel.MapMode.READ_WRITE, 0, size);
+            return new ScoreMap(index, player, scores);
+        }
     }
 }

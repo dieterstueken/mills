@@ -17,7 +17,17 @@ import java.util.stream.Stream;
  */
 public class Stat implements IntConsumer {
 
-    final Map<Integer, AtomicInteger> stat = new ConcurrentSkipListMap<>();
+    final ConcurrentSkipListMap<Integer, AtomicInteger> stat = new ConcurrentSkipListMap<>();
+
+    public int get(int index) {
+        AtomicInteger value = stat.get(index);
+        return value==null ? 0 : value.get();
+    }
+
+    public int max() {
+        Integer value = stat.floorKey(Integer.MAX_VALUE);
+        return value==null ? 0 : value;
+    }
 
     @Override
     public void accept(int value) {

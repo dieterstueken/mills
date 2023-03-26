@@ -18,7 +18,7 @@ import mills.util.Stat;
  * Class ScoreSet represents a read only view of scores for a given index (pop:clop).
  * ScoreSets may be purely virtual if they refer to an IndexLayer which is completely lost.
  */
-abstract public class ScoreSet implements IndexLayer, AutoCloseable {
+abstract public class ScoreSet implements IndexLayer {
 
     final PosIndex index;
 
@@ -86,8 +86,6 @@ abstract public class ScoreSet implements IndexLayer, AutoCloseable {
     public long i201(int posIndex) {
         return index.i201(posIndex);
     }
-
-    public void close() { }
 
     public Stat stat() {
         Stat stat = new Stat();

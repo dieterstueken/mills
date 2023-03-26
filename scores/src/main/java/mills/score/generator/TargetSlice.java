@@ -159,10 +159,10 @@ public class TargetSlice extends MapSlice<ScoreTarget> {
         // wait for all work to finish.
         work.close();
 
-        for(short offset=0; offset<size(); ++offset) {
+        for(int offset=0; offset<size(); ++offset) {
             int posIndex = base+offset;
             int value = getScore(posIndex);
-            if(value>max) {
+            if(value<0) {
                 scores.setScore(posIndex, Score.DRAWN.value);
             }
         }

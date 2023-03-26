@@ -12,7 +12,7 @@ import java.util.List;
  */
 public abstract class TargetSlices extends ScoreSlices {
 
-    abstract public ScoreMap scores();
+    abstract public ScoreTarget scores();
 
     abstract List<? extends TargetSlice> slices();
 
@@ -27,7 +27,7 @@ public abstract class TargetSlices extends ScoreSlices {
         return new TargetSlices() {
 
             @Override
-            public ScoreMap scores() {
+            public ScoreTarget scores() {
                 return scores;
             }
 
@@ -40,6 +40,5 @@ public abstract class TargetSlices extends ScoreSlices {
 
     public void close() {
         slices().parallelStream().forEach(TargetSlice::close);
-        scores().close();
     }
 }

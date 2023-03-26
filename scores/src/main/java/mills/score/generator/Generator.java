@@ -4,6 +4,7 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
+import mills.score.Score;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,7 +63,29 @@ public class Generator {
     void save(ScoreMap scores) {
 
         try {
-            files.save(scores);
+            int blocks =  files.save(scores);
+
+            if(LOGGER.isLoggable(Level.INFO)) {
+                int won = 0;
+                int lost = 0;
+                int dawn = 0;
+                int max = 0;
+
+                for(int posIndex=0; posIndex<scores.size(); ++posIndex) {
+                    int score = scores.getScore(posIndex);
+                    if(Score.isWon(score))
+                        ++won;
+                    else if(Score.isLost(score))
+                        ++lost;
+                    else
+                        ++dawn;
+                    if(score>max)
+                        max = score;
+                }
+
+                LOGGER.log(Level.INFO, String.format("saved %s D:%,d W:%,d L:%,d M:%d %,d/%,d",
+                        scores, dawn, won, lost, max, blocks, (scores.size()+4095)/4096));
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
