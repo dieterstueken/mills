@@ -65,7 +65,7 @@ public class TargetSlice extends MapSlice<ScoreTarget> {
         }
 
         if(max+pending>=255)
-            throw new IllegalStateException("score overflow");
+            throw new IllegalStateException(String.format("score overflow: %d %d", max, pending));
     }
 
     /**
