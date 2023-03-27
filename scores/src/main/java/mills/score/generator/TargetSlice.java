@@ -15,6 +15,10 @@ public class TargetSlice extends MapSlice<ScoreTarget> {
 
     int pending = 0;
 
+    int pending() {
+        return pending;
+    }
+
     TargetSlice(ScoreTarget scores, int index) {
         super(scores, index);
     }

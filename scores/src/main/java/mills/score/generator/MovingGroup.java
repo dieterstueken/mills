@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.LongConsumer;
+import java.util.function.ToIntFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -65,7 +66,7 @@ public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> 
      */
     public IntStream propagate(Score score, Player targetPlayer, LongConsumer analyzer) {
 
-        List<? extends ScoreSlice> slices = group.values().stream()
+        List<? extends ScoreSlice<?>> slices = group.values().stream()
                 .flatMap(ScoreSlices::stream)
                 .filter(slice -> slice.any(score)).toList();
 
@@ -120,5 +121,9 @@ public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> 
         }
 
         return range;
+    }
+
+    public int max(ToIntFunction<? super Slices> count) {
+        return group.values().stream().mapToInt(count).reduce(0, Integer::max);
     }
 }

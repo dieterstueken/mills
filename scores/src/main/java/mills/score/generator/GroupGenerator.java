@@ -41,8 +41,6 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
         this.generator = generator;
         this.pop = pop;
         this.clops = MovingGroup.clops(pop);
-
-        LOGGER.log(Level.INFO, ()->String.format("generate: %s", pop));
     }
 
     private Stream<Player> players() {
@@ -59,7 +57,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
     public GroupGenerator submit() {
         if(getForkJoinTaskTag()==0) {
             if(setForkJoinTaskTag((short) 1) != 1) {
-                LOGGER.log(Level.INFO, ()->String.format("compute: %s", pop));
+                LOGGER.log(Level.FINE, ()->String.format("compute: %s", pop));
                 this.fork();
             }
         }
@@ -95,7 +93,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
     }
 
     Map<Player, LayerGroup<ScoreMap>> load() {
-        LOGGER.log(Level.INFO, ()->String.format("load: %s", pop));
+        LOGGER.log(Level.FINE, ()->String.format("load: %s", pop));
 
         EnumMap<Player, LayerGroup<ScoreMap>> result = new EnumMap<>(Player.class);
 
@@ -149,7 +147,6 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
     }
 
     Map<Player, MovingGroups> generate() {
-        LOGGER.log(Level.INFO, ()->String.format("generating: %s", pop));
 
         EnumMap<Player, MovingGroups> movings = new EnumMap<>(Player.class);
 
@@ -179,7 +176,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
             @Override
             protected MovingGroups compute() {
                 
-                LOGGER.log(Level.INFO, ()->String.format("MovingGroups: %s%c", pop, player.key()));
+                LOGGER.log(Level.FINE, ()->String.format("MovingGroups: %s%c", pop, player.key()));
 
                 ForkJoinTask<ClosingGroup<? extends ScoreSlices>> closingTask = closingTask(player);
                 closingTask.fork();
@@ -207,12 +204,12 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
             @Override
             protected ClosingGroup<? extends ScoreSlices> compute() {
                 
-                LOGGER.log(Level.INFO, ()->String.format("closing group: %s%c", pop, player.key()));
+                LOGGER.log(Level.FINE, ()->String.format("closing group: %s%c", pop, player.key()));
 
                 ForkJoinTask<LayerGroup<IndexLayer>> closedTask = new RecursiveTask<>() {
                     @Override
                     protected LayerGroup<IndexLayer> compute() {
-                        LOGGER.log(Level.INFO, ()->String.format("closedTask: %s%c", pop, player.key()));
+                        LOGGER.log(Level.FINE, ()->String.format("closedTask: %s%c", pop, player.key()));
                         return new LayerGroup<>(pop, player,
                                 ClosingGroup.clops(pop, player).parallelStream()
                                         .map(GroupGenerator.this::buildIndex)
@@ -232,7 +229,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
 
     MovingGroup<TargetSlices> moving(Player player) {
 
-        LOGGER.log(Level.INFO, ()->String.format("moving: %s%c", pop, player.key()));
+        LOGGER.log(Level.FINE, ()->String.format("moving: %s%c", pop, player.key()));
 
         Set<PopCount> clops = MovingGroup.clops(pop);
         for (PopCount clop : clops) {
@@ -247,7 +244,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
 
         MovingGroup<TargetSlices> group = MovingGroup.create(pop, player, targets);
 
-        LOGGER.log(Level.INFO, ()->String.format("init: %s%c", pop, player.key()));
+        LOGGER.log(Level.FINE, ()->String.format("init: %s%c", pop, player.key()));
 
         return group;
     }

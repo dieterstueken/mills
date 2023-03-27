@@ -60,49 +60,4 @@ public class MovingGroups {
             //ScoredPosition debug = debug(source, i201);
         }
     }
-
-    //protected MovedPosition position(MovingGroups source, long i201) {
-    //    List<? extends ScoredPosition> closedPositions = movedPositions(closed, i201);
-    //    List<? extends ScoredPosition> movedPositions = movedPositions(moved, i201);
-    //    int score = source.moved.getScore(i201);
-    //    return new MovedPosition(i201, source.moved.player, score, movedPositions, closedPositions);
-    //}
-
-    /**
-     * Return a list of positions if moving this i201 to moving group.
-     * @param target group either moved or closed.
-     * @param i201 current position to analyze.
-     * @return a List of moved positions.
-     */
-    //protected List<? extends ScoredPosition> movedPositions(MovingGroups target, long i201) {
-
-    //    boolean swap = moving.player==Player.White;
-    //    boolean close = moving.closed();
-
-    //    Mover mover = new Mover(Moves.moves(moved.jumps()),swap) {
-    //        @Override
-    //        public boolean process(int stay, int move, int mask) {
-    //            int moved = move^mask;
-    //            int closed = Stones.closed(moved) & mask;
-    //            if((closed!=0) == close)
-    //                super.process(stay, move, mask);
-
-    //            return !Moves.ABORT;
-    //        }
-    //    };
-
-    //    // playing forward
-    //    int stay = Stones.stones(i201, moving.player.other());
-    //    int move = Stones.stones(i201, moving.player);
-
-    //    //ScoredPosition debug = debug(target, i201);
-    //    mover.move(stay, move, move).normalize();
-
-    //    //Position pos = Position.of(i201);
-    //    //mover.analyze(m201 -> {
-    //    //    Position moved = Position.of(m201);
-    //    //});
-
-    //    return mover.transform(m201 -> moving.position(moving, m201, moving.player.other()));
-    //}
 }

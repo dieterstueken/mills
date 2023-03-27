@@ -15,7 +15,9 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.OpenOption;
 import java.util.Set;
 
-import static java.nio.file.StandardOpenOption.*;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  * Created by IntelliJ IDEA.
@@ -66,18 +68,29 @@ public class ScoreFiles {
             ByteBuffer buffer = scores.scores;
             int size = scores.size();
             int count = 0;
+            boolean write = false;
             for(int pos=0; pos<size; ++pos) {
-                int score = scores.getScore(pos);
-                if(score!=0 || pos==size-1) {
+                write = scores.getScore(pos)!=0;
+                if(write) {
                     buffer.position(pos);
                     int last = Math.min(pos|(BLOCK-1), size-1);
                     buffer.limit(last+1);
-                    int n = fc.write(scores.scores, pos);
+                    fc.write(scores.scores, pos);
                     buffer.clear();
                     pos = last;
                     ++count;
                 }
             }
+
+            // last byte(s) not written.
+            if(!write) {
+                // add and remove a dummy byte
+                buffer.limit(1);
+                fc.write(scores.scores, size);
+                buffer.clear();
+                fc.truncate(size);
+            }
+
             return count;
         }
     }

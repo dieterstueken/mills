@@ -44,12 +44,7 @@ abstract public class ScoreSlices implements IndexLayer {
      * @return current max score of all slices.
      */
     public int max() {
-        int max = 0;
-
-        for (ScoreSlice slice : slices())
-            max = Math.max(max, slice.max());
-
-        return max;
+        return slices().stream().mapToInt(ScoreSlice::max).reduce(0, Integer::max);
     }
 
     @Override
