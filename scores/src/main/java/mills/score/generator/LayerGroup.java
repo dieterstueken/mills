@@ -46,6 +46,10 @@ public class LayerGroup<T extends ClopLayer> implements Layer {
         return group.values().stream();
     }
 
+    public Stream<? extends T> parallelStream() {
+        return group.values().parallelStream();
+    }
+
     @Override
     public String toString() {
         return String.format("%s%s[%d]", pop, player.key(), group.size());

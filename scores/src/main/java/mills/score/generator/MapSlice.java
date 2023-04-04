@@ -54,6 +54,14 @@ public class MapSlice<Scores extends ScoreMap> extends ScoreSlice<Scores> {
         return mover.normalize().size();
     }
 
+    boolean any(long i201) {
+        Player player = player();
+        int stay = Stones.stones(i201, player.opponent());
+        int move = Stones.stones(i201, player);
+
+        return mover.any(stay, move, move);
+    }
+
     // set max and pending thresholds.
     protected void mark(short offset, int score) {
         if (score > max)

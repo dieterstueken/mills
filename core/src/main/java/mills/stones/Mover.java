@@ -70,6 +70,10 @@ public class Mover implements Moves.Process {
         return this;
     }
 
+    public boolean any(int stay, int move, int mask) {
+        return moves.any(stay, move, mask);
+    }
+
     /**
      * If swap==false the next player to play is Black else White.
      * @param stay opponents stones

@@ -10,11 +10,8 @@ import mills.stones.Moves;
 import mills.stones.Stones;
 
 import java.util.Collection;
-import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.RecursiveAction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Created by IntelliJ IDEA.
@@ -32,21 +29,18 @@ public class GroupElevator {
         this.moved = moved;
     }
 
-    ClosingGroup<? extends TargetSlices> elevate(ClosingGroup<? extends TargetSlices> closed) {
+    int elevate(ClosingGroup<? extends TargetSlices> closed) {
 
         LOGGER.log(Level.FINE, ()->String.format(" elevate: %s -> %s(%d)", moved, closed, closed.count()));
 
-        ForkJoinTask.invokeAll(closed.stream()
+        int max = closed.parallelStream()
                 .map(TargetSlices::slices)
-                .flatMap(Collection::stream)
-                .map(slice->new RecursiveAction() {
-                    @Override
-                    protected void compute() {
-                        slice.process(new Processor(slice));
-                    }
-                }).collect(Collectors.toList()));
+                .flatMap(Collection::parallelStream)
+                .map(Processor::new)
+                .mapToInt(Processor::process)
+                .reduce(0, Math::max);
 
-        return closed;
+        return max;
     }
 
     class Processor implements IndexProcessor {
@@ -59,6 +53,11 @@ public class GroupElevator {
             this.slice = slice;
         }
 
+        int process() {
+            slice.process(this);
+            return slice.max;
+        }
+
         @Override
         public void process(int posIndex, long i201) {
             Player player = slice.player();
@@ -67,14 +66,17 @@ public class GroupElevator {
             int closed = Stones.closed(move);
             int mask = move==closed ? closed : move^closed;
 
-            mover.move(stay, move, mask).normalize();
-
             //  Opponent takes a stone with worst result for player.
+            mover.move(stay, move, mask); //.normalize();
 
             int worst = Score.WON.value;
             for(int i=0; i<mover.size(); ++i) {
-                long m201 = mover.get201(i);
+                long m201 = Positions.normalize(mover.get201(i));
                 int score = getScore(m201);
+
+                if(score==0) // nothing worse
+                    return;
+
                 if(Score.betterThan(worst, score))
                     worst = score;
             }

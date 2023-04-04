@@ -28,8 +28,7 @@ public class TargetSlice extends MapSlice<ScoreTarget> {
     }
 
     private void setup(int posIndex, long i201) {
-        int unresolved = unresolved(i201);
-        if(unresolved==0) {
+        if(!any(i201)) {
             short offset = offset(posIndex);
             setScore(offset, Score.LOST.value);
         }
