@@ -2,6 +2,7 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
+import mills.index.GroupIndex;
 import mills.index.PosIndex;
 import mills.score.Score;
 
@@ -33,6 +34,8 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
 
     final Generator generator;
 
+    final GroupIndex groups;
+
     final PopCount pop;
 
     final Set<PopCount> clops;
@@ -41,6 +44,8 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
         this.generator = generator;
         this.pop = pop;
         this.clops = MovingGroup.clops(pop);
+        // build in advance
+        this.groups = generator.indexes.build(pop);
     }
 
     private Stream<Player> players() {
@@ -51,7 +56,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
     }
 
     PosIndex buildIndex(PopCount clop) {
-        return generator.indexes.build(pop, clop);
+        return groups.getIndex(clop);
     }
 
     public GroupGenerator submit() {
@@ -194,7 +199,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
 
                 @Override
                 protected ClosingGroup<? extends ScoreSlices> compute() {
-                    return ClosingGroup.lost(generator.indexes, pop, player);
+                    return ClosingGroup.lost(groups, player);
                 }
             };
         }
@@ -212,7 +217,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
                         LOGGER.log(Level.FINE, ()->String.format("closedTask: %s%c", pop, player.key()));
                         return new LayerGroup<>(pop, player,
                                 ClosingGroup.clops(pop, player).parallelStream()
-                                        .map(GroupGenerator.this::buildIndex)
+                                        .map(groups::getIndex)
                                         .map(index -> IndexLayer.of(index, player)));
                     }
                 };

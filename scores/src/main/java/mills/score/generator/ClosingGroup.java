@@ -2,7 +2,7 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.index.IndexProvider;
+import mills.index.GroupIndex;
 import mills.index.PosIndex;
 
 import java.util.HashSet;
@@ -51,9 +51,9 @@ public class ClosingGroup<Slices extends ScoreSlices> extends MovingGroup<Slices
         return new ClosingGroup<>(pop, player, slices);
     }
 
-    public static ClosingGroup<? extends ScoreSlices> lost(IndexProvider indexes, PopCount pop, Player player) {
-        return closed(pop, player, clop-> {
-            PosIndex index = indexes.build(pop, clop);
+    public static ClosingGroup<? extends ScoreSlices> lost(GroupIndex indexes, Player player) {
+        return closed(indexes.pop(), player, clop-> {
+            PosIndex index = indexes.getIndex(clop);
             return new LostSet(index, player);
         });
     }
