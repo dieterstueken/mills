@@ -64,9 +64,9 @@ public class ClosingGroup<Slices extends ScoreSlices> extends MovingGroup<Slices
                 layers.stream().map(ScoreTarget::allocate)
                 .map(TargetSlices::of));
         
-        GroupElevator elevator = new GroupElevator(target, slices);
+        GroupElevator elevator = new GroupElevator(target);
 
-        elevator.generate();
+        elevator.elevate(slices);
 
         //for (MapSlices slice : slices.group.values()) {
         //    Stat stat = slice.scores().stat();

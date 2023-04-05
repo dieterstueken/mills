@@ -28,16 +28,13 @@ public class GroupElevator {
 
     final LayerGroup<? extends ScoreSet> moved;
 
-    final ClosingGroup<? extends TargetSlices> closed;
-
-    public GroupElevator(LayerGroup<? extends ScoreSet> moved, ClosingGroup<? extends TargetSlices> closed) {
+    public GroupElevator(LayerGroup<? extends ScoreSet> moved) {
         this.moved = moved;
-        this.closed = closed;
     }
 
-    ClosingGroup<? extends TargetSlices> generate() {
+    ClosingGroup<? extends TargetSlices> elevate(ClosingGroup<? extends TargetSlices> closed) {
 
-        LOGGER.log(Level.FINER, ()->String.format(" elevate: %s -> %s(%d)", moved, closed, closed.count()));
+        LOGGER.log(Level.FINE, ()->String.format(" elevate: %s -> %s(%d)", moved, closed, closed.count()));
 
         ForkJoinTask.invokeAll(closed.stream()
                 .map(TargetSlices::slices)
