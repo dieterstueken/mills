@@ -63,7 +63,7 @@ public class Generator {
 
         try {
             int blocks = files.save(scores);
-            LOGGER.log(Level.FINE, String.format("saved %s %,d/%,d", scores, blocks, (scores.size()+4095)/4096));
+            LOGGER.log(Level.FINER, String.format("saved %s %,d/%,d", scores, blocks, (scores.size()+4095)/4096));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
