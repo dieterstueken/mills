@@ -5,7 +5,6 @@ import mills.index.IndexProcessor;
 import mills.index.PosIndex;
 import mills.position.Position;
 import mills.position.Positions;
-import mills.util.Stat;
 
 /**
  * Created by IntelliJ IDEA.
@@ -85,16 +84,6 @@ abstract public class ScoreSet implements IndexLayer {
 
     public long i201(int posIndex) {
         return index.i201(posIndex);
-    }
-
-    public Stat stat() {
-        Stat stat = new Stat();
-        for(int i=0; i<index.range();++i) {
-            int score = getScore(i);
-            stat.accept(score);
-        }
-
-        return stat;
     }
 
     abstract ScoreSlice<? extends ScoreSet> openSlice(int index);

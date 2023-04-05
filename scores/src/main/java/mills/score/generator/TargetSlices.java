@@ -1,6 +1,5 @@
 package mills.score.generator;
 
-import mills.score.Score;
 import mills.util.AbstractRandomList;
 
 import java.util.List;
@@ -52,28 +51,14 @@ public abstract class TargetSlices extends ScoreSlices {
         return slices().stream().mapToInt(TargetSlice::pending).reduce(0, Integer::max);
     }
 
+    public void stat() {
+        scores().stat(Level.FINE);
+    }
+
     private void log() {
         if(LOGGER.isLoggable(Level.INFO)) {
-            ScoreTarget scores = scores();
-
-            int won = 0;
-            int lost = 0;
-            int dawn = 0;
-
-            for(int posIndex=0; posIndex<scores.size(); ++posIndex) {
-                int score = scores.getScore(posIndex);
-                if(Score.isWon(score))
-                    ++won;
-                else if(Score.isLost(score))
-                    ++lost;
-                else
-                    ++dawn;
-            }
-
-            int pnd = slices().stream().mapToInt(s->s.pending).reduce(0, Integer::max);
-
-            LOGGER.log(Level.INFO, String.format("finished %s D:%,d W:%,d L:%,d M:%d P:%d",
-                    scores, dawn, won, lost, max(), pending()));
+            scores().stat(Level.INFO);
+            LOGGER.log(Level.INFO, String.format("finished %s M:%d P:%d", scores(), max(), pending()));
         }
     }
 }

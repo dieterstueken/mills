@@ -68,10 +68,7 @@ public class ClosingGroup<Slices extends ScoreSlices> extends MovingGroup<Slices
 
         elevator.elevate(slices);
 
-        //for (MapSlices slice : slices.group.values()) {
-        //    Stat stat = slice.scores().stat();
-        //    stat.toString();
-        //}
+        slices.group.values().forEach(TargetSlices::stat);
 
         return slices;
     }

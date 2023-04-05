@@ -28,7 +28,7 @@ class GroupGenerator extends RecursiveTask<Map<Player, LayerGroup<ScoreMap>>> {
     static final Logger LOGGER = Logger.getLogger(GroupGenerator.class.getName());
 
     private void log(Score score, int count) {
-        LOGGER.log(Level.FINER, ()->String.format("%9s: %9d", score, count));
+        LOGGER.log(Level.FINE, ()->String.format("%9s: %9d", score, count));
     }
 
     final Generator generator;
