@@ -2,6 +2,8 @@ package mills.util;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.stream.Stream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -77,6 +79,21 @@ abstract public class DelegateListSet<T> extends AbstractListSet<T>  {
     protected AbstractListSet<T> verify() {
         assert isOrdered(this, comparator()) : "index mismatch";
         return this;
+    }
+
+    @Override
+    public Spliterator<T> spliterator() {
+        return values.spliterator();
+    }
+
+    @Override
+    public Stream<T> stream() {
+        return values.stream();
+    }
+
+    @Override
+    public Stream<T> parallelStream() {
+        return values.parallelStream();
     }
 
     static <T> boolean isOrdered(List<T> values, Comparator<? super T> order) {

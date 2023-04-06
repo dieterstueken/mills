@@ -1,6 +1,9 @@
 package mills.util;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.stream.Stream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -31,7 +34,22 @@ abstract public class DirectListSet<T> extends AbstractListSet<T> implements Ind
 
             @Override
             public ListSet<T> subList(final int fromIndex, final int toIndex) {
-                return DelegateListSet.of(values.subList(fromIndex, toIndex), comparator());            }
+                return DelegateListSet.of(values.subList(fromIndex, toIndex), comparator);
+            }
+            @Override
+            public Spliterator<T> spliterator() {
+                return values.spliterator();
+            }
+
+            @Override
+            public Stream<T> stream() {
+                return values.stream();
+            }
+
+            @Override
+            public Stream<T> parallelStream() {
+                return values.parallelStream();
+            }
 
             @Override
             public Indexer<? super T> comparator() {
@@ -56,6 +74,11 @@ abstract public class DirectListSet<T> extends AbstractListSet<T> implements Ind
             @Override
             public int size() {
                 return values.length;
+            }
+
+            @Override
+            public Spliterator<T> spliterator() {
+                return Arrays.spliterator(values);
             }
 
             @Override
