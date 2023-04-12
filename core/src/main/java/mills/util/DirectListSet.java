@@ -59,7 +59,7 @@ abstract public class DirectListSet<T> extends AbstractListSet<T> implements Ind
     }
 
     static <T> DirectListSet<T> of(T[] values, Indexer<? super T> comparator) {
-        return new DirectListSet<>() {
+        DirectListSet<T> result = new DirectListSet<>() {
 
             @Override
             public Indexer<? super T> comparator() {
@@ -86,6 +86,10 @@ abstract public class DirectListSet<T> extends AbstractListSet<T> implements Ind
                 return DelegateListSet.of(List.of(values), comparator).subList(fromIndex, toIndex);
             }
         };
+
+        assert isDirect(result, comparator);
+
+        return result;
     }
 
     public static <T> boolean isDirect(List<T> values, Indexer<? super T> index) {
