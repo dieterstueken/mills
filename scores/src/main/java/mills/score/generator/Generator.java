@@ -11,7 +11,6 @@ import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinTask;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,26 +28,26 @@ public class Generator {
 
     final ScoreFiles files;
 
-    final Map<PopCount, GroupGenerator> generated = new ConcurrentHashMap<>();
+    final Map<PopCount, GroupsGenerator> layers = new ConcurrentHashMap<>();
 
     public Generator(IndexProvider indexes, File root) throws IOException {
         this.indexes = indexes;
         this.files = new ScoreFiles(root);
     }
 
-    GroupGenerator generate(PopCount pop) {
+    GroupsGenerator generate(PopCount pop) {
         if (pop.min() < 3)
             throw new IllegalArgumentException();
 
-        return generated.computeIfAbsent(pop, this::newGenerator).submit();
+        return layers.computeIfAbsent(pop, this::newGenerator).submit();
     }
 
     public void close() {
-        generated.values().forEach(ForkJoinTask::join);
+        layers.values().forEach(ForkJoinTask::join);
     }
 
-    private GroupGenerator newGenerator(PopCount pop) {
-        return new GroupGenerator(this, pop);
+    private GroupsGenerator newGenerator(PopCount pop) {
+        return new GroupsGenerator(this, pop);
     }
 
     ScoreMap load(PosIndex index, Player player) {
@@ -73,28 +72,19 @@ public class Generator {
         for(int nb=3; nb<10; ++nb) {
             for(int nw=3; nw<=nb; ++nw) {
                     PopCount pop = PopCount.get(nb, nw);
-                GroupGenerator group = new GroupGenerator(this, pop);
-                generated.put(pop, group);
-                if(group.exists()) {
-                    LOGGER.log(Level.INFO, ()->String.format("exists: %s", pop));
-                } else {
-                    group.submit().join();
-                }
+                GroupsGenerator group = generate(pop);
+                // generate synchronously.
+                group.join();
 
-                generated.keySet().removeIf(cleanup(pop));
+                layers.values().forEach(g -> cleanup(pop, g));
             }
         }
     }
 
-    private Predicate<? super PopCount> cleanup(PopCount pop) {
-        return key -> {
-            PopCount diff = pop.sub(key);
-            if(diff==null || diff.nb()<1 || diff.nw()<2)
-                return false;
-
-            LOGGER.log(Level.INFO, ()->String.format("drop: %s", key));
-
-            return true;
+    private void cleanup(PopCount pop, GroupsGenerator group) {
+        PopCount diff = pop.sub(group.pop);
+        if(diff!=null && diff.nb()>=1 && diff.nw()>=2) {
+            group.clear();
         };
     }
 

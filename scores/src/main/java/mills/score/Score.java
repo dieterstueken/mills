@@ -99,7 +99,7 @@ public class Score implements Comparable<Score> {
         return score>0 && (score & 1) != 0;
     }
 
-    // calculate shortest win or longest lost
+    // calculate the shortest win or longest lost
     public static boolean betterThan(int s1, int s2) {
 
         assert s2>=0;

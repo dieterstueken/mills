@@ -1,10 +1,14 @@
 package mills.score.generator;
 
 import mills.bits.Player;
+import mills.position.Position;
 import mills.score.Score;
 import mills.stones.Mover;
 import mills.stones.Moves;
 import mills.stones.Stones;
+import mills.util.AbstractRandomList;
+
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -17,6 +21,19 @@ public class MapSlice<Scores extends ScoreMap> extends ScoreSlice<Scores> {
 
     // to calculate pending moves
     final Mover mover;
+
+    final List<Position> debug = new AbstractRandomList<>() {
+        @Override
+        public int size() {
+            return mover.size();
+        }
+
+        @Override
+        public Position get(int index) {
+            long i201 = mover.get201(index);
+            return new Position(i201, player());
+        }
+    };
 
     // max score occurred
     protected int max = 0;
@@ -35,12 +52,6 @@ public class MapSlice<Scores extends ScoreMap> extends ScoreSlice<Scores> {
     protected MapSlice(Scores scores, int index) {
         super(scores, index);
         this.mover = Moves.moves(scores.canJump()).mover(true);
-    }
-
-    public int getScore(int posIndex) {
-        int score = super.getScore(posIndex);
-        assert score <= max;
-        return score;
     }
 
     int unresolved(long i201) {
@@ -74,9 +85,16 @@ public class MapSlice<Scores extends ScoreMap> extends ScoreSlice<Scores> {
             {
                 // initialize statistics.
                 for(short offset=0; offset<size(); ++offset) {
-                    int score = getScore(offset);
+                    int posIndex = posIndex(offset);
+                    int score = scores.getScore(posIndex);
                     mark(offset, score);
                 }
+            }
+            
+            public int getScore(int posIndex) {
+                int score = super.getScore(posIndex);
+                assert score <= max;
+                return score;
             }
         };
     }

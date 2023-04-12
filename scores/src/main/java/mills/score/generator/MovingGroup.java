@@ -9,9 +9,7 @@ import mills.stones.Moves;
 import mills.stones.Stones;
 
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.function.Function;
+import java.util.Map;
 import java.util.function.LongConsumer;
 import java.util.function.ToIntFunction;
 import java.util.stream.IntStream;
@@ -29,30 +27,13 @@ public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> 
         return false;
     }
 
-    public MovingGroup(PopCount pop, Player player, Stream<Slices> slices) {
-        super(pop, player, slices);
+    public MovingGroup(PopCount pop, Player player, Map<PopCount, ? extends Slices> group) {
+        super(pop, player, group);
     }
 
-    public static Set<PopCount> clops(PopCount pop) {
-        PopCount mclop = pop.mclop().min(PopCount.P99.sub(pop).swap());
-
-        Set<PopCount> clops = new TreeSet<>();
-
-        for (PopCount clop : PopCount.TABLE) {
-            if(clop.le(mclop))
-                clops.add(clop);
-        }
-
-        return clops;
-    }
-
-    public static MovingGroup<TargetSlices> create(PopCount pop, Player player, Stream<? extends ScoreTarget> scores) {
-        return new MovingGroup<>(pop, player, scores.map(TargetSlices::of));
-    }
-
-    public static MovingGroup<TargetSlices> create(PopCount pop, Player player, Function<PopCount, ? extends ScoreTarget> generator) {
-        Stream<ScoreTarget> targets = clops(pop).parallelStream().map(generator);
-        return create(pop, player, targets);
+    public static Stream<PopCount> clops(PopCount pop) {
+        PopCount mclop = pop.mclop(true);
+        return PopCount.CLOPS.stream().filter(mclop::ge);
     }
 
     /**
@@ -88,14 +69,18 @@ public class MovingGroup<Slices extends ScoreSlices> extends LayerGroup<Slices> 
      */
     IndexProcessor processor(Player targetPlayer, LongConsumer analyzer) {
 
+        // backtrace: moved by opponent.
+        Player opponent = player.opponent();
+
         // backtrace moves: move Black
         boolean swap = targetPlayer!=Player.White;
-        Mover mover = Moves.moves(canJump()).mover(swap);
+
+        Mover mover = Moves.moves(opponent.canJump(pop)).mover(swap);
 
         return (posIndex, i201) -> {
             // reversed move
             int stay = Stones.stones(i201, player);
-            int move = Stones.stones(i201, player.opponent());
+            int move = Stones.stones(i201, opponent);
             int mask = Stones.closed(move);
             if (!closing())
                 mask ^= move;

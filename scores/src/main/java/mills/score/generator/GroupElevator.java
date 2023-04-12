@@ -3,13 +3,16 @@ package mills.score.generator;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProcessor;
+import mills.position.Position;
 import mills.position.Positions;
 import mills.score.Score;
 import mills.stones.Mover;
 import mills.stones.Moves;
 import mills.stones.Stones;
+import mills.util.AbstractRandomList;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,37 +22,64 @@ import java.util.logging.Logger;
  * Date: 06.01.20
  * Time: 14:44
  */
-public class GroupElevator {
+public class GroupElevator extends LayerGroup<ScoreSet> {
 
     static final Logger LOGGER = Logger.getLogger(GroupElevator.class.getName());
 
-    final LayerGroup<? extends ScoreSet> moved;
-
-    public GroupElevator(LayerGroup<? extends ScoreSet> moved) {
-        this.moved = moved;
+    private GroupElevator(PopCount pop, Player player, Map<PopCount, ? extends ScoreSet> group) {
+        super(pop, player, group);
     }
 
-    int elevate(ClosingGroup<? extends TargetSlices> closed) {
+    static GroupElevator create(PopCount pop, Player player, Map<PopCount, ? extends ScoreSet> group) {
+        return new GroupElevator(pop, player, group);
+    }
 
-        LOGGER.log(Level.FINE, ()->String.format(" elevate: %s -> %s(%d)", moved, closed, closed.count()));
+    static GroupElevator create(LayerGroup<? extends ScoreSet> group) {
+        return create(group.pop, group.player, group.group);
+    }
 
-        int max = closed.parallelStream()
-                .map(TargetSlices::slices)
-                .flatMap(Collection::parallelStream)
+    ScoreSlices elevate(ScoreTarget scores) {
+
+        TargetSlices slices = TargetSlices.of(scores);
+
+        int max = slices.slices().parallelStream()
                 .map(Processor::new)
                 .mapToInt(Processor::process)
                 .reduce(0, Math::max);
 
-        return max;
+        LOGGER.log(Level.FINE, ()->String.format("elevate: %s <- %s M:%d", scores, this, max));
+
+        return slices;
     }
 
-    class Processor implements IndexProcessor {
+    class Processor extends Mover implements IndexProcessor {
 
         final TargetSlice slice;
 
-        final Mover mover = Moves.TAKE.mover(moved.player==Player.Black);
+        transient long i201;
+
+        final List<ScoredPosition> debug = new AbstractRandomList<>() {
+
+            @Override
+            public int size() {
+                return Processor.this.size();
+            }
+
+            @Override
+            public ScoredPosition get(int index) {
+                long i201 = get201(index);
+                int score = getScore(i201);
+                return new ScoredPosition(i201, player(), score);
+            }
+        };
+
+        Position position() {
+            return new Position(i201, slice.player());
+        }
 
         Processor(TargetSlice slice) {
+            super(Moves.TAKE, player()==Player.Black);
+
             this.slice = slice;
         }
 
@@ -60,33 +90,38 @@ public class GroupElevator {
 
         @Override
         public void process(int posIndex, long i201) {
+            this.i201 = i201;
+
             Player player = slice.player();
-            int stay = Stones.stones(i201, player.opponent());
+            // take an opponents stone
             int move = Stones.stones(i201, player);
+            int stay = Stones.stones(i201, player.opponent());
             int closed = Stones.closed(move);
             int mask = move==closed ? closed : move^closed;
 
-            //  Opponent takes a stone with worst result for player.
-            mover.move(stay, move, mask); //.normalize();
+            int size = move(stay, move, mask).size();
+
+            if(size==0)
+                throw new IllegalStateException("no moves");
 
             int worst = Score.WON.value;
-            for(int i=0; i<mover.size(); ++i) {
-                long m201 = Positions.normalize(mover.get201(i));
+
+            for(int i=0; i<size; ++i) {
+                long m201 = Positions.normalize(get201(i));
                 int score = getScore(m201);
-
-                if(score==0) // nothing worse
-                    return;
-
                 if(Score.betterThan(worst, score))
                     worst = score;
             }
 
-            slice.setScore(slice.offset(posIndex), worst);
+            if(worst!=0)
+                slice.setScore(slice.offset(posIndex), worst);
         }
 
         int getScore(long m201) {
+            assert Positions.pop(m201).equals(pop) : "swapped";
+
             PopCount clop = Positions.clop(m201);
-            ScoreSet scores = moved.group.get(clop);
+            ScoreSet scores = group.get(clop);
             int posIndex = scores.index.posIndex(m201);
             return scores.getScore(posIndex);
         }

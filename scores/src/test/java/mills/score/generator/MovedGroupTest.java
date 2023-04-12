@@ -45,17 +45,17 @@ public class MovedGroupTest {
                                       Function<PopCount, ? extends ScoreTarget> moved,
                                       Function<PopCount, ? extends ScoreSet> closed) {
 
-        ForkJoinTask<MovingGroup<? extends TargetSlices>> movedTask = new RecursiveTask<>() {
+        ForkJoinTask<TargetGroup> movedTask = new RecursiveTask<>() {
             @Override
-            protected MovingGroup<? extends TargetSlices> compute() {
-                return MovingGroup.create(pop, player, moved);
+            protected TargetGroup compute() {
+                return TargetGroup.create(pop, player, moved.andThen(TargetGroup::newSlices));
             }
         };
 
-        ForkJoinTask<MovingGroup<? extends ScoreSlices>> closedTask = new RecursiveTask<>() {
+        ForkJoinTask<ClosingGroup> closedTask = new RecursiveTask<>() {
             @Override
-            protected MovingGroup<? extends ScoreSlices> compute() {
-                return ClosingGroup.closed(pop, player, closed);
+            protected ClosingGroup compute() {
+                return ClosingGroup.closed(pop, player, closed.andThen(ScoreSlices::of));
             }
         };
 
@@ -71,8 +71,8 @@ public class MovedGroupTest {
         return new ScoreTarget(index, Player.White, buffer);
     }
 
-    LostSet closed(PopCount clop) {
+    ScoreSet closed(PopCount clop) {
         PosIndex index = indexes.build(p33, clop);
-        return new LostSet(index, w);
+        return ConstSet.lost(index, w);
     }
 }

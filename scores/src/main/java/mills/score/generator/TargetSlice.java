@@ -145,7 +145,10 @@ public class TargetSlice extends MapSlice<ScoreTarget> {
             int unresolved = unresolved(i201);
 
             // must be at least 1 since we just propagate a position.
-            assert unresolved > 1;
+            if(unresolved == 0) {
+                unresolved(i201);
+                throw new IllegalStateException("update resolved position");
+            }
 
             if (unresolved == 1)
                 setScore(offset, newScore);

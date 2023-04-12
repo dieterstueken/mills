@@ -43,7 +43,8 @@ abstract public class ScoreSlice<Scores extends ScoreSet> {
     abstract public int max();
 
     public boolean any(Score score) {
-        return marked(score)!=0;
+        //return marked(score)!=0;
+        return score.value<=max();
     }
 
     abstract public long marked(Score score);

@@ -27,7 +27,7 @@ public abstract class TargetSlices extends ScoreSlices {
     static TargetSlices of(ScoreTarget scores) {
         int size = ScoreSlice.sliceCount(scores);
         List<TargetSlice> slices = AbstractRandomList.generate(size, scores::openSlice);
-        slices.parallelStream().forEach(TargetSlice::init);
+        //slices.parallelStream().forEach(TargetSlice::init);
         return new TargetSlices() {
 
             @Override
@@ -49,10 +49,6 @@ public abstract class TargetSlices extends ScoreSlices {
 
     int pending() {
         return slices().stream().mapToInt(TargetSlice::pending).reduce(0, Integer::max);
-    }
-
-    public void stat() {
-        scores().stat(Level.FINE);
     }
 
     private void log() {

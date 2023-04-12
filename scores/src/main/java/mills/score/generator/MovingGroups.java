@@ -16,10 +16,11 @@ import java.util.stream.IntStream;
  */
 public class MovingGroups {
     
-    final MovingGroup<? extends TargetSlices> moved;
-    final MovingGroup<? extends ScoreSlices> closed;
+    final TargetGroup moved;
 
-    public MovingGroups(MovingGroup<? extends TargetSlices> moved, MovingGroup<? extends ScoreSlices> closed) {
+    final ClosingGroup closed;
+
+    public MovingGroups(TargetGroup moved, ClosingGroup closed) {
         this.moved = moved;
         this.closed = closed;
     }

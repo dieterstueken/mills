@@ -5,6 +5,10 @@ import mills.index.IndexProcessor;
 import mills.index.PosIndex;
 import mills.position.Position;
 import mills.position.Positions;
+import mills.score.Score;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by IntelliJ IDEA.
@@ -40,6 +44,34 @@ abstract public class ScoreSet implements IndexLayer {
 
     public void process(IndexProcessor processor, int base, int end) {
         index.process(processor, base, end);
+    }
+
+    public void stat(Level level) {
+
+        final Logger LOGGER = Logger.getLogger(this.getClass().getName());
+
+        if(!LOGGER.isLoggable(level))
+            return;
+
+        int won = 0;
+        int lost = 0;
+        int dawn = 0;
+        int max = 0;
+
+        for(int posIndex=0; posIndex<size(); ++posIndex) {
+            int score = getScore(posIndex);
+            if(Score.isWon(score))
+                ++won;
+            else if(Score.isLost(score))
+                ++lost;
+            else
+                ++dawn;
+            if(score>max)
+                max = score;
+        }
+
+        LOGGER.log(level, String.format("stat %s D:%,d W:%,d L:%,d M:%d",
+                this, dawn, won, lost, max));
     }
 
     class IndexCounter implements IndexProcessor {

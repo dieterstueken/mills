@@ -2,10 +2,14 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
+import mills.util.AbstractRandomList;
+import mills.util.ListSet;
+import mills.util.PopMap;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ForkJoinTask;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -20,16 +24,12 @@ public class LayerGroup<T extends ClopLayer> implements Layer {
 
     final Player player;
 
-    final Map<PopCount, T> group;
+    final Map<PopCount, ? extends T> group;
 
-    LayerGroup(PopCount pop, Player player, Map<PopCount, T> group) {
+    LayerGroup(PopCount pop, Player player, Map<PopCount, ? extends T> group) {
         this.group = group;
         this.pop = pop;
         this.player = player;
-    }
-
-    LayerGroup(PopCount pop, Player player, Stream<? extends T> layers) {
-        this(pop, player, layers.collect(Collectors.toMap(ClopLayer::clop, Function.identity())));
     }
 
     @Override
@@ -46,12 +46,26 @@ public class LayerGroup<T extends ClopLayer> implements Layer {
         return group.values().stream();
     }
 
-    public Stream<? extends T> parallelStream() {
-        return group.values().parallelStream();
-    }
-
     @Override
     public String toString() {
         return String.format("%s%s[%d]", pop, player.key(), group.size());
+    }
+
+    /**
+     * Generate a group map from a stream of clops and generator function.
+     * The group is created in parallel.
+     * @param clops stream of clops.
+     * @param generator function.
+     * @return a clop map.
+     * @param <T> target objects to generate.
+     */
+    static <T extends ClopLayer> Map<PopCount, T>
+    group(Stream<PopCount> clops, Function<PopCount, T> generator) {
+        ListSet<PopCount> clist = ListSet.of(clops.toArray(PopCount[]::new));
+        Function<PopCount, ForkJoinTask<T>> task = clop -> ForkJoinTask.adapt(() -> generator.apply(clop));
+        List<ForkJoinTask<T>> tasks = AbstractRandomList.map(clist, task);
+        ForkJoinTask.invokeAll(tasks);
+        List<T> values = AbstractRandomList.map(tasks, ForkJoinTask::join);
+        return PopMap.of(clist, values);
     }
 }

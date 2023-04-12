@@ -5,6 +5,7 @@ import mills.index.PosIndex;
 import mills.util.AbstractRandomList;
 
 import java.util.List;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 
 /**
@@ -33,6 +34,10 @@ abstract public class ScoreSlices implements IndexLayer {
 
     public int posIndex(long i201) {
         return scores().posIndex(i201);
+    }
+
+    public void stat() {
+        scores().stat(Level.FINE);
     }
 
     public String toString() {
