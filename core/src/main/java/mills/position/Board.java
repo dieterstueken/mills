@@ -6,7 +6,14 @@ import mills.ring.RingEntry;
 
 import java.util.List;
 
-import static mills.bits.Sector.*;
+import static mills.bits.Sector.E;
+import static mills.bits.Sector.N;
+import static mills.bits.Sector.NE;
+import static mills.bits.Sector.NW;
+import static mills.bits.Sector.S;
+import static mills.bits.Sector.SE;
+import static mills.bits.Sector.SW;
+import static mills.bits.Sector.W;
 
 /**
  * version:     $
@@ -17,19 +24,41 @@ import static mills.bits.Sector.*;
  */
 public class Board {
 
+    static final String DUMMY = "◯━━●━━o";
     static final List<String> BOARD = List.of(
-            "┏━━━━━┳━━━━━┓",
-            "┃ ┏━━━╋━━━┓ ┃",
-            "┃ ┃ ┏━┻━┓ ┃ ┃",
-            "┣━╋━┫   ┣━╋━┫",
-            "┃ ┃ ┗━┳━┛ ┃ ┃",
-            "┃ ┗━━━╋━━━┛ ┃",
-            "┗━━━━━┻━━━━━┛"
+            "┏━━━━━━━━┳━━━━━━━━┓",
+            "┃  ┏━━━━━╋━━━━━┓  ┃",
+            "┃  ┃  ┏━━┻━━┓  ┃  ┃",
+            "┣━━╋━━┫     ┣━━╋━━┫",
+            "┃  ┃  ┗━━┳━━┛  ┃  ┃",
+            "┃  ┗━━━━━╋━━━━━┛  ┃",
+            "┗━━━━━━━━┻━━━━━━━━┛"
     );
 
+    static final int K = 3; // stretch factor
+    static final int M = 3; // center point
+
+    static final int NY = BOARD.size(); // 7
+
+    static final int NX = K*NY - K + 1; // 19
+
+    static String board(long i201, Player player) {
+        if(player==Player.Black)
+            i201 = Positions.inverted(i201);
+
+        StringBuilder sb = new StringBuilder();
+        for(int iy=0; iy<NY; ++iy) {
+            for (int ix = 0; ix < NX; ++ix)
+                sb.append(get(ix, iy, i201));
+            sb.append('\n');
+        }
+
+        return sb.toString();
+    }
+
     static void show(long i201) {
-        for(int iy=0; iy<7; ++iy) {
-            for (int ix = 0; ix < 13; ++ix)
+        for(int iy=0; iy<NY; ++iy) {
+            for (int ix = 0; ix < NX; ++ix)
                 System.out.append(get(ix, iy, i201));
             System.out.println();
         }
@@ -42,17 +71,19 @@ public class Board {
             return '●';
 
         if(player==Player.White)
-            return 'o';
+            return '◯';
 
         return BOARD.get(iy).charAt(ix);
     }
 
     static Player player(int ix, int iy, long i201) {
-        if((ix&1)!=0)
+        // odd values
+        if((ix%K)!=0)
             return Player.None;
+        ix /= K;
 
-        ix = ix/2-3;
-        iy = 3-iy;
+        ix -= M;
+        iy -= M;
 
         int ir = Math.max(Math.abs(ix), Math.abs(iy));
         RingEntry e = ring(i201, ir);
@@ -62,7 +93,7 @@ public class Board {
         if((ix%ir)!=0 || (iy%ir)!=0)
             return Player.None;
 
-        Sector s = sector(ix/ir, ix/ir);
+        Sector s = sector(ix/ir, iy/ir);
         if(s==null)
             return Player.None;
 
