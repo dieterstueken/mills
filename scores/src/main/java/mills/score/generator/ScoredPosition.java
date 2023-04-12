@@ -7,14 +7,13 @@ import mills.position.Positions;
 
 class ScoredPosition extends Position implements Layer {
 
-    final Player player;
     final int score;
 
     final ScoredPosition normalized;
 
     @Override
     protected Position position(long i201) {
-        return new ScoredPosition(Positions.inverted(i201), player, score);
+        return position(Positions.inverted(i201), player, score);
     }
 
     protected ScoredPosition position(long i201, Player player, int score) {
@@ -22,8 +21,7 @@ class ScoredPosition extends Position implements Layer {
     }
 
     protected ScoredPosition(long i201, Player player, int score) {
-        super(i201);
-        this.player = player;
+        super(i201, player);
         this.score = score;
 
         //posIndex = scores.index.posIndex(player==scores.player()? i201 : j201);

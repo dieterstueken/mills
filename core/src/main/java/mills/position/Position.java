@@ -16,7 +16,13 @@ import mills.util.AbstractRandomList;
 
 import java.util.List;
 
-import static mills.position.Positions.*;
+import static mills.position.Positions.i201;
+import static mills.position.Positions.normalized;
+import static mills.position.Positions.perms;
+import static mills.position.Positions.pop;
+import static mills.position.Positions.r0;
+import static mills.position.Positions.r1;
+import static mills.position.Positions.r2;
 
 /**
  * Class Position represents unfolded information about a position.
@@ -31,8 +37,13 @@ public class Position implements Comparable<Position> {
         }
     }
 
+    protected final Player player;
+
     public static Position of(long i201) {
         return new Position(i201);
+    }
+    public static Position of(int black, int white) {
+        return new Position(Stones.i201(black, white));
     }
 
     // ordering: i1:i0:i2
@@ -50,7 +61,11 @@ public class Position implements Comparable<Position> {
     public final int black;
     public final int white;
 
+    public final String board;
+
     public final List<Position> permuted = AbstractRandomList.virtual(16, Position.this::permute);
+
+    public final Position inverted;
 
     public Position permute(int perm) {
         if(perm==0)
@@ -64,13 +79,26 @@ public class Position implements Comparable<Position> {
         return permute(perm.ordinal());
     }
 
+    protected Position inverted() {
+        return new Position(i201, player.opponent()) {
+            public Position inverted() {
+                return Position.this;
+            }
+        };
+    }
+
     protected Position position(long i201) {
         return of(i201);
     }
 
     public Position(long i201) {
+        this(i201, Player.White);
+    }
+    public Position(long i201, Player player) {
 
         this.i201 = i201;
+        this.player = player;
+        this.board = Board.board(i201, player);
 
         pop = pop(i201);
         clop = Positions.clop(i201);
@@ -83,6 +111,8 @@ public class Position implements Comparable<Position> {
 
         black = Stones.stones(i201, Player.Black);
         white = Stones.stones(i201, Player.White);
+
+        inverted = inverted();
     }
 
     public long m201() {
