@@ -162,18 +162,15 @@ abstract public class Moves {
         int n = 0;
 
         for(Sector e:Sector.EDGES) {
-            int m2 = e.mask();
-            int m0 = m2<<8;
-            int m1 = m2<<16;
-
-            moves[n++] = m1|m0;
-            moves[n++] = m1|m2;
+            int m1 = e.mask();
+            moves[n++] = m1*0x101;
+            moves[n++] = m1*0x10001;
         }
 
         for(int mv:Sector.moves()) {
             moves[n++] = mv;
-            moves[n++] = mv<<8;
-            moves[n++] = mv<<16;
+            moves[n++] = mv*0x100;
+            moves[n++] = mv*0x10000;
         }
 
         return moves;
