@@ -4,11 +4,19 @@ import java.util.concurrent.CountedCompleter;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntConsumer;
 
-/**
+/*
  * Created by IntelliJ IDEA.
  * User: stueken
  * Date: 03.09.22
  * Time: 12:58
+ */
+
+/**
+ *  ConcurrentCompleter starts with a given count of actions to run.
+ *  The action count is a common atomic integer.
+ *  If some (>5) actions remain, a separate Completer is spawned to run in parallel.
+ *  All completer decrement the action count and perform the action.
+ *  This main Task completes after all spawned action completed (action count == 0).
  */
 abstract public class ConcurrentCompleter extends CountedCompleter<Void> {
 

@@ -5,8 +5,6 @@ import java.lang.ref.SoftReference;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * version:     $Revision$
@@ -21,11 +19,9 @@ import java.util.function.Supplier;
  * If the Actor is idle, the action is executed immediately.
  * If the actor is busy the action is queued to be executed by someone else.
  */
-abstract public class QueueActor<T> implements AutoCloseable {
+public class QueueActor implements AutoCloseable {
 
-    abstract protected T actor();
-
-    final ConcurrentLinkedQueue<Consumer<? super T>> mbox = new ConcurrentLinkedQueue<>();
+    final ConcurrentLinkedQueue<Runnable> mbox = new ConcurrentLinkedQueue<>();
 
     final AtomicBoolean idle = new AtomicBoolean(true);
 
@@ -38,7 +34,7 @@ abstract public class QueueActor<T> implements AutoCloseable {
      * @param action to be executed.
      * @return # of executed tasks
      */
-    public int submit(Consumer<? super T> action) {
+    public int submit(Runnable action) {
         int processed = 0;
 
         do {
@@ -47,7 +43,7 @@ abstract public class QueueActor<T> implements AutoCloseable {
                     processed += work();
                     // process any local action
                     if(action!=null) {
-                        action.accept(actor());
+                        action.run();
                         action = null;
                         ++processed;
                     }
@@ -74,11 +70,9 @@ abstract public class QueueActor<T> implements AutoCloseable {
     protected int work() {
         int done = 0;
 
-        T actor = actor();
-
         // execute all actions queued
-        for (Consumer<? super T> action = mbox.poll(); action != null; action = mbox.poll()) {
-            action.accept(actor);
+        for (Runnable action = mbox.poll(); action != null; action = mbox.poll()) {
+            action.run();
             ++done;
         }
 
@@ -90,7 +84,7 @@ abstract public class QueueActor<T> implements AutoCloseable {
     }
 
     public void close() {
-        if(idle.get())
+        if(isIdle())
             return;
 
         final RecursiveAction task = new RecursiveAction() {
@@ -98,22 +92,9 @@ abstract public class QueueActor<T> implements AutoCloseable {
             protected void compute() {}
         };
 
-        submit((actor)->task.complete(null));
+        submit(()->task.complete(null));
 
         task.join();
-    }
-
-    public static <T> QueueActor<T> of(T actor) {
-        return new QueueActor<>() {
-            @Override
-            protected T actor() {
-                return actor;
-            }
-
-            public String toString() {
-                return String.format("Queue of %s [%d]", actor, mbox.size());
-            }
-        };
     }
 
     static final Reference<Object> EMPTY = new SoftReference<>(null);
@@ -121,23 +102,5 @@ abstract public class QueueActor<T> implements AutoCloseable {
     @SuppressWarnings("unchecked")
     static <T> Reference<T> emptyRef() {
         return (Reference<T>)EMPTY;
-    }
-
-    public static <T> QueueActor<T> lazy(Supplier<T> factory) {
-
-        return new QueueActor<>() {
-
-            Reference<T> ref = emptyRef();
-
-            @Override
-            protected T actor() {
-                T actor = ref.get();
-                if (actor == null) {
-                    actor = factory.get();
-                    ref = new SoftReference<>(actor);
-                }
-                return actor;
-            }
-        };
     }
 }

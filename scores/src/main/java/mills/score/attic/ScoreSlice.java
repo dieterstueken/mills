@@ -6,7 +6,6 @@ import mills.util.AbstractRandomArray;
 import mills.util.QueueActor;
 
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -18,7 +17,7 @@ import java.util.function.Predicate;
  */
 public class ScoreSlice extends MapSlice {
 
-    final QueueActor<ScoreSlice> work = QueueActor.of(this);
+    final QueueActor work = new QueueActor();
 
     // max score occurred
     private int max = 0;
@@ -70,7 +69,7 @@ public class ScoreSlice extends MapSlice {
         return value;
     }
 
-    public void submit(Consumer<ScoreSlice> action) {
+    public void submit(Runnable action) {
         work.submit(action);
     }
 

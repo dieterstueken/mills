@@ -4,8 +4,6 @@ import mills.index.IndexProcessor;
 import mills.score.Pair;
 import mills.score.Score;
 
-import java.util.function.Consumer;
-
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -81,9 +79,9 @@ public class ScoreMover extends ScoreWorker {
             if(resolved(current))
                 return;
 
-            slice.submit(new Consumer<>() {
+            slice.submit(new Runnable() {
                 @Override
-                public void accept(ScoreSlice slice) {
+                public void run() {
                     final int current = slice.getScore(offset);
                     if (!resolved(current))
                         slice.setScore(offset, newScore);
@@ -118,14 +116,14 @@ public class ScoreMover extends ScoreWorker {
             // calculate unresolved if current==0
             final int unresolved = current == 0 ? this.count.move(i201).size() : 0;
 
-            slice.submit(new Consumer<>() {
+            slice.submit(new Runnable() {
                 @Override
                 public String toString() {
                     return String.format("move %d L(%d)", offset, newScore);
                 }
 
                 @Override
-                public void accept(ScoreSlice slice) {
+                public void run() {
                     final int current = slice.getScore(offset);
 
                     if (current == 0) {

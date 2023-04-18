@@ -11,7 +11,7 @@ import mills.util.QueueActor;
  */
 public class TargetSlice extends MapSlice<ScoreTarget> {
 
-    final QueueActor<TargetSlice> work = QueueActor.of(this);
+    final QueueActor work = new QueueActor();
 
     int pending = 0;
 
@@ -84,7 +84,7 @@ public class TargetSlice extends MapSlice<ScoreTarget> {
         int score = getScore(offset);
 
         if(!resolved(score, newScore)) {
-            work.submit(slice -> setupScore(offset, i201, newScore));
+            work.submit(() -> setupScore(offset, i201, newScore));
         }
     }
 

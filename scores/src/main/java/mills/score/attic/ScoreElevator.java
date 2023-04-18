@@ -82,13 +82,13 @@ abstract class ScoreElevator extends ScoreWorker {
             abstract boolean resolved(ScoreSlice slice, short offset, int score);
 
             void propagate(final ScoreSlice slice, final short offset, long i201, final int score) {
-                if(resolved(slice,offset, score))
-                    return;
+                if(!resolved(slice,offset, score))
+                    slice.submit(() -> resolve(slice, offset, score));
+            }
 
-                slice.submit(s -> {
-                    if(!resolved(s, offset, score))
-                        s.setScore(offset, score);
-                });
+            private void resolve(ScoreSlice slice, short offset, int score) {
+                if(!resolved(slice, offset, score))
+                    slice.setScore(offset, score);
             }
         }
 
