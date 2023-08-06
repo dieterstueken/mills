@@ -23,7 +23,7 @@ public class OpeningMaps {
 
     final int turn;
 
-    final Map<Clops, OpeningLayer> maps = new TreeMap<>(Indexer.INDEXED);
+    final Map<Clops, OpeningMap> maps = new TreeMap<>(Indexer.INDEXED);
 
     public OpeningMaps(IndexProvider provider, int turn) {
         this.provider = provider;
@@ -32,7 +32,7 @@ public class OpeningMaps {
 
     public OpeningMaps(IndexProvider provider) {
         this(provider, 0);
-        completeLayer(Clops.EMPTY);
+        OpeningMap empty = OpeningMap.complete(provider.build(Clops.EMPTY));
     }
 
     public static OpeningMaps start(IndexProvider provider) {
@@ -48,16 +48,16 @@ public class OpeningMaps {
         return maps.computeIfAbsent(clops, this::createMap);
     }
 
-    OpeningLayer completeLayer(Clops clops) {
+    OpeningIndex completeLayer(Clops clops) {
         return maps.computeIfAbsent(clops, this::createLayer);
     }
 
-    OpeningMap createMap(Clops clops) {
-        return OpeningMap.open(provider, turn, clops);
+    OpeningSet createMap(Clops clops) {
+        return OpeningSet.open(provider, turn, clops);
     }
 
-    OpeningLayer createLayer(Clops clops) {
-        return new OpeningLayer(turn, clops);
+    OpeningIndex createLayer(Clops clops) {
+        return OpeningIndex.complete(provider.build(clops), turn);
     }
 
     public OpeningMaps next() {
@@ -90,7 +90,7 @@ public class OpeningMaps {
 
     void reduce() {
         for (Clops clops : maps.keySet()) {
-            maps.computeIfPresent(clops, (c,l)->l.reduce());
+            maps.computeIfPresent(clops, (c,l)->l.complete());
         }
 
         maps.values().removeIf(OpeningLayer::isEmpty);

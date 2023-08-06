@@ -17,13 +17,13 @@ public class MapProcessor {
     static final int CHUNK = 16*64;
 
     // this is the player on Target
-    final OpeningMap map;
+    final OpeningSet map;
 
     final LongPredicate source;
 
     final Player player;
 
-    public MapProcessor(OpeningMap map, LongPredicate source) {
+    public MapProcessor(OpeningSet map, LongPredicate source) {
         this.map = map;
         this.source = source;
         this.player = map.player().opponent();
