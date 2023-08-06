@@ -126,7 +126,18 @@ public interface Positions {
     }
 
     static Clops clops(long i201) {
-        return Clops.of(pop(i201), clop(i201));
+        RingEntry r2 = r2(i201);
+        RingEntry r0 = r0(i201);
+        RingEntry r1 = r1(i201);
+
+        PopCount pop = r2(i201).pop;
+        pop = pop.add(r0(i201).pop);
+        pop = pop.add(r1(i201).pop);
+
+        PopCount clop = r2.clop().add(r0.clop().add(r1.clop()))
+                .add(r2.radials().and(r0).and(r1).pop);
+
+        return Clops.of(pop, clop);
     }
 
     static Position position(long i201) {

@@ -1,6 +1,6 @@
 package mills.index;
 
-import mills.bits.Clops;
+import mills.bits.IClops;
 import mills.bits.PopCount;
 
 import java.util.ServiceLoader;
@@ -10,7 +10,7 @@ public interface IndexProvider extends AutoCloseable {
 
     PosIndex build(PopCount pop);
 
-    default PosIndex build(Clops clops) {
+    default PosIndex build(IClops clops) {
         return this.build(clops.pop(), clops.clop());
     }
 
@@ -22,7 +22,7 @@ public interface IndexProvider extends AutoCloseable {
         return CompletableFuture.completedFuture(this.build(pop, clop));
     }
 
-    default CompletableFuture<? extends PosIndex> stage(Clops clops) {
+    default CompletableFuture<? extends PosIndex> stage(IClops clops) {
         return stage(clops.pop(), clops.clop());
     }
 

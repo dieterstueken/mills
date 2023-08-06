@@ -1,6 +1,5 @@
 package mills.index.builder;
 
-import mills.bits.Clops;
 import mills.bits.PopCount;
 import mills.index.PosIndex;
 import mills.index.tables.C2Table;
@@ -257,7 +256,7 @@ public class IndexTests {
     }
 
     void permIndexes(PosIndex index) {
-        System.out.format("permIndexes %s\n", Clops.of(index));
+        System.out.format("permIndexes %s\n", index.clops());
         index.process(this::testPerms);
     }
 
