@@ -46,6 +46,9 @@ public class Position implements Comparable<Position> {
         return new Position(Stones.i201(black, white));
     }
 
+    // the NORMALIZED empty position.
+    public static final Position EMPTY = of(Positions.NORMALIZED);
+
     // ordering: i1:i0:i2
 
     public final long i201;
@@ -116,7 +119,7 @@ public class Position implements Comparable<Position> {
     }
 
     public long m201() {
-        return Positions.mask(i201);
+        return Positions.m201(i201);
     }
 
     public static String format(RingEntry e) {

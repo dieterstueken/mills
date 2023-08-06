@@ -51,8 +51,6 @@ public interface Positions {
         };
     }
 
-    long MASK = ~WORD;
-
     short SWP = 1<<3;
 
     short INV = 1<<6;
@@ -66,7 +64,7 @@ public interface Positions {
     static short i1(long i201) {return (short) ((i201>>>S1) & WORD);}
     static short stat(long i201) {return (short) (i201 & WORD);}
 
-    static long mask(long i201) {return i201 & MASK;}
+    static long m201(long i201) {return i201>>>S1;}
     static short perms(long i201) {return (short) (i201 & PERMS);}
     static Perm perm(long i201) {return Perm.get(stat(i201));}
 

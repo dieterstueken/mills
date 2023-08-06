@@ -6,7 +6,7 @@ import mills.ring.EntryTable;
 
 import java.util.List;
 
-public class C2Table extends R2Table implements Clops {
+abstract public class C2Table extends R2Table implements Clops {
 
     public final PopCount clop;
 

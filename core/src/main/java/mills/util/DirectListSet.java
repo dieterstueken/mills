@@ -12,6 +12,18 @@ import java.util.stream.Stream;
  * Time: 19:24
  */
 abstract public class DirectListSet<T> extends AbstractListSet<T> implements IndexedListSet<T> {
+
+    final Indexer<? super T> comparator;
+
+    protected DirectListSet(Indexer<? super T> comparator) {
+        this.comparator = comparator;
+    }
+
+    @Override
+    public Indexer<? super T> comparator() {
+        return comparator;
+    }
+
     @Override
     public int findIndex(final int index) {
         return inRange(index) ? index : -1;
@@ -21,7 +33,7 @@ abstract public class DirectListSet<T> extends AbstractListSet<T> implements Ind
 
         assert isDirect(values, comparator);
 
-        return new DirectListSet<>() {
+        return new DirectListSet<>(comparator) {
             @Override
             public T get(final int index) {
                 return values.get(index);
@@ -36,6 +48,7 @@ abstract public class DirectListSet<T> extends AbstractListSet<T> implements Ind
             public ListSet<T> subList(final int fromIndex, final int toIndex) {
                 return DelegateListSet.of(values.subList(fromIndex, toIndex), comparator);
             }
+
             @Override
             public Spliterator<T> spliterator() {
                 return values.spliterator();
@@ -51,15 +64,12 @@ abstract public class DirectListSet<T> extends AbstractListSet<T> implements Ind
                 return values.parallelStream();
             }
 
-            @Override
-            public Indexer<? super T> comparator() {
-                return comparator;
-            }
+
         };
     }
 
     static <T> DirectListSet<T> of(T[] values, Indexer<? super T> comparator) {
-        DirectListSet<T> result = new DirectListSet<>() {
+        DirectListSet<T> result = new DirectListSet<>(comparator) {
 
             @Override
             public Indexer<? super T> comparator() {

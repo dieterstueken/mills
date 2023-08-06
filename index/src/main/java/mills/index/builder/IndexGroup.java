@@ -43,14 +43,25 @@ public class IndexGroup implements GroupIndex {
         Table(C2Builder builder) {
             this(pop, builder.clop, builder.tables());
         }
+
+        @Override
+        public PosIndex root() {
+            return IndexGroup.this;
+        }
+
+        @Override
+        public PopMap<? extends PosIndex> group() {
+            return group;
+        }
+    }
+
+    @Override
+    public PosIndex root() {
+        return this;
     }
 
     public PopMap<C2Table> group() {
         return group;
-    }
-
-    public PosIndex getIndex(PopCount clop) {
-        return clop == null ? this : group.get(clop);
     }
 
     @Override

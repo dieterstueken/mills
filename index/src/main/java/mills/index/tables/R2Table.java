@@ -16,7 +16,7 @@ import java.util.List;
  * modified by: $Author$
  * modified on: $Date$
  */
-public class R2Table extends IndexedMap<R0Table> implements PosIndex {
+abstract public class R2Table extends IndexedMap<R0Table> implements PosIndex {
 
     public int posIndex(long i201) {
 
