@@ -6,7 +6,6 @@ import mills.bits.PopCount;
 import mills.score.generator.ClopLayer;
 
 import java.util.function.Consumer;
-import java.util.function.LongPredicate;
 
 /**
  * version:     $
@@ -21,47 +20,21 @@ import java.util.function.LongPredicate;
  * The opening has 18 turns with increasing population count.
  * In addition, the count of closed mills are relevant (extends ClopLayer)
  */
-public class OpeningLayer implements ClopLayer {
+abstract public class OpeningLayer implements ClopLayer {
 
     public static final int MAX_TURN = 18;
 
-    final Clops clops;
-    
     final int turn;
 
-    public OpeningLayer(int turn, Clops clops) {
+    public OpeningLayer(int turn) {
         this.turn = turn;
-        this.clops = Clops.of(clops);
 
         if(turn<0 || turn>MAX_TURN)
             throw new IndexOutOfBoundsException("invalid turn: " + turn);
-
-        assert placed(turn).sub(clops.pop())!=null;
-    }
-
-    public Clops clops() {
-        return clops;
     }
 
     public static Clops clops(int turn) {
         return Clops.of(placed(turn), PopCount.EMPTY);
-    }
-
-
-    public int range() {
-        return 0;
-    }
-
-    public boolean get(long i201) {
-        return true;
-    }
-
-    void propagate(LongPredicate source) {
-        // nothing to do.
-    }
-
-    OpeningLayer reduce() {
-        return this;
     }
 
     public String toString() {
@@ -69,6 +42,10 @@ public class OpeningLayer implements ClopLayer {
                     player().key(),
                     pop().nb, pop().nw,
                     clop().nb, clop().nw);
+    }
+
+    public int turn() {
+        return turn;
     }
 
     public Player player() {
@@ -81,15 +58,6 @@ public class OpeningLayer implements ClopLayer {
 
     public PopCount placed() {
         return placed(turn);
-    }
-
-    public PopCount pop() {
-        return clops.pop();
-    }
-
-    @Override
-    public PopCount clop() {
-        return clops.clop();
     }
 
     @Override
@@ -180,11 +148,11 @@ public class OpeningLayer implements ClopLayer {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        return o instanceof OpeningLayer that && turn == that.turn && clops.equals(that.clops);
+        return o instanceof OpeningLayer that && turn == that.turn && isEqual(that);
     }
 
     @Override
     public int hashCode() {
-        return 31*turn + clops.hashCode();
+        return 31*turn + Clops.index(this);
     }
 }
