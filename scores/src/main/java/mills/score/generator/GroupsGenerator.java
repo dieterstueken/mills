@@ -2,7 +2,7 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.index.GroupIndex;
+import mills.index.PosIndex;
 import mills.score.Score;
 import mills.util.ListSet;
 
@@ -53,7 +53,7 @@ class GroupsGenerator extends RecursiveAction {
             return Stream.of(Player.White, Player.Black);
     }
 
-    GroupIndex index() {
+    PosIndex index() {
         return generator.indexes.build(pop);
     }
 
@@ -82,7 +82,7 @@ class GroupsGenerator extends RecursiveAction {
         if(exists())
             return;
 
-        GroupIndex index = index();
+        PosIndex index = index();
 
         ForkJoinTask<MovingGroups> whiteTask = submit(()->groups(index, Player.White));
         MovingGroups black = pop.isSym() ? whiteTask.join() : groups(index, Player.Black);
@@ -101,7 +101,7 @@ class GroupsGenerator extends RecursiveAction {
                 .forEach(generator::save);
     }
 
-    MovingGroups groups(GroupIndex index, Player player) {
+    MovingGroups groups(PosIndex index, Player player) {
         return GroupGenerator.create(this, index, player).groups();
     }
 
@@ -144,7 +144,7 @@ class GroupsGenerator extends RecursiveAction {
             group = ref.get();
 
         if(group==null) {
-            GroupIndex groups = generator.indexes.build(pop);
+            PosIndex groups = generator.indexes.build(pop);
             Function<PopCount, ScoreMap> generate = clop -> generator.load(groups.getIndex(clop), player);
             Map<PopCount, ScoreMap> scores = LayerGroup.group(MovingGroup.clops(pop), generate);
             group = new LayerGroup<>(pop, player, scores);

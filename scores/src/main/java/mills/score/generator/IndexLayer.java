@@ -2,7 +2,6 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.index.GroupIndex;
 import mills.index.PosIndex;
 import mills.util.AbstractRandomList;
 import mills.util.PopMap;
@@ -38,7 +37,7 @@ public interface IndexLayer extends ClopLayer {
         };
     }
 
-    static PopMap<IndexLayer> group(GroupIndex index, Player player) {
+    static PopMap<IndexLayer> group(PosIndex index, Player player) {
         PopMap<? extends PosIndex> group = index.group();
         List<IndexLayer> values = AbstractRandomList.transform(group.values(), pix -> of(pix, player)).copyOf();
         return PopMap.of(group.keySet(), values);

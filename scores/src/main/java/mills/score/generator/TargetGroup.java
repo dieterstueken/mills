@@ -2,7 +2,7 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.index.GroupIndex;
+import mills.index.PosIndex;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -20,7 +20,7 @@ public class TargetGroup extends MovingGroup<TargetSlices> {
         super(pop, player, group);
     }
 
-    public static TargetGroup create(GroupIndex groups, Player player) {
+    public static TargetGroup create(PosIndex groups, Player player) {
         Function<PopCount, ScoreTarget> newTarget = clop -> ScoreTarget.allocate(groups.getIndex(clop), player);
         return create(groups.pop(), player, newTarget.andThen(TargetGroup::newSlices));
     }

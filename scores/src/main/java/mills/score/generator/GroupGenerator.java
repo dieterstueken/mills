@@ -2,7 +2,6 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.index.GroupIndex;
 import mills.index.PosIndex;
 
 import java.util.Map;
@@ -29,7 +28,7 @@ public class GroupGenerator extends LayerGroup<IndexLayer> {
         this.groups = groups;
     }
 
-    public static GroupGenerator create(GroupsGenerator groups, GroupIndex index, Player player) {
+    public static GroupGenerator create(GroupsGenerator groups, PosIndex index, Player player) {
         return new GroupGenerator(groups, player, IndexLayer.group(index, player));
     }
 

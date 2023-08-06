@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface IndexProvider extends AutoCloseable {
 
-    GroupIndex build(PopCount pop);
+    PosIndex build(PopCount pop);
 
     default PosIndex build(Clops clops) {
         return this.build(clops.pop(), clops.clop());

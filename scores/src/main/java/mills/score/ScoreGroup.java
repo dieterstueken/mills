@@ -2,7 +2,6 @@ package mills.score;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.index.GroupIndex;
 import mills.index.PosIndex;
 import mills.util.PopMap;
 
@@ -27,7 +26,7 @@ public class ScoreGroup implements AutoCloseable {
 
     final PopMap<ScoreMap> maps;
 
-    ScoreGroup(GroupIndex index, File root, boolean create) {
+    ScoreGroup(PosIndex index, File root, boolean create) {
         this.root = root;
 
         List<ScoreMap> scores = index.group().values().stream().map(ix->open(ix, create)).toList();

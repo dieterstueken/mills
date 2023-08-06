@@ -2,6 +2,7 @@ package mills.score.generator;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
+import mills.index.PosIndex;
 
 import java.util.Map;
 import java.util.function.Function;
