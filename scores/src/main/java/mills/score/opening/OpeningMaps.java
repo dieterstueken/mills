@@ -4,9 +4,7 @@ import mills.bits.Clops;
 import mills.index.IndexProvider;
 import mills.util.Indexer;
 
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import static mills.score.opening.OpeningLayer.MAX_TURN;
 
@@ -56,18 +54,17 @@ public class OpeningMaps {
         return OpeningMap.open(provider, turn, clops);
     }
 
-    private MapProcessors processors(OpeningMap map) {
-        return new MapProcessors(map, this);
-    }
-
     public OpeningMaps next() {
         if(turn==MAX_TURN)
             return null;
 
         OpeningMaps next = new OpeningMaps(provider, turn+1);
 
-        List<MapProcessors> processors = maps.values().stream().map(next::processors).toList();
-        processors.parallelStream().forEach(MapProcessors::run);
+        try(TargetProcessors processors = new TargetProcessors(next)) {
+            processors.process(this);
+        }
+
+        next.complete();
 
         return next;
     }
