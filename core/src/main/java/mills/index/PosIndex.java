@@ -99,6 +99,11 @@ public interface PosIndex extends Clops {
         }
 
         @Override
+        public PopCount clop() {
+            return PopCount.EMPTY;
+        }
+
+        @Override
         public int range() {
             return 1;
         }

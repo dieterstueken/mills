@@ -89,6 +89,11 @@ public class PopCount implements Indexed, Comparable<PopCount> {
         return _of(Math.min(nb, max), Math.min(nw, max));
     }
 
+    /**
+     * How many mills are possible with a given count of stones.
+     * @param count of stones
+     * @return max # of closed mills possible
+     */
     public static int mclop(int count) {
         if(count>=8)
             return 4;
