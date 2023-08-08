@@ -2,12 +2,11 @@ package mills.score.opening;
 
 import mills.bits.Clops;
 import mills.index.IndexProvider;
-import mills.position.Positions;
 import mills.util.Indexer;
 
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.LongPredicate;
 
 import static mills.score.opening.OpeningLayer.MAX_TURN;
 
@@ -16,6 +15,7 @@ import static mills.score.opening.OpeningLayer.MAX_TURN;
  * User: stueken
  * Date: 29.08.22
  * Time: 17:26
+ *
  */
 public class OpeningMaps {
 
@@ -28,11 +28,15 @@ public class OpeningMaps {
     public OpeningMaps(IndexProvider provider, int turn) {
         this.provider = provider;
         this.turn = turn;
+
+        if(turn<0 || turn>MAX_TURN)
+            throw new IndexOutOfBoundsException("invalid turn: " + turn);
     }
 
     public OpeningMaps(IndexProvider provider) {
         this(provider, 0);
-        OpeningMap empty = OpeningMap.complete(provider.build(Clops.EMPTY));
+        OpeningMap empty = OpeningMap.empty();
+        maps.put(empty, empty);
     }
 
     public static OpeningMaps start(IndexProvider provider) {
@@ -41,23 +45,19 @@ public class OpeningMaps {
 
     //static final Clops DEBUG = Clops.of(PopCount.of(2,3), PopCount.of(0,1));
 
-    OpeningLayer openMap(Clops clops) {
+    OpeningMap openMap(Clops clops) {
         //if(clops.equals(DEBUG))
         //    clops = clops;
 
         return maps.computeIfAbsent(clops, this::createMap);
     }
 
-    OpeningIndex completeLayer(Clops clops) {
-        return maps.computeIfAbsent(clops, this::createLayer);
+    OpeningMap createMap(Clops clops) {
+        return OpeningMap.open(provider, turn, clops);
     }
 
-    OpeningSet createMap(Clops clops) {
-        return OpeningSet.open(provider, turn, clops);
-    }
-
-    OpeningIndex createLayer(Clops clops) {
-        return OpeningIndex.complete(provider.build(clops), turn);
+    private MapProcessors processors(OpeningMap map) {
+        return new MapProcessors(map, this);
     }
 
     public OpeningMaps next() {
@@ -66,48 +66,19 @@ public class OpeningMaps {
 
         OpeningMaps next = new OpeningMaps(provider, turn+1);
 
-        // setup finished target maps
-        for (OpeningLayer layer : maps.values()) {
-            if(layer.isComplete()) {
-                Clops clops = layer.nextLayer();
-                next.completeLayer(clops);
-            }
-        }
-
-        // setup remaining layers
-        for (OpeningLayer layer : maps.values()) {
-            layer.nextLayers(next::openMap);
-        }
-
-        next.propagate(this::get);
+        List<MapProcessors> processors = maps.values().stream().map(next::processors).toList();
+        processors.parallelStream().forEach(MapProcessors::run);
 
         return next;
     }
 
-    void propagate(LongPredicate source) {
-        maps.values().parallelStream().forEach(layer->layer.propagate(source));
-    }
-
-    void reduce() {
-        for (Clops clops : maps.keySet()) {
-            maps.computeIfPresent(clops, (c,l)->l.complete());
-        }
-
-        maps.values().removeIf(OpeningLayer::isEmpty);
-    }
-
-    boolean get(Long i201) {
-        Clops clops = Positions.clops(i201);
-        OpeningLayer map = maps.get(clops);
-
-        if(map==null)
-            return false;
-
-        return map.get(i201);
+    int complete() {
+        maps.values().removeIf(OpeningMap::isEmpty);
+        return (int) maps.values().parallelStream().filter(OpeningMap::isComplete).count();
     }
 
     private int count() {
-        return maps.values().stream().mapToInt(OpeningLayer::range).sum();
+        return maps.values().stream().mapToInt(OpeningMap::range).sum();
     }
 
     public void stat() {
@@ -126,14 +97,13 @@ public class OpeningMaps {
             double seconds = (stop - start) / 1000;
             int count = maps.count();
             total += count;
+            int complete = maps.complete();
             maps.stat();
-            System.out.format("turn: %d %d %,d %.3fs\n", maps.turn, maps.maps.size(), count, seconds);
-            maps.reduce();
+            System.out.format("turn: %d %d (%d) %,d %.3fs\n", maps.turn, maps.maps.size(), complete, count, seconds);
         }
 
         double stop = System.currentTimeMillis();
 
         System.out.format("total: %,d %.3fs\n", total, (stop - start) / 1000);
     }
-
 }

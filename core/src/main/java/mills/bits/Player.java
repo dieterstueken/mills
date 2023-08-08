@@ -82,6 +82,10 @@ public enum Player {
 
     abstract public int count(PopCount pop);
 
+    public int mclop(PopCount pop) {
+        return PopCount.mclop(count(pop));
+    }
+
     public boolean canJump(PopCount pop) {
         return count(pop)<=3;
     }

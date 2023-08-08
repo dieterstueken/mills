@@ -5,7 +5,7 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.score.generator.ClopLayer;
 
-import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * version:     $
@@ -20,21 +20,31 @@ import java.util.function.Consumer;
  * The opening has 18 turns with increasing population count.
  * In addition, the count of closed mills are relevant (extends ClopLayer)
  */
-abstract public class OpeningLayer implements ClopLayer {
+public class OpeningLayer implements ClopLayer {
 
     public static final int MAX_TURN = 18;
 
     final int turn;
 
-    public OpeningLayer(int turn) {
+    final Clops clops;
+
+    public OpeningLayer(int turn, Clops clops) {
         this.turn = turn;
+        this.clops = Clops.of(clops);
 
         if(turn<0 || turn>MAX_TURN)
             throw new IndexOutOfBoundsException("invalid turn: " + turn);
-    }
 
-    public static Clops clops(int turn) {
-        return Clops.of(placed(turn), PopCount.EMPTY);
+        /*
+         * The number of closed mills must not exceed the number of vanished stones.
+         */
+
+        PopCount vanished = placed(turn).sub(clops.pop());
+        if(vanished==null)
+            throw new IllegalArgumentException("PopCount exceeds expected: " + clops);
+
+        if(vanished.sub(clops.clop().swap())== null)
+            throw new IllegalArgumentException("ClopCount exceeds expected: " + clops);
     }
 
     public String toString() {
@@ -42,6 +52,24 @@ abstract public class OpeningLayer implements ClopLayer {
                     player().key(),
                     pop().nb, pop().nw,
                     clop().nb, clop().nw);
+    }
+
+    public static OpeningLayer of(int turn, Clops clops) {
+        return new OpeningLayer(turn, clops);
+    }
+
+    public Clops clops() {
+        return clops;
+    }
+
+    @Override
+    public PopCount clop() {
+        return clops.clop();
+    }
+
+    @Override
+    public PopCount pop() {
+        return clops.pop();
     }
 
     public int turn() {
@@ -65,84 +93,70 @@ abstract public class OpeningLayer implements ClopLayer {
         return false;
     }
 
-    public boolean isComplete() {
-        return true;
-    }
-
-    public boolean isEmpty() {
-        return false;
-    }
-
-    Clops nextLayer() {
-        Player player = player();
-        PopCount pop = pop().add(player.pop);
-        PopCount clop = clop();
-        return Clops.of(pop, clop);
+    public Clops nextClops() {
+        return Clops.of(pop().add(player().pop), clop());
     }
 
     /**
      * Precalculate possible clops of next step.
      * pop+player,
      * on close:
-     *   pop-player - 0,1,2 broken mills
+     *   pop-opponent - 1,2 closed/stroke mills
      *
      * @return stream of possible clops
      */
-    public void nextLayers(Consumer<Clops> next) {
-        if(turn==MAX_TURN)
-            return;
-
-        Clops nextLayer = nextLayer();
-
-        next.accept(nextLayer);
+    public Stream<Clops> clopsStream() {
+        if(turn>=MAX_TURN)
+            return Stream.of();
 
         Player player = player();
-        Player opponent = player.opponent();
 
-        // next pop:
-        PopCount xpop = nextLayer.pop();
-        PopCount clop = clop();
+        // player adds a stone without closing a mill.
+        Clops next = nextClops();
+        Stream<Clops> layers = Stream.of(next);
 
-        // any closed?
-        int nc = PopCount.mclop(player.count(xpop));
-        nc -= player.count(clop);
+        // # of additional mills that may be closed
+        int mc = player.mclop(next.pop()) - player.count(next.clop());
+        if(mc>0) {
+            // some mill(s) can be closed
+            PopCount clop1 = clop().add(player.pop);
+            Stream<PopCount> strokes = strokes(clop1);
 
-        if(nc==0)
-            return;
-
-        if(nc>2)
-            nc = 2;
-
-        // take an opponent stone
-        xpop = xpop.sub(opponent.pop);
-
-        // # of possible opponent mills
-        int oc = PopCount.mclop(opponent.count(xpop));
-
-        for(int i=0; i<nc; ++i) {
-            clop = clop.add(player.pop);
-
-            if(opponent.count(clop) <= oc) {
-                Clops closed = Clops.of(xpop, clop);
-                next.accept(closed);
+            if(mc>1) {
+                // closing of two mills possible.
+                PopCount clop2 = clop1.add(player.pop);
+                strokes = Stream.concat(strokes, strokes(clop2));
             }
 
-            PopCount clop1 = clop.sub(opponent.pop);
+            // stroke an opponents stone
+            PopCount stroke = next.pop().sub(player().opponent().pop);
 
-            // no opponent mill to break
-            if (clop1 == null)
-                continue;
-
-            if(opponent.count(clop1) <= oc) {
-                Clops closed = Clops.of(xpop, clop1);
-                next.accept(closed);
-            }
-
-            // can we break two opponent mills?
-            PopCount clop2 = clop1.sub(opponent.pop);
-            if (clop2 != null)
-                next.accept(Clops.of(xpop, clop2));
+            layers = Stream.concat(layers,
+                    strokes.map(clop -> Clops.of(stroke, clop)));
         }
+
+        return layers;
+    }
+
+    private Stream<PopCount> strokes(PopCount clop) {
+        Player opponent = player().opponent();
+
+        // # of opponent mills that can be destroyed.
+        int md = opponent.count(clop);
+
+        if(md==0)
+            return Stream.of(clop);
+
+        // stroke a single opponent mill
+        PopCount clop1 = clop.sub(opponent.pop);
+
+        if(md==1)
+            return Stream.of(clop, clop1);
+
+        // may stroke two connected mills
+        PopCount clop2 = clop1.sub(opponent.pop);
+
+        return Stream.of(clop, clop1, clop2);
     }
 
     @Override
