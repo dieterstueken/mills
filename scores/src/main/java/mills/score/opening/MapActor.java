@@ -1,7 +1,7 @@
 package mills.score.opening;
 
 import mills.bits.Clops;
-import mills.util.QueueActor;
+import mills.util.IntActor;
 
 import java.util.function.LongConsumer;
 
@@ -11,7 +11,7 @@ import java.util.function.LongConsumer;
  * Date: 29.08.22
  * Time: 16:33
  */
-public class MapActor {
+public class MapActor implements LongConsumer {
 
     static final LongConsumer NOOP = new LongConsumer() {
         @Override
@@ -26,22 +26,44 @@ public class MapActor {
     // this is the player on Target
     final OpeningMap target;
 
-    final QueueActor actor;
+    final IntActor actor;
 
     final LongConsumer action;
 
     public MapActor(OpeningMap target) {
         this.target = target;
-        this.actor = new QueueActor();
-        this.action = target.isComplete() ? NOOP : i201 -> actor.submit(()->target.set(i201));
+        this.actor = new IntActor(target) {
+            @Override
+            public int submit(int posIndex) {
+
+                // if already set
+                if(target.get(posIndex))
+                    return 1;
+
+                return super.submit(posIndex);
+            }
+        };
+
+        this.action = target.isComplete() ? NOOP : this;
+    }
+
+    @Override
+    public String toString() {
+        return "MapActor{" + target + '}';
+    }
+
+    @Override
+    public void accept(long i201) {
+        int index = target.index.posIndex(i201);
+        actor.submit(index);
     }
 
     public Clops clops() {
         return target.clops();
     }
 
-    public void set(long i201) {
-        action.accept(i201);
+    public LongConsumer getAction() {
+        return action;
     }
 
     public void close() {

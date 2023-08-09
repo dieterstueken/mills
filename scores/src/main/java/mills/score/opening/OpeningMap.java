@@ -5,9 +5,8 @@ import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
 
-import java.util.BitSet;
-import java.util.List;
-import java.util.function.LongConsumer;
+import java.util.*;
+import java.util.function.IntConsumer;
 import java.util.stream.Stream;
 
 /**
@@ -16,7 +15,7 @@ import java.util.stream.Stream;
  * Date: 06.08.23
  * Time: 18:11
  */
-public class OpeningMap extends OpeningLayer implements LongConsumer {
+public class OpeningMap extends OpeningLayer implements IntConsumer {
 
     final PosIndex index;
 
@@ -66,19 +65,11 @@ public class OpeningMap extends OpeningLayer implements LongConsumer {
         }
     }
 
-    public void set(long i201) {
-        if(bits!=null) {
-            int pos = index.posIndex(i201);
-            set(pos);
-        }
-    }
-
-    public boolean get(long i201) {
+    public boolean get(int posIndex) {
         if(bits==null)
             return true;
 
-        int pos = index.posIndex(i201);
-        return bits.get(pos);
+        return bits.get(posIndex);
     }
 
     public boolean isComplete() {
@@ -124,7 +115,7 @@ public class OpeningMap extends OpeningLayer implements LongConsumer {
         int cardinality = bits==null ? range() : bits.cardinality();
         double db = 10*Math.log((double)range/cardinality)/Math.log(10);
 
-        String format = "O%d%c%d%dc%d%d-%d%d %,13d %d (%.1f)";
+        String format = "O%d%c%d%dc%d%d-%d%d %,13d %,d (%.1f)";
 
         if(isComplete())
             format = "O%d%c%d%dc%d%d-%d%d %,13d complete";
@@ -142,7 +133,7 @@ public class OpeningMap extends OpeningLayer implements LongConsumer {
     }
 
     @Override
-    public void accept(long i201) {
-        set(i201);
+    public void accept(int index) {
+        set(index);
     }
 }
