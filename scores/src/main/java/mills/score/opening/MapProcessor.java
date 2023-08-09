@@ -6,7 +6,7 @@ import mills.position.Positions;
 import mills.stones.Stones;
 import mills.util.Indexer;
 
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.LongConsumer;
 import java.util.stream.IntStream;
@@ -43,7 +43,7 @@ public class MapProcessor {
    }
 
    private LongConsumer newTarget(Clops clops) {
-      return processors.getActor(clops)::set;
+      return processors.getActor(clops).getAction();
    }
 
    void process() {
@@ -57,6 +57,9 @@ public class MapProcessor {
    }
 
    private void process(int posIndex, long i201) {
+      if(!source.get(posIndex))
+         return;
+
       Player player = source.player();
       int stay = Stones.stones(i201, player.opponent());
       int move = Stones.stones(i201, player);
