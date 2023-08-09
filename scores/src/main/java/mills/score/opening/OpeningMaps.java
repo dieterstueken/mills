@@ -4,8 +4,7 @@ import mills.bits.Clops;
 import mills.index.IndexProvider;
 import mills.util.Indexer;
 
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import static mills.score.opening.OpeningLayer.MAX_TURN;
 
@@ -61,8 +60,8 @@ public class OpeningMaps {
 
         OpeningMaps next = new OpeningMaps(provider, turn+1);
 
-        try(TargetProcessors processors = new TargetProcessors(next)) {
-            processors.process(this);
+        try(TargetProcessors processors = new TargetProcessors(this, next)) {
+            processors.process();
         }
 
         next.complete();
