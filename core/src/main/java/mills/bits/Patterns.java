@@ -19,6 +19,9 @@ public class Patterns {
     public static short index(final Pattern b, final Pattern w) {
 
         assert (b.pattern&w.pattern) == 0 : "duplicate occupation";
+        
+        if((b.pattern&w.pattern)!=0)
+            throw new IllegalStateException("duplicate occupation");
 
         return (short) (b.pow3* Player.Black.wgt() + w.pow3* Player.White.wgt());
     }

@@ -30,7 +30,7 @@ public class OpeningLayer implements ClopLayer {
 
     public OpeningLayer(int turn, Clops clops) {
         this.turn = turn;
-        this.clops = Clops.of(clops);
+        this.clops = clops;
 
         if(turn<0 || turn>MAX_TURN)
             throw new IndexOutOfBoundsException("invalid turn: " + turn);
@@ -41,14 +41,15 @@ public class OpeningLayer implements ClopLayer {
 
         PopCount vanished = placed(turn).sub(clops.pop());
         if(vanished==null)
-            throw new IllegalArgumentException("PopCount exceeds expected: " + clops);
+            throw new IllegalArgumentException("PopCount exceeds expected: " + this.clops);
 
-        if(vanished.sub(clops.clop().swap())== null)
-            throw new IllegalArgumentException("ClopCount exceeds expected: " + clops);
+        // does not hold: double close takes one, mills may be destroyed again
+        //if(vanished.sub(clops.clop().swap())== null)
+        //    throw new IllegalArgumentException("ClopCount exceeds expected: " + this.clops);
     }
 
     public String toString() {
-        return String.format("O%d%c%d%dc%d%d", turn/2,
+        return String.format("O%d%c%d%dc%d%d", turn,
                     player().key(),
                     pop().nb, pop().nw,
                     clop().nb, clop().nw);
