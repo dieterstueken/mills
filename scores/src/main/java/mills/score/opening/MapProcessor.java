@@ -6,7 +6,8 @@ import mills.position.Positions;
 import mills.stones.Stones;
 import mills.util.Indexer;
 
-import java.util.*;
+import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.LongConsumer;
 import java.util.stream.IntStream;
 
@@ -18,11 +19,27 @@ public class MapProcessor {
 
    final OpeningMap source;
 
-   final Map<Clops, LongConsumer> targets = new TreeMap<>(Indexer.INDEXED);
+   final boolean isComplete;
+
+   final Map<Clops, LongConsumer> targets = new ConcurrentSkipListMap<>(Indexer.INDEXED);
 
    public MapProcessor(TargetProcessors processors, OpeningMap source) {
       this.processors = processors;
       this.source = source;
+      this.isComplete = source.isComplete();
+   }
+
+   LongConsumer getTarget(Clops clops) {
+
+      LongConsumer result = targets.get(clops);
+
+      if(result==null) {
+         synchronized (targets) {
+            result = targets.computeIfAbsent(Clops.of(clops), this::newTarget);
+         }
+      }
+
+      return result;
    }
 
    private LongConsumer newTarget(Clops clops) {
@@ -43,8 +60,11 @@ public class MapProcessor {
       Player player = source.player();
       int stay = Stones.stones(i201, player.opponent());
       int move = Stones.stones(i201, player);
-      int free = Stones.STONES ^ (stay | move);
       int closes = Stones.closes(move);
+      int free = Stones.STONES ^ (stay | move);
+      // if this is complete we need closes only
+      if(isComplete)
+         free &= closes;
 
       // place any free stone
       for (int j = free & -free; j != 0; free ^= j, j = free & -free) {
@@ -59,7 +79,12 @@ public class MapProcessor {
 
    private void process(int stay, int moved) {
       long m201 = Stones.i201(stay, moved, source.player());
-      set(m201);
+      try {
+         set(m201);
+      } catch(Throwable e) {
+         Stones.i201(stay, moved, source.player());
+         throw e;
+      }
    }
 
    private void processClosed(int stay, int moved) {
@@ -70,6 +95,6 @@ public class MapProcessor {
 
    public void set(long i201) {
       Clops clops = Positions.clops(i201);
-      targets.computeIfAbsent(clops, this::newTarget);
+      getTarget(clops).accept(i201);
    }
 }

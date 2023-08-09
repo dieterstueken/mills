@@ -1,11 +1,13 @@
 package mills.score.opening;
 
 import mills.bits.Clops;
+import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
 
 import java.util.BitSet;
 import java.util.List;
+import java.util.function.LongConsumer;
 import java.util.stream.Stream;
 
 /**
@@ -14,7 +16,7 @@ import java.util.stream.Stream;
  * Date: 06.08.23
  * Time: 18:11
  */
-public class OpeningMap extends OpeningLayer {
+public class OpeningMap extends OpeningLayer implements LongConsumer {
 
     final PosIndex index;
 
@@ -22,7 +24,7 @@ public class OpeningMap extends OpeningLayer {
     BitSet bits;
 
     OpeningMap(final PosIndex index, final int turn, boolean complete) {
-        super(turn, index);
+        super(turn, Clops.of(index));
         this.index = index;
         this.bits = complete ? null : new BitSet(0);
     }
@@ -81,7 +83,7 @@ public class OpeningMap extends OpeningLayer {
 
     public boolean isComplete() {
         if(bits!=null) {
-            if (bits.previousClearBit(range() - 1) < 0)
+            if (bits.isEmpty() || bits.previousClearBit(range() - 1) >= 0)
                 return false;
             else
                 bits = null;
@@ -122,18 +124,25 @@ public class OpeningMap extends OpeningLayer {
         int cardinality = bits==null ? range() : bits.cardinality();
         double db = 10*Math.log((double)range/cardinality)/Math.log(10);
 
-        String format = "O%d%c%d%dc%d%d %,13d %,13d (%.1f)";
+        String format = "O%d%c%d%dc%d%d-%d%d %,13d %d (%.1f)";
 
-        if(cardinality==0)
-            format = "O%d%c%d%dc%d%d %,13d 0";
-        else if(range==cardinality)
-            format = "O%d%c%d%dc%d%d %,13d complete";
+        if(isComplete())
+            format = "O%d%c%d%dc%d%d-%d%d %,13d complete";
+        //else
+        //    format = "O%d%c%d%dc%d%d %,13d";
+
+        PopCount mst = placed().sub(pop()).swap();
 
         return String.format(format, turn/2,
                 player().key(),
                 pop().nb, pop().nw,
                 clop().nb, clop().nw,
+                mst.nb, mst.nw,
                 range, cardinality, db);
     }
 
+    @Override
+    public void accept(long i201) {
+        set(i201);
+    }
 }

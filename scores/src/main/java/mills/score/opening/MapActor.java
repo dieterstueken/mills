@@ -3,7 +3,6 @@ package mills.score.opening;
 import mills.bits.Clops;
 import mills.util.QueueActor;
 
-import java.util.function.IntConsumer;
 import java.util.function.LongConsumer;
 
 /**
@@ -13,6 +12,16 @@ import java.util.function.LongConsumer;
  * Time: 16:33
  */
 public class MapActor {
+
+    static final LongConsumer NOOP = new LongConsumer() {
+        @Override
+        public void accept(long i201) {}
+
+        @Override
+        public String toString() {
+            return "NOOP";
+        }
+    };
 
     // this is the player on Target
     final OpeningMap target;
@@ -24,7 +33,7 @@ public class MapActor {
     public MapActor(OpeningMap target) {
         this.target = target;
         this.actor = new QueueActor();
-        this.action = target.isComplete() ? i201->{} : i201 -> actor.submit(()->target.set(i201));
+        this.action = target.isComplete() ? NOOP : i201 -> actor.submit(()->target.set(i201));
     }
 
     public Clops clops() {

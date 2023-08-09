@@ -4,7 +4,8 @@ import mills.bits.Clops;
 import mills.index.IndexProvider;
 import mills.util.Indexer;
 
-import java.util.*;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static mills.score.opening.OpeningLayer.MAX_TURN;
 
@@ -34,7 +35,7 @@ public class OpeningMaps {
     public OpeningMaps(IndexProvider provider) {
         this(provider, 0);
         OpeningMap empty = OpeningMap.empty();
-        maps.put(empty, empty);
+        maps.put(Clops.EMPTY, empty);
     }
 
     public static OpeningMaps start(IndexProvider provider) {
@@ -47,10 +48,10 @@ public class OpeningMaps {
         //if(clops.equals(DEBUG))
         //    clops = clops;
 
-        return maps.computeIfAbsent(clops, this::createMap);
+        return maps.computeIfAbsent(Clops.of(clops), this::createMap);
     }
 
-    OpeningMap createMap(Clops clops) {
+    private OpeningMap createMap(Clops clops) {
         return OpeningMap.open(provider, turn, clops);
     }
 
@@ -71,15 +72,21 @@ public class OpeningMaps {
 
     int complete() {
         maps.values().removeIf(OpeningMap::isEmpty);
-        return (int) maps.values().parallelStream().filter(OpeningMap::isComplete).count();
+        long complete = maps.values().parallelStream().filter(OpeningMap::isComplete).count();
+        return (int) complete;
     }
 
-    private int count() {
-        return maps.values().stream().mapToInt(OpeningMap::range).sum();
+    private long count() {
+        return maps.values().stream().mapToLong(OpeningMap::range).sum();
     }
 
     public void stat() {
-        maps.values().stream().map(OpeningLayer::toString).forEach(System.out::println);
+        for (OpeningMap map : maps.values()) {
+            map.isComplete();
+            System.out.println(map);
+        }
+
+        //maps.values().stream().map(OpeningLayer::toString).forEach(System.out::println);
     }
 
     public static void main(String ... args) {
@@ -92,11 +99,12 @@ public class OpeningMaps {
         for(OpeningMaps maps = start(provider); maps!=null; maps = maps.next()) {
             double stop = System.currentTimeMillis();
             double seconds = (stop - start) / 1000;
-            int count = maps.count();
+            long count = maps.count();
             total += count;
             int complete = maps.complete();
+            System.out.format("turn: %d %d (%d) %,d %.1fs\n", maps.turn, maps.maps.size(), complete, count, seconds);
             maps.stat();
-            System.out.format("turn: %d %d (%d) %,d %.3fs\n", maps.turn, maps.maps.size(), complete, count, seconds);
+            System.out.println();
         }
 
         double stop = System.currentTimeMillis();
