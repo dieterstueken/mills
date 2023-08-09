@@ -3,8 +3,9 @@ package mills.score.opening;
 import mills.bits.Clops;
 import mills.util.Indexer;
 
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /*
  * Created by IntelliJ IDEA.
@@ -19,12 +20,22 @@ import java.util.concurrent.ConcurrentSkipListMap;
  */
 public class TargetProcessors implements AutoCloseable {
 
+    final OpeningMaps source;
+
     final OpeningMaps target;
 
     final Map<Clops, MapActor> actors = new ConcurrentSkipListMap<>(Indexer.INDEXED);
 
-    TargetProcessors(OpeningMaps target) {
+    AtomicInteger done = new AtomicInteger();
+
+    TargetProcessors(OpeningMaps source, OpeningMaps target) {
+        this.source = source;
         this.target = target;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("TargetProcessors(%d/%d)", done.get(), source.maps.size());
     }
 
     MapActor getActor(Clops clops) {
@@ -46,9 +57,10 @@ public class TargetProcessors implements AutoCloseable {
 
     void process(OpeningMap source) {
         new MapProcessor(this, source).process();
+        done.incrementAndGet();
     }
 
-    void process(OpeningMaps source) {
+    void process() {
         // forward all complete next maps
         source.maps.values().stream()
                 .filter(OpeningMap::isComplete)

@@ -8,6 +8,7 @@ import mills.util.Indexer;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.LongConsumer;
 import java.util.stream.IntStream;
 
@@ -20,6 +21,8 @@ public class MapProcessor {
    final OpeningMap source;
 
    final boolean isComplete;
+
+   AtomicInteger done = new AtomicInteger();
 
    final Map<Clops, LongConsumer> targets = new ConcurrentSkipListMap<>(Indexer.INDEXED);
 
@@ -46,14 +49,24 @@ public class MapProcessor {
       return processors.getActor(clops).getAction();
    }
 
+   int chunks() {
+      return (source.range()+ CHUNK-1)/CHUNK;
+   }
+
    void process() {
-      int n = (source.range()+ CHUNK-1)/CHUNK;
+      int n = chunks();
       IntStream.range(0, n).parallel().forEach(this::processChunk);
+   }
+
+   @Override
+   public String toString() {
+      return String.format("MapProcessor(%d/%d)", done.get(), chunks());
    }
 
    void processChunk(int chunk) {
       int start = chunk*CHUNK;
       source.index.process(this::process, start, start+CHUNK);
+      done.incrementAndGet();
    }
 
    private void process(int posIndex, long i201) {
