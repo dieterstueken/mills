@@ -1,14 +1,12 @@
 package mills.score.opening;
 
-import mills.bits.Clops;
 import mills.bits.IClops;
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
+import mills.util.IntActor;
 
-import java.util.BitSet;
-import java.util.List;
-import java.util.stream.Stream;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -22,6 +20,9 @@ public class OpeningMap extends OpeningLayer {
 
     // null indicates all positions reachable.
     BitSet bits;
+
+    // accepts submitted positions.
+    private Actor actor;
 
     OpeningMap(final PosIndex index, final int turn, boolean complete) {
         super(turn, index.clops());
@@ -42,7 +43,7 @@ public class OpeningMap extends OpeningLayer {
         return new OpeningMap(index, turn, false);
     }
 
-    public static OpeningMap complete(IndexProvider provider, int turn, IClops clops) {
+    public static OpeningMap completed(IndexProvider provider, int turn, IClops clops) {
         PosIndex index = provider.build(clops);
         return new OpeningMap(index, turn, true);
     }
@@ -53,6 +54,26 @@ public class OpeningMap extends OpeningLayer {
 
     public static OpeningMap empty() {
         return new OpeningMap(PosIndex.EMPTY, 0, true);
+    }
+
+    public void submit(long i201) {
+        // may be complete
+        if(bits!=null) {
+            Actor actor = this.actor;
+            if(actor==null) {
+                actor = openActor();
+            }
+
+            actor.submit(i201);
+        }
+    }
+
+    private synchronized Actor openActor() {
+        Actor actor = this.actor;
+        if(actor==null) {
+            this.actor = actor = new Actor();
+        }
+        return actor;
     }
 
     public void set(int pos) {
@@ -91,27 +112,18 @@ public class OpeningMap extends OpeningLayer {
         return bits!=null && bits.previousSetBit(range()-1) < 0;
     }
 
-    public OpeningMap complete() {
+    public OpeningMap setComplete() {
+        close();
         bits = null;
         return this;
     }
 
-    Stream<MapActor> openProcessors(OpeningMaps target) {
-
-        boolean isComplete = isComplete();
-        Clops next = nextClops();
-
-        List<Clops> list = clopsStream().toList();
-
-        List<MapActor> processors =  list.stream().map(clops -> {
-            OpeningMap map = target.openMap(clops);
-            if(isComplete && next.equals(map))
-                map.complete();
-
-            return MapActor.open(map);
-        }).toList();
-
-        return processors.stream();
+    void close() {
+        Actor actor = this.actor;
+        if(actor!=null) {
+            this.actor = null;
+            actor.close();
+        }
     }
 
     public String toString() {
@@ -134,5 +146,16 @@ public class OpeningMap extends OpeningLayer {
                 clop().nb, clop().nw,
                 mst.nb, mst.nw,
                 range, cardinality, db);
+    }
+
+    class Actor extends IntActor {
+        Actor() {
+            super(OpeningMap.this::set);
+        }
+
+        void submit(long i201) {
+            int posIndex = index.posIndex(i201);
+            submit(posIndex);
+        }
     }
 }

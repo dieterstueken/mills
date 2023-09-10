@@ -1,10 +1,5 @@
 package mills.score.opening;
 
-import mills.bits.Clops;
-import mills.util.Indexer;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /*
@@ -15,16 +10,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 /**
- * Class MaProcessor processes a single OpeningMap.
- * For each possible target a MapActor delegates the data flow.
+ * Class MaProcessors processes a set of source maps against a set of target maps.
  */
+
 public class TargetProcessors implements AutoCloseable {
 
     final OpeningMaps source;
 
     final OpeningMaps target;
-
-    final Map<Clops, MapActor> actors = new ConcurrentSkipListMap<>(Indexer.INDEXED);
 
     AtomicInteger done = new AtomicInteger();
 
@@ -38,35 +31,18 @@ public class TargetProcessors implements AutoCloseable {
         return String.format("TargetProcessors(%d/%d)", done.get(), source.maps.size());
     }
 
-    MapActor getActor(Clops clops) {
-
-        MapActor actor = actors.get(clops);
-
-        if(actor==null) {
-            synchronized (actors) {
-                actor = actors.computeIfAbsent(clops, this::newActor);
-            }
-        }
-
-        return actor;
-    }
-
-    private MapActor newActor(Clops clops) {
-        return MapActor.open(target.openMap(clops));
-    }
-
     void process(OpeningMap source) {
-        new MapProcessor(this, source).process();
+        new TargetProcessor(target, source).process();
         done.incrementAndGet();
     }
 
     void process() {
-        // forward all complete next maps
+        // forward all complete successors.
         source.maps.values().stream()
                 .filter(OpeningMap::isComplete)
                 .map(OpeningMap::nextClops)
                 .map(target::openMap)
-                .forEach(OpeningMap::complete);
+                .forEach(OpeningMap::setComplete);
 
         // process all maps
         source.maps.values().parallelStream().forEach(this::process);
@@ -74,6 +50,6 @@ public class TargetProcessors implements AutoCloseable {
 
     @Override
     public void close()  {
-        actors.values().forEach(MapActor::close);
+        target.close();
     }
 }

@@ -4,19 +4,18 @@ import mills.bits.Clops;
 import mills.bits.Player;
 import mills.position.Positions;
 import mills.stones.Stones;
-import mills.util.Indexer;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.LongConsumer;
 import java.util.stream.IntStream;
 
-public class MapProcessor {
+/**
+ * Class TargetProcessor processes a single source map against a set of target maps.
+ */
+public class TargetProcessor {
 
    static final int CHUNK = 16*64;
 
-   final TargetProcessors processors;
+   final OpeningMaps target;
 
    final OpeningMap source;
 
@@ -24,29 +23,14 @@ public class MapProcessor {
 
    AtomicInteger done = new AtomicInteger();
 
-   final Map<Clops, LongConsumer> targets = new ConcurrentSkipListMap<>(Indexer.INDEXED);
-
-   public MapProcessor(TargetProcessors processors, OpeningMap source) {
-      this.processors = processors;
+   public TargetProcessor(OpeningMaps target, OpeningMap source) {
+      this.target = target;
       this.source = source;
       this.isComplete = source.isComplete();
    }
 
-   LongConsumer getTarget(Clops clops) {
-
-      LongConsumer result = targets.get(clops);
-
-      if(result==null) {
-         synchronized (targets) {
-            result = targets.computeIfAbsent(clops, this::newTarget);
-         }
-      }
-
-      return result;
-   }
-
-   private LongConsumer newTarget(Clops clops) {
-      return processors.getActor(clops)::set;
+   OpeningMap getTarget(Clops clops) {
+      return target.openMap(clops);
    }
 
    int chunks() {
@@ -111,6 +95,6 @@ public class MapProcessor {
 
    public void set(long i201) {
       Clops clops = Positions.clops(i201);
-      getTarget(clops).accept(i201);
+      getTarget(clops).submit(i201);
    }
 }

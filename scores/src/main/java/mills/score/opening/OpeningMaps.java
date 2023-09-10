@@ -6,7 +6,7 @@ import mills.index.IndexProvider;
 import mills.index.PosIndex;
 import mills.util.Indexer;
 
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import static mills.score.opening.OpeningLayer.MAX_TURN;
@@ -51,6 +51,7 @@ public class OpeningMaps {
         //    clops = clops;
 
         OpeningMap map = maps.get(clops);
+
         if(map==null) {
             synchronized (clops) {
                 PosIndex index = provider.build(clops);
@@ -58,7 +59,7 @@ public class OpeningMaps {
             }
         }
 
-        return maps.computeIfAbsent(clops, this::createMap);
+        return map;
     }
 
     private OpeningMap createMap(IClops clops) {
@@ -84,6 +85,10 @@ public class OpeningMaps {
         maps.values().removeIf(OpeningMap::isEmpty);
         long complete = maps.values().parallelStream().filter(OpeningMap::isComplete).count();
         return (int) complete;
+    }
+
+    public void close() {
+        maps.values().forEach(OpeningMap::close);
     }
 
     private long count() {
