@@ -1,6 +1,7 @@
 package mills.score.opening;
 
 import mills.bits.Clops;
+import mills.bits.IClops;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.score.generator.ClopLayer;
@@ -163,11 +164,11 @@ public class OpeningLayer implements ClopLayer {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        return o instanceof OpeningLayer that && turn == that.turn && isEqual(that);
+        return o instanceof OpeningLayer that && turn == that.turn && IClops.equals(this, that);
     }
 
     @Override
     public int hashCode() {
-        return 31*turn + Clops.index(this);
+        return 31*turn + getIndex();
     }
 }

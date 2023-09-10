@@ -6,7 +6,7 @@ import mills.position.Positions;
 import mills.stones.Stones;
 import mills.util.Indexer;
 
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.LongConsumer;
@@ -38,7 +38,7 @@ public class MapProcessor {
 
       if(result==null) {
          synchronized (targets) {
-            result = targets.computeIfAbsent(Clops.of(clops), this::newTarget);
+            result = targets.computeIfAbsent(clops, this::newTarget);
          }
       }
 
@@ -46,7 +46,7 @@ public class MapProcessor {
    }
 
    private LongConsumer newTarget(Clops clops) {
-      return processors.getActor(clops).getAction();
+      return processors.getActor(clops)::set;
    }
 
    int chunks() {

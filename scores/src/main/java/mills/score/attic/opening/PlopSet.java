@@ -43,7 +43,7 @@ public class PlopSet {
     }
 
     public Clops clops() {
-        return Clops.of(index);
+        return index.clops();
     }
 
     public PopCount taken() {

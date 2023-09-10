@@ -1,6 +1,5 @@
 package mills.index;
 
-import mills.bits.Clops;
 import mills.bits.PopCount;
 import mills.index.builder.IndexGroup;
 import mills.index.builder.IndexGroups;
@@ -198,7 +197,7 @@ public class IndexTests {
     }
 
     void testIndexes(PosIndex index) {
-        System.out.format("testIndexes %s\n", Clops.of(index));
+        System.out.format("testIndexes %s\n", index.clops());
 
         IntStream.range(0, index.range()).parallel()
                 .forEach(i->testIndex(index, i));
@@ -216,7 +215,7 @@ public class IndexTests {
     }
 
     void permIndexes(PosIndex index) {
-        System.out.format("permIndexes %s\n", Clops.of(index));
+        System.out.format("permIndexes %s\n", index.clops());
         index.process(this::testPerms);
     }
 
