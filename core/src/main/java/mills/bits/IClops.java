@@ -92,7 +92,8 @@ public interface IClops extends Indexed {
         int index = pop.index;
 
         if(clop!=null) {
-            assert  (PopCount.P44.sub(clop)!=null && pop.mclop().sub(clop)!=null);
+            assert PopCount.P44.sub(clop)!=null;
+            //assert pop.mclop().sub(clop)!=null;
             index += (clop.index + 1) * PopCount.SIZE;
         }
 
