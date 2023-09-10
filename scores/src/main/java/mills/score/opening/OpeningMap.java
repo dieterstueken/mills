@@ -1,12 +1,13 @@
 package mills.score.opening;
 
 import mills.bits.Clops;
+import mills.bits.IClops;
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
 
-import java.util.*;
-import java.util.function.IntConsumer;
+import java.util.BitSet;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -15,7 +16,7 @@ import java.util.stream.Stream;
  * Date: 06.08.23
  * Time: 18:11
  */
-public class OpeningMap extends OpeningLayer implements IntConsumer {
+public class OpeningMap extends OpeningLayer {
 
     final PosIndex index;
 
@@ -23,7 +24,7 @@ public class OpeningMap extends OpeningLayer implements IntConsumer {
     BitSet bits;
 
     OpeningMap(final PosIndex index, final int turn, boolean complete) {
-        super(turn, Clops.of(index));
+        super(turn, index.clops());
         this.index = index;
         this.bits = complete ? null : new BitSet(0);
     }
@@ -34,14 +35,14 @@ public class OpeningMap extends OpeningLayer implements IntConsumer {
      * @param clops
      * @return an empty bitset with all bits cleared.
      */
-    public static OpeningMap open(IndexProvider provider, int turn, Clops clops) {
+    public static OpeningMap open(IndexProvider provider, int turn, IClops clops) {
         PosIndex index = provider.build(clops);
         if(index==null)
             throw new IllegalArgumentException("no indes for: " + clops);
         return new OpeningMap(index, turn, false);
     }
 
-    public static OpeningMap complete(IndexProvider provider, int turn, Clops clops) {
+    public static OpeningMap complete(IndexProvider provider, int turn, IClops clops) {
         PosIndex index = provider.build(clops);
         return new OpeningMap(index, turn, true);
     }
@@ -55,29 +56,32 @@ public class OpeningMap extends OpeningLayer implements IntConsumer {
     }
 
     public void set(int pos) {
+        BitSet bits = this.bits;
         if(bits!=null) {
-            if(bits.size()==0) {
-                // enforce a resize
-                bits.set(range());
-                bits.clear(range());
+            if(bits.isEmpty()) {
+                // first hit
+                synchronized (bits) {
+                    // enforce a resize
+                    bits.set(range());
+                    bits.clear(range());
+                }
             }
             bits.set(pos);
         }
     }
 
     public boolean get(int posIndex) {
-        if(bits==null)
-            return true;
-
-        return bits.get(posIndex);
+        BitSet bits = this.bits;
+        return bits==null || bits.get(posIndex);
     }
 
     public boolean isComplete() {
+        BitSet bits = this.bits;
         if(bits!=null) {
             if (bits.isEmpty() || bits.previousClearBit(range() - 1) >= 0)
                 return false;
             else
-                bits = null;
+                this.bits = null;
         }
 
         return true;
@@ -130,10 +134,5 @@ public class OpeningMap extends OpeningLayer implements IntConsumer {
                 clop().nb, clop().nw,
                 mst.nb, mst.nw,
                 range, cardinality, db);
-    }
-
-    @Override
-    public void accept(int index) {
-        set(index);
     }
 }

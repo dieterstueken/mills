@@ -1,9 +1,9 @@
 package mills.score.generator;
 
-import mills.bits.Clops;
+import mills.bits.IClops;
 import mills.bits.PopCount;
 
-public interface ClopLayer extends Layer, Clops {
+public interface ClopLayer extends Layer, IClops {
 
     PopCount clop();
 }

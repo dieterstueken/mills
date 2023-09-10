@@ -1,10 +1,13 @@
 package mills.score.opening;
 
 import mills.bits.Clops;
+import mills.bits.IClops;
 import mills.index.IndexProvider;
+import mills.index.PosIndex;
 import mills.util.Indexer;
 
-import java.util.*;
+import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import static mills.score.opening.OpeningLayer.MAX_TURN;
 
@@ -21,7 +24,7 @@ public class OpeningMaps {
 
     final int turn;
 
-    final Map<Clops, OpeningMap> maps = new TreeMap<>(Indexer.INDEXED);
+    final Map<Clops, OpeningMap> maps = new ConcurrentSkipListMap<>(Indexer.INDEXED);
 
     public OpeningMaps(IndexProvider provider, int turn) {
         this.provider = provider;
@@ -41,16 +44,24 @@ public class OpeningMaps {
         return new OpeningMaps(provider);
     }
 
-    //static final Clops DEBUG = Clops.of(PopCount.of(2,3), PopCount.of(0,1));
+    //static final IClops DEBUG = IClops.of(PopCount.of(2,3), PopCount.of(0,1));
 
     OpeningMap openMap(Clops clops) {
         //if(clops.equals(DEBUG))
         //    clops = clops;
 
-        return maps.computeIfAbsent(Clops.of(clops), this::createMap);
+        OpeningMap map = maps.get(clops);
+        if(map==null) {
+            synchronized (clops) {
+                PosIndex index = provider.build(clops);
+                map = maps.computeIfAbsent(clops, c -> new OpeningMap(index, turn, false));
+            }
+        }
+
+        return maps.computeIfAbsent(clops, this::createMap);
     }
 
-    private OpeningMap createMap(Clops clops) {
+    private OpeningMap createMap(IClops clops) {
         return OpeningMap.open(provider, turn, clops);
     }
 
@@ -88,26 +99,55 @@ public class OpeningMaps {
         //maps.values().stream().map(OpeningLayer::toString).forEach(System.out::println);
     }
 
+    static class Stat {
+        int count;
+
+        long total;
+
+        long partial;
+
+        void stat(OpeningMap map) {
+            ++count;
+
+            if(map.isComplete())
+                total += map.range();
+            else
+                partial += map.range();
+        }
+
+        void show() {
+            System.out.format("count: %d complete: %,d partial: %,d\n", count, total, partial);
+        }
+    }
+
     public static void main(String ... args) {
 
         IndexProvider provider = IndexProvider.load();
 
-        long total = 0;
+        Stat stat = new Stat();
         double start = System.currentTimeMillis();
 
         for(OpeningMaps maps = start(provider); maps!=null; maps = maps.next()) {
             double stop = System.currentTimeMillis();
             double seconds = (stop - start) / 1000;
-            long count = maps.count();
-            total += count;
             int complete = maps.complete();
-            System.out.format("turn: %d %d (%d) %,d %.1fs\n", maps.turn, maps.maps.size(), complete, count, seconds);
+            System.out.format("turn: %d %d (%d) %.1fs\n",
+                    maps.turn, maps.maps.size(), complete, seconds);
+
+
+            Stat lstat = new Stat();
+            maps.maps.values().forEach(lstat::stat);
+            lstat.show();
+
+            maps.maps.values().forEach(stat::stat);
+
             maps.stat();
             System.out.println();
         }
 
         double stop = System.currentTimeMillis();
-
-        System.out.format("total: %,d %.3fs\n", total, (stop - start) / 1000);
+        stat.show();
+        
+        System.out.format("elapsed: %.3fs\n",(stop - start) / 1000);
     }
 }

@@ -1,6 +1,6 @@
 package mills.score.generator;
 
-import mills.bits.Clops;
+import mills.bits.IClops;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.PosIndex;
@@ -15,9 +15,7 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.OpenOption;
 import java.util.Set;
 
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -43,7 +41,7 @@ public class ScoreFiles {
             throw new NotDirectoryException(root.toString());
     }
 
-    public File file(Clops clops, Player player) {
+    public File file(IClops clops, Player player) {
         return file(clops.pop(), clops.clop(), player);
     }
 

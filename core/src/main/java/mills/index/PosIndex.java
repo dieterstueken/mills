@@ -1,6 +1,6 @@
 package mills.index;
 
-import mills.bits.Clops;
+import mills.bits.IClops;
 import mills.bits.PopCount;
 import mills.position.Position;
 import mills.position.Positions;
@@ -17,7 +17,7 @@ import java.util.NoSuchElementException;
  * Time: 12:17:35
  */
 
-public interface PosIndex extends Clops {
+public interface PosIndex extends IClops {
 
     PosIndex root();
 

@@ -1,6 +1,6 @@
 package mills.score.opening;
 
-import mills.bits.Clops;
+import mills.bits.IClops;
 import mills.index.IndexProvider;
 
 import static mills.score.opening.OpeningLayer.MAX_TURN;
@@ -16,7 +16,7 @@ public class MapProvider {
       this.turn = turn;
    }
 
-   OpeningMap createMap(Clops clops) {
+   OpeningMap createMap(IClops clops) {
       return OpeningMap.open(provider, turn, clops);
    }
 

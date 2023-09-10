@@ -3,7 +3,7 @@ package mills.score.opening;
 import mills.bits.Clops;
 import mills.util.Indexer;
 
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -44,7 +44,7 @@ public class TargetProcessors implements AutoCloseable {
 
         if(actor==null) {
             synchronized (actors) {
-                actor = actors.computeIfAbsent(Clops.of(clops), this::newActor);
+                actor = actors.computeIfAbsent(clops, this::newActor);
             }
         }
 
@@ -52,7 +52,7 @@ public class TargetProcessors implements AutoCloseable {
     }
 
     private MapActor newActor(Clops clops) {
-        return new MapActor(target.openMap(clops));
+        return MapActor.open(target.openMap(clops));
     }
 
     void process(OpeningMap source) {

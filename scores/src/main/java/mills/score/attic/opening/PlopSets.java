@@ -1,6 +1,7 @@
 package mills.score.attic.opening;
 
 import mills.bits.Clops;
+import mills.bits.IClops;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
@@ -44,7 +45,7 @@ public class PlopSets implements Moves.Process {
         return String.format("%s[%d]", plop.toString(), plops.size());
     }
 
-    private PlopSet newPlops(Clops clops) {
+    private PlopSet newPlops(IClops clops) {
 
         assert plop.pop.sub(clops.pop()) !=null;
 
@@ -52,7 +53,7 @@ public class PlopSets implements Moves.Process {
         return new PlopSet(plop, index);
     }
 
-    PosIndex index(Clops clops) {
+    PosIndex index(IClops clops) {
         return indexes.build(clops);
     }
 
