@@ -202,7 +202,7 @@ public class RingEntry extends BW {
         return b.contains(other.b) && w.contains(other.w);
     }
 
-    RingEntry(short index, byte meq, byte mlt, byte pmin, byte mix, short[] perm, EntryTable sisters) {
+    private RingEntry(short index, byte meq, byte mlt, byte pmin, byte mix, short[] perm, EntryTable sisters) {
         super(index);
 
         assert perm.length == 8 : "invalid perm";

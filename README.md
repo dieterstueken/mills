@@ -9,7 +9,7 @@ This is a try to realize the sketched algorithms using Java.
 
 The board itself consists of three rings of 8 positions.
 Each position may be void or occupied by a black or white stone.
-Thus we get 3^24 = 282,429,536,481 positions at all which is about 2^38.34.
+Thus, we get 3^24 = 282,429,536,481 positions at all which is about 2^38.34.
 To 'solve' it we need some kind of score for each possible position.
 
 A first attempt is to break it down into separate partitions.
@@ -17,7 +17,7 @@ A simple solution is to break it down into separate subsets of positions
 with a fixed population count of stones on the board: PopCount(#black, #white)
 During the game the number of stones first increases up to PopCount(9,9) (opening).
 Then players move around and may close mills. Each closed mill takes an opposite stone.
-This decreases the PopCount again until any Player reaches n=3. At this stage it can jump around.
+This decreases the `PopCount` again until any Player reaches n=3. At this stage it can jump around.
 The final endgame is reached with PopCount(3,3) while both players can jump.
 Either the winner is able to close a mill and reduce the opposite stones below 3 the game ends drawn.
 
@@ -47,7 +47,7 @@ One of the first tasks is to find an index function.
 This index will assign a unique index to each possible position.
 It must also be taken into account, that up to eight positions may be equivalent due to symmetry operations.
 
-The whole universe counts 8947989348 different positions. Unfortunately this is even more than 2^33.
+The whole universe counts 8,947,989,348 different positions. Unfortunately this is even more than 2^33.
 Thus, a unique position cannot be represented by a 32-bit integer.
 
 A solution is to separate the problem into different levels. Each level is represented by its occupation count.
@@ -55,13 +55,13 @@ With nine stones each we get 100 possible occupations
 ([PopCount](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/bits/PopCount.java)) 
 up to (9,9) inclusive. 
 
-Class PopCount is an example of a set of precalculated instances
+Class `PopCount` is an example of a set of precalculated instances
 ([Popcount.TABLE](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/bits/PopCount.java#L237)).
 For 0<=n<=9 a [
 PopCount.index(nb, nw)](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/bits/PopCount.java#L44) 
-can be calculated to access precalculated instances of a PopCount object.
+can be calculated to access precalculated instances of a `PopCount` object.
 
-Thus, a PopCount object is equivalent to an integer. Both can be converted into each other without generating additional objects.
+Thus, a `PopCount` object is equivalent to an integer. Both can be converted into each other without generating additional objects.
 Any object representable by an integer may implement the interface 
 [Indexed](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/util/Indexed.java).
 
@@ -76,7 +76,7 @@ The board consists of three rings of eight positions each.
 To break down the situation further a representation of a single ring seems helpful.
 Each position is addressed by a 
 [Sector](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/bits/Sector.java).
-Each Serctor may be occupied by a stone owned by a 
+Each Sector may be occupied by a stone owned by a 
 [Player](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/bits/Player.java)
 of Black(1) or White(2) while
 Void(0) positions are occupied by 
@@ -92,13 +92,17 @@ Sectors are grouped into radial sectors (0-4) and positions on the edges (4-7).
 This groups the edge sectors onto the lower four bits of a Pattern and may be clipped using `&=0x0f`.
 This simplifies the handling of radial mills later on.
 
+### Player
+
 As we have two 
-[Player.None](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/bits/Player.java#L18)
+[Player](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/bits/Player.java#L18)
 a Ring is represented by two 
 [Patterns](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/bits/Patterns.java)
 for black and white each.
 Assuming there are no duplicate occupations on each Sector, we end up with 3^8=6561  different
 [Patterns](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/bits/Patterns.java).
+
+### RingEntry
 
 A Pattern is extended to a class
 [RingEntry](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/ring/RingEntry.java) 
@@ -108,21 +112,45 @@ form a List of
 [Entries.TABLE](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/ring/Entries.java#L22).
 This is one of the most important objects.
 
-Each RingEntry may be transformed into an equivalent position by performing one of eight symmetry operations.
-A symmetry permutation is represented by the
+### Perm
+
+Each single pattern and also each `RingEntry` may be permuted by a symmetry operation.
+There are 8 different operations represented by the 
 [enum Perm](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/bits/Perm.java).
+Each `Perm` provides operations to combine two permutations or to invert them.
 
-Each RingEntry has a array of eight related entries for each permutation.
-To brear cyclic references this array is represented by short indexes 
-which are converted into RingEntry objects on runtime after Entries.TABLE becomes available.
-This is also the reason to place static Entries.TABLE into a separate class
-to avoid deadlocks during class loading.
+For each `RingEntry` we have 8 different permutations. Some of them my reduces its index.
+A `RingEntry` which has no permutations lowering its index are called **_minimized_**.
+ 
+Some questions on an `RingEntry` are about which permutations will have some effect.
+This information is kept by an 8 bit permutation index. This is equivalent of an `EnumSet<Perm>`.
 
-Important information is how one of the eight permutations affect the RingEntry.
-Especially if the entry (resp. its index) can be reduced by any of the eight permutations.  
+There is a class `Perms` which represents one of the 256 possible values of a group of permutation.
+
+#### minimzed RingEntry
+
+Each `RingEntry` has an array of eight related entries for each permutation.
+If none of the 8 permuted entries has a lower index, the `RingEntry` is called _**minimized**_.
+
+Important information is, how each of the eight permutations affects the `RingEntry`.
+Especially if the entry (resp. its index) can be reduced by any of the eight permutations.
 
 This is represented by a mask of bits (represented by a byte) like 
 [RingEntry.mlt](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/ring/RingEntry.java#L37).
 
 Several other mask are representing other questions, i.e. if the index stays stable
- ([RingEntry.meq](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/ring/RingEntry.java#L34)).   
+ ([RingEntry.meq](https://github.com/dieterstueken/mills/blob/master/core/src/main/java/mills/ring/RingEntry.java#L34)).
+
+The return 8-bit values are not returned as `Perms` objects for performance reasons.
+
+To break cyclic references, links to other `RingEntry`s are kept as short indexes.
+Those are translated into `RingEntry` objects later on, after the static `Entries.TABLE` is available. 
+
+### Position
+
+Each Position is uniquely represented by a `Long i201` value representing the population of each ring 
+and optional some other relevant flags. This position can be permuted, swapped and inverted.
+Each operation applied is reflected in an update of those flags. So, the flags show some kind of history 
+and allow to follow back a position to its original value.
+
+There are 8 possible permutations of each ring. Those are represented by the `enum Perm`
