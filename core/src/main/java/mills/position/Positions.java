@@ -293,7 +293,9 @@ public interface Positions {
      */
     static int meq(RingEntry e2, RingEntry e0) {
 
-        assert e2.isMin();
+        // can be reduced immediately
+        if(!e2.isMin())
+            return 0;
 
         int e0min = e0.min();
         int e2index = e2.index;
