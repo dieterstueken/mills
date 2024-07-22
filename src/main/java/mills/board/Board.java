@@ -3,7 +3,7 @@ package mills.board;
 import mills.bits.Player;
 import mills.bits.Ring;
 import mills.bits.Sector;
-import mills.ring.RingEntry;
+import mills.ring.Entries;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
@@ -136,7 +136,7 @@ public class Board extends JPanel {
         }
     }
 
-    final Stones stones = new Stones(RingEntry.of(1234), RingEntry.of(4567), RingEntry.of(42));
+    final Stones stones = new Stones(Entries.entry(1234), Entries.entry(4567), Entries.entry(42));
     final List<Position> positions = new ArrayList<>(24);
     final Drag drag = new Drag();
     final List<Line2D> links = new ArrayList<>(32);

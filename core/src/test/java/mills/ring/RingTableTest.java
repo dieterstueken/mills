@@ -7,11 +7,10 @@ import mills.position.Positions;
 import mills.util.Stat;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -32,7 +31,7 @@ public class RingTableTest {
 
             int index = BW.index(b, w);
 
-            RingEntry f = RingEntry.of(index);
+            RingEntry f = Entries.entry(index);
 
             if (e != f)
                 fail(String.format("%d %d %d\n", index, e.index, f.index));
@@ -86,8 +85,7 @@ public class RingTableTest {
                 }
 
                 int meq2 = Positions.meq(e2, e0);
-                if(meq != meq2)
-                    fail();
+                assertEquals(meq, meq2);
             }
         }
     }
@@ -114,7 +112,7 @@ public class RingTableTest {
     @Test
     public void testX() {
 
-        Entries.EMPTY.index();
+        Entries.empty().index();
 
         final int MAX=500;
 
@@ -133,17 +131,4 @@ public class RingTableTest {
         double stop = System.currentTimeMillis();
         System.out.format("%,d: %,1f/ms\n", count, count * MAX / (stop - start));
     }
-
-    @Test
-    public void testMinRad() {
-        List<RingEntry> mirad = new ArrayList<>();
-
-        for (RingEntry e : Entries.RADIALS) {
-            if(e.isMin())
-                mirad.add(e);
-        }
-
-        mirad.forEach(e -> System.out.format("%s %d\n", e, e.sisters().size()));
-    }
-
 }

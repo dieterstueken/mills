@@ -25,7 +25,7 @@ class SingleEntry extends AbstractEntryTable implements IndexedEntryTable {
     }
 
     public static SingleEntry of(int index) {
-        return RingEntry.of(index).singleton;
+        return Entries.entry(index).singleton;
     }
 
     @Override

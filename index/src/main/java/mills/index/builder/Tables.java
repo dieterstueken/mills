@@ -40,7 +40,7 @@ public class Tables {
             return IndexedEntryTable.of();
 
         if (index < MAX_INDEX)
-            return RingEntry.of(index).singleton;
+            return Entries.entry(index).singleton;
 
         return fragments.get(index - MAX_INDEX);
     }

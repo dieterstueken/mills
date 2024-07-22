@@ -46,7 +46,7 @@ abstract public class EntryArray extends AbstractEntryTable {
         return new EntryArray(indices) {
             @Override
             protected RingEntry entry(final int index) {
-                return RingEntry.of(index);
+                return Entries.entry(index);
             }
         };
     }

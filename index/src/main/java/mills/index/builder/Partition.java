@@ -102,7 +102,7 @@ public class Partition {
         if(pop.sum()>8)
             return EMPTY;
 
-        EntryTable root = PopCount.EMPTY.equals(pop) ? Entries.EMPTY.singleton: Entries.TABLE.filter(pop.eq);
+        EntryTable root = PopCount.EMPTY.equals(pop) ? Entries.empty().singleton: Entries.TABLE.filter(pop.eq);
 
         return new Partition(root);
     }

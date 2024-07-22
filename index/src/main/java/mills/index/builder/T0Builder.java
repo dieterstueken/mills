@@ -3,6 +3,7 @@ package mills.index.builder;
 import mills.bits.PopCount;
 import mills.index.tables.R0Table;
 import mills.position.Positions;
+import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.ring.IndexedEntryTable;
 import mills.ring.RingEntry;
@@ -61,7 +62,7 @@ class T0Builder extends ConcurrentCompleter {
     RingEntry getEntry(int index) {
         int pattern = table[index];
         int i1 = (pattern / M) % RingEntry.MAX_INDEX;
-        return RingEntry.of(i1);
+        return Entries.entry(i1);
     }
 
     int getClopIndex(int index) {

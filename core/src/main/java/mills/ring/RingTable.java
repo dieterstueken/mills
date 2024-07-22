@@ -7,6 +7,9 @@ package mills.ring;
  * Time: 13:37:50
  */
 
+import mills.bits.Patterns;
+import mills.bits.Perm;
+
 import java.util.Arrays;
 
 import static mills.ring.RingEntry.MAX_INDEX;
@@ -16,13 +19,12 @@ import static mills.ring.RingEntry.MAX_INDEX;
  */
 class RingTable extends AbstractEntryTable implements IndexedEntryTable {
 
-    private final RingEntry[] entries;
+    private final RingEntry[] entries = new RingEntry[MAX_INDEX];
 
     private final int hashCode;
 
-    RingTable(RingEntry[] entries) {
-        this.entries = entries;
-        assert entries.length==MAX_INDEX;
+    RingTable() {
+        Arrays.parallelSetAll(entries, this::newEntry);
         this.hashCode = Arrays.hashCode(entries);
     }
 
@@ -56,5 +58,85 @@ class RingTable extends AbstractEntryTable implements IndexedEntryTable {
     @Override
     public int hashCode() {
         return hashCode;
+    }
+    
+    private RingEntry newEntry(int index) {
+        return newEntry((short) index);
+    }
+
+    private RingEntry newEntry(final short index) {
+
+        byte mix = 0;
+        byte meq = 1;
+        byte min = 1;
+        byte mlt = 0;
+
+        Patterns bw = new Patterns(index);
+
+        short pm = index;
+        short[] perm = new short[8];
+        perm[0] = index;
+
+        for (byte i = 1, m = 2; i < 8; i++, m<<=1) {
+            // generate permutations
+            short pi = perm[i] = bw.perm(i);
+
+            // find if new permutation is smaller than current mix index
+            if (pi < pm) {
+                mix = i;        // found better minimal index
+                min = m;        // reset any previous masks
+                pm = pi;
+            } else if (pi == pm)
+                min |= m;       // add additional minimum to mask
+
+            if (pi < index)     // found a new mlt index
+                mlt |= m;
+
+            if (pi == index)    // found a new meq index
+                meq |= m;
+        }
+
+        if (mix == 0) {
+            return new RingEntry(index, meq, mlt, min, (byte)0, perm) {
+
+                @Override
+                public RingEntry entry(int index) {
+                    return entries[index];
+                }
+
+                @Override
+                public boolean isMin() {
+                    return true;
+                }
+
+                @Override
+                public short min() {
+                    return index;
+                }
+
+                @Override
+                public RingEntry minimized() {
+                    return this;
+                }
+
+                @Override
+                public Perm pmix() {
+                    return Perm.R0;
+                }
+            };
+        } else {
+            return new RingEntry(index, meq, mlt, min, mix, perm) {
+
+                @Override
+                public RingEntry entry(int index) {
+                    return entries[index];
+                }
+
+                @Override
+                public boolean isMin() {
+                    return false;
+                }
+            };
+        }
     }
 }

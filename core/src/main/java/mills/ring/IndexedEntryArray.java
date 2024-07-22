@@ -29,7 +29,7 @@ abstract class IndexedEntryArray extends EntryArray implements IndexedEntryTable
         return new IndexedEntryArray(indices, key) {
             @Override
             protected RingEntry entry(final int index) {
-                return RingEntry.of(index);
+                return Entries.entry(index);
             }
         };
     }

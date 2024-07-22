@@ -4,6 +4,7 @@ import mills.bits.Clops;
 import mills.bits.Perm;
 import mills.bits.Perms;
 import mills.bits.PopCount;
+import mills.ring.Entries;
 import mills.ring.RingEntry;
 import mills.stones.Stones;
 
@@ -72,9 +73,9 @@ public interface Positions {
         return (i201&NORMALIZED) != 0;
     }
 
-    static RingEntry r2(long i201) {return RingEntry.of(i2(i201));}
-    static RingEntry r0(long i201) {return RingEntry.of(i0(i201));}
-    static RingEntry r1(long i201) {return RingEntry.of(i1(i201));}
+    static RingEntry r2(long i201) {return Entries.entry(i2(i201));}
+    static RingEntry r0(long i201) {return Entries.entry(i0(i201));}
+    static RingEntry r1(long i201) {return Entries.entry(i1(i201));}
 
     static String format(long i201) {
         short i2 = i2(i201);

@@ -18,14 +18,10 @@ import java.util.Comparator;
  * All possible tables are kept in a static lookup table.
  * The index
  */
-public class RingEntry extends BW {
+abstract public class RingEntry extends BW {
 
     // number of possible entries
     public static final int MAX_INDEX = 81*81;
-
-    private static final RingEntry[] ENTRIES = new RingEntry[MAX_INDEX];
-
-    public static final IndexedEntryTable TABLE;
 
     // The byte values/masks may save some space, but become negative if expanding to int.
     // Using access functions will clip the sign bit.
@@ -49,15 +45,7 @@ public class RingEntry extends BW {
     // permutation group kept as a short index.
     private final short[] perm;
 
-    final EntryTable sisters;
-
-    public static RingEntry of(int index) {
-        return ENTRIES[index];
-    }
-
-    public final EntryTable sisters() {
-        return sisters;
-    }
+    abstract public RingEntry entry(int index);
 
     public final Player player(Sector sector) {
         int p = index/sector.pow3();
@@ -71,13 +59,13 @@ public class RingEntry extends BW {
     }
 
     public final RingEntry inverted() {
-        return ENTRIES[inverted];
+        return entry(inverted);
     }
 
     // return entry with only radials set.
     public final RingEntry radials() {
         int radix = index%81;
-        return index==radix ? this : ENTRIES[index%81];
+        return index==radix ? this : entry(index%81);
     }
 
     // get radial index
@@ -105,7 +93,7 @@ public class RingEntry extends BW {
     }
 
     public final RingEntry permute(int i) {
-        return ENTRIES[perm[i&7]];
+        return entry(perm[i&7]);
     }
 
     public final RingEntry permute(Perm p) {
@@ -153,7 +141,7 @@ public class RingEntry extends BW {
     }
 
     public RingEntry minimized() {
-        return ENTRIES[minimized]; // entryOf(min());
+        return entry(minimized); // entryOf(min());
     }
 
     /**
@@ -174,12 +162,12 @@ public class RingEntry extends BW {
     }
 
     /**
-     * setup a new player for a given sector.
-     * @param sector to setup
+     * set up a new player for a given sector.
+     * @param sector to set up
      * @param player to set.
      * @return a RingEntry with given player at given sector.
      */
-    public final  RingEntry withPlayer(Sector sector, Player player) {
+    public final RingEntry withPlayer(Sector sector, Player player) {
         final Player current = player(sector);
 
         // noop
@@ -191,18 +179,18 @@ public class RingEntry extends BW {
         index -= pow3 * current.ordinal();
         index += pow3 * player.ordinal();
 
-        return ENTRIES[index];
+        return entry(index);
     }
 
     public final RingEntry and(Patterns other) {
-        return ENTRIES[BW.index(b.and(other.b), w.and(other.w))];
+        return entry(BW.index(b.and(other.b), w.and(other.w)));
     }
 
     public final boolean contains(RingEntry other) {
         return b.contains(other.b) && w.contains(other.w);
     }
 
-    private RingEntry(short index, byte meq, byte mlt, byte pmin, byte mix, short[] perm, EntryTable sisters) {
+    protected RingEntry(short index, byte meq, byte mlt, byte pmin, byte mix, short[] perm) {
         super(index);
 
         assert perm.length == 8 : "invalid perm";
@@ -216,8 +204,6 @@ public class RingEntry extends BW {
         this.mlt = mlt;
         this.pmin = pmin;
         this.mix = mix;
-
-        this.sisters = sisters.size()==1 ? singleton : sisters;
     }
 
     // return short instead of byte to avoid any negative values
@@ -255,97 +241,4 @@ public class RingEntry extends BW {
 
         return Short.compare(o1.index, o2.index);
     };
-
-    private static RingEntry entry(short index) {
-
-         short[] perm = new short[8];
-         perm[0] = index;
-         short pm = index;
-
-         byte mix = 0;
-         byte meq = 1;
-         byte min = 1;
-         byte mlt = 0;
-
-         Patterns bw = new Patterns(index);
-
-         for (byte i = 1, m = 2; i < 8; i++, m<<=1) {
-             // generate permutations
-             short pi = perm[i] = bw.perm(i);
-
-             // find if new permutation is smaller than current mix index
-             if (pi < pm) {
-                 mix = i;        // found better minimal index
-                 min = m;        // reset any previous masks
-                 pm = pi;
-             } else if (pi == pm)
-                 min |= m;       // add additional minimum to mask
-
-             if (pi < index)     // found a new mlt index
-                 mlt |= m;
-
-             if (pi == index)    // found a new meq index
-                 meq |= m;
-         }
-
-         if (mix == 0) {
-
-             EntryTable sisters = new EntryArray(perm){
-                 @Override
-                 protected RingEntry entry(int index) {
-                     return ENTRIES[index];
-                 }
-             };
-
-             return new RingEntry(index, meq, mlt, min, (byte)0, perm, sisters) {
-
-                 @Override
-                 public boolean isMin() {
-                     return true;
-                 }
-
-                 @Override
-                 public short min() {
-                     return index;
-                 }
-
-                 @Override
-                 public RingEntry minimized() {
-                     return this;
-                 }
-
-                 @Override
-                 public Perm pmix() {
-                     return Perm.R0;
-                 }
-             };
-         }
-
-         short mindex = pm;
-
-         // get already minimized sisters
-         EntryTable sisters = ENTRIES[pm].sisters;
-
-         return new RingEntry(index, meq, mlt, min, mix, perm, sisters) {
-
-             @Override
-             public boolean isMin() {
-                 return false;
-             }
-
-             @Override
-             public short min() {
-                 return mindex;
-             }
-         };
-    }
-
-    static {
-        for(short i=0; i<MAX_INDEX; ++i) {
-            RingEntry entry = entry(i);
-            ENTRIES[i] = entry;
-        }
-
-        TABLE = new RingTable(ENTRIES);
-    }
 }

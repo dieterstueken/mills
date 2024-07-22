@@ -182,7 +182,7 @@ public class EntryTables {
             return EntryTable.of();
 
         if(index < RingEntry.MAX_INDEX)
-            return RingEntry.of(index).singleton;
+            return Entries.entry(index).singleton;
 
         if(index == RingEntry.MAX_INDEX)
             return Entries.TABLE;
