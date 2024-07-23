@@ -50,6 +50,14 @@ public class Board {
         return sb.toString();
     }
 
+    static void show(RingEntry e2, RingEntry e0, RingEntry e1) {
+        show(Positions.i201(e2, e0, e1, 0));
+    }
+
+    static void show(short e2, short e0, short e1) {
+        show(Positions.i201(e2, e0, e1, 0));
+    }
+
     static void show(long i201) {
         for(int iy=0; iy<NY; ++iy) {
             for (int ix = 0; ix < NX; ++ix)

@@ -2,11 +2,7 @@ package mills.util;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -82,11 +78,5 @@ public class ListSetTest {
             assertEquals(entryTable.headSet(i), intTable.headSet(i), "equal head");
             assertEquals(entryTable.tailSet(i), intTable.tailSet(i), "equal tail");
         }
-    }
-
-    @Test
-    public void testParallelism() {
-        ListSet<Integer> entryTable = ListSet.ofIndexed(64, i->i, i->i);
-        entryTable.parallelStream().forEach(System.out::println);
     }
 }

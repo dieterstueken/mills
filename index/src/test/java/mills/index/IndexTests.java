@@ -87,7 +87,7 @@ public class IndexTests {
                 }
             }
         };
-
+        queueRunner.setDaemon(true);
         queueRunner.start();
 
     }
@@ -132,6 +132,10 @@ public class IndexTests {
 
         parallelBuild.interrupt();
         parallelBuild.join();
+    }
+    
+    public static void main(String ... args) {
+        new IndexTests().buildGroups();
     }
 
     @Test
