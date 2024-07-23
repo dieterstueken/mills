@@ -16,6 +16,10 @@ public class IndexedMap<T> extends EntryMap<T> {
 
     protected final IndexTable it;
 
+    public int getIndex(int i) {
+        return it.getIndex(i);
+    }
+
     public int range() {
         return it.range();
     }
