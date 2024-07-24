@@ -1,9 +1,4 @@
-package mills.index.builder;
-
-import mills.ring.Entries;
-import mills.ring.IndexedEntryTable;
-import mills.ring.RingEntry;
-import mills.util.AbstractRandomArray;
+package mills.ring;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,7 +15,7 @@ import static mills.ring.RingEntry.MAX_INDEX;
  * Date: 27.01.21
  * Time: 10:52
  */
-public class Tables {
+public class TableRegistry {
 
     public static final AtomicInteger MAX = new AtomicInteger();
 
@@ -35,7 +30,7 @@ public class Tables {
         return MAX_INDEX + fragments.size();
     }
 
-    public IndexedEntryTable get(int index) {
+    public IndexedEntryTable getTable(int index) {
         if (index < 0)
             return IndexedEntryTable.of();
 
@@ -45,11 +40,11 @@ public class Tables {
         return fragments.get(index - MAX_INDEX);
     }
 
-    public IndexedEntryTable get(List<RingEntry> entries) {
+    public IndexedEntryTable getTable(List<RingEntry> entries) {
 
         if (entries instanceof IndexedEntryTable) {
             int index = ((IndexedEntryTable) entries).getIndex();
-            IndexedEntryTable indexed = get(index);
+            IndexedEntryTable indexed = getTable(index);
             if (indexed == entries)
                 return indexed;
         }
@@ -89,34 +84,28 @@ public class Tables {
         return table;
     }
 
-    public List<IndexedEntryTable> tablesOf(Collection<? extends List<RingEntry>> tables) {
+    public IndexedEntryTables tablesOf(Collection<? extends List<RingEntry>> tables) {
         return tablesOf(List.copyOf(tables));
     }
 
-    public List<IndexedEntryTable> tablesOf(List<? extends List<RingEntry>> tables) {
+    public IndexedEntryTables tablesOf(List<? extends List<RingEntry>> tables) {
         int size = tables.size();
 
         if(size==0)
-            return List.of();
+            return IndexedEntryTables.EMPTY;
 
         if(size==1)
-            return List.of(register(tables.get(0)));
+            return IndexedEntryTables.of(getTable(tables.getFirst()));
 
         short[] index = new short[size];
 
         for(int i=0; i<tables.size(); ++i) {
             List<RingEntry> entries = tables.get(i);
-            IndexedEntryTable table = get(entries);
+            IndexedEntryTable table = getTable(entries);
             index[i] = (short) table.getIndex();
         }
 
-        return new AbstractRandomArray<>(size) {
-
-            @Override
-            public IndexedEntryTable get(int i) {
-                return Tables.this.get(index[i]);
-            }
-        };
+        return IndexedEntryTables.of(index, this::getTable);
     }
 
     public String toString() {

@@ -1,8 +1,6 @@
 package mills.index.builder;
 
-import mills.ring.Entries;
-import mills.ring.IndexedEntryTable;
-import mills.ring.RingEntry;
+import mills.ring.*;
 import mills.util.AbstractRandomArray;
 
 import java.util.HashMap;
@@ -21,9 +19,9 @@ public class Fragments {
 
     final IndexedEntryTable root;
 
-    final List<List<IndexedEntryTable>> fragments;
+    final List<IndexedEntryTables> fragments;
 
-    Fragments(IndexedEntryTable root, List<List<IndexedEntryTable>> fragments) {
+    Fragments(IndexedEntryTable root, List<IndexedEntryTables> fragments) {
         this.root = root;
         this.fragments = fragments;
     }
@@ -36,26 +34,34 @@ public class Fragments {
         return String.format("f[%d]", root.size());
     }
 
-    static final Fragments EMPTY = new Fragments(IndexedEntryTable.of(), AbstractRandomArray.constant(81, List.of()));
+    static final Fragments EMPTY = new Fragments(IndexedEntryTable.of(), AbstractRandomArray.constant(81, IndexedEntryTables.of()));
 
-    static Fragments of(IndexedEntryTable root, Tables registry) {
+    static Fragments of(IndexedEntryTable root) {
+        List<IndexedEntryTables> fragments = AbstractRandomArray.constant(81, IndexedEntryTables.of(root));
+        return new Fragments(root, fragments);
+    }
+
+    static Fragments of(IndexedEntryTable root, TableRegistry registry) {
         if(root.isEmpty())
             return EMPTY;
         
         if(root.size()==1) {
-            return new Fragments(root, AbstractRandomArray.constant(81, List.of(root)));
+            return Fragments.of(root);
         }
 
-        Map<List<IndexedEntryTable>, List<IndexedEntryTable>> fragset = new HashMap<>();
+        Map<IndexedEntryTables, IndexedEntryTables> fragset = new HashMap<>();
 
-        var fragments = Entries.RADIALS.stream()
-                .map(rad -> {
-                    var group = root.stream()
-                            .collect(Collectors.groupingBy(rad::clops));
-                    var list = registry.tablesOf(group.values());
-                    return list;
-                })
-                .map(tables -> fragset.computeIfAbsent(tables, UnaryOperator.identity())).toList();
+        // build a IndexedEntryTable list for each radial.
+        // different tables are unified by fragset.
+
+        List<IndexedEntryTables> fragments = Entries.RADIALS.stream()
+                // split root into groups of same clop for each rad
+                .map(rad ->root.stream().collect(Collectors.groupingBy(rad::clops)))
+                // each group is converted into a IndexedEntryTables
+                .map(group -> registry.tablesOf(group.values()))
+                // canonicalize different IndexedEntryTables (hashCode?)
+                .map(tables -> fragset.computeIfAbsent(tables, UnaryOperator.identity()))
+                .toList();
         
         return new Fragments(root, fragments) {
             public String toString() {

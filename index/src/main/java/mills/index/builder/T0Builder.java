@@ -144,7 +144,7 @@ class T0Builder extends ConcurrentCompleter {
                     if(l1.isEmpty())
                         continue;
 
-                    t1 = partition.tables.get(l1);
+                    t1 = partition.tables.getTable(l1);
                 }
 
                 add(clop, r0, t1);
@@ -185,7 +185,7 @@ class T0Builder extends ConcurrentCompleter {
             RingEntry r0 = getEntry(offt);
             int key = getKey(offt);
             PopCount pop1 = pop0.sub(r0.pop);
-            IndexedEntryTable t1 = group.partitions.get(pop1).tables.get(key);
+            IndexedEntryTable t1 = group.partitions.get(pop1).tables.getTable(key);
             return R0Table.of(r0.singleton, List.of(t1));
         }
 
@@ -207,7 +207,7 @@ class T0Builder extends ConcurrentCompleter {
                 RingEntry r0 = t0.get(index);
                 PopCount pop1 = pop0.sub(r0.pop);
                 int key = s1[index];
-                return group.partitions.get(pop1).tables.get(key);
+                return group.partitions.get(pop1).tables.getTable(key);
             }
         };
 

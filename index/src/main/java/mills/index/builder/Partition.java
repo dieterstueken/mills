@@ -2,31 +2,25 @@ package mills.index.builder;
 
 import mills.bits.Perms;
 import mills.bits.PopCount;
-import mills.ring.Entries;
-import mills.ring.EntryTable;
-import mills.ring.IndexedEntryTable;
-import mills.ring.RingEntry;
+import mills.ring.*;
 import mills.util.AbstractRandomList;
 
 import java.util.List;
 import java.util.function.Predicate;
 
 /**
- * Created by IntelliJ IDEA.
- * User: stueken
- * Date: 01.02.21
- * Time: 21:20
+ * A Partition has a root set of entries of equal pop count.
  */
 public class Partition {
 
-    final Tables tables = new Tables();
+    final TableRegistry tables = new TableRegistry();
 
     final IndexedEntryTable root;
 
     final List<Fragments> fragments;
 
     public Partition(EntryTable root) {
-        this.root = tables.get(root);
+        this.root = tables.getTable(root);
         this.fragments = fragments();
     }
 
@@ -44,7 +38,7 @@ public class Partition {
     }
 
     IndexedEntryTable filter(Predicate<? super RingEntry> predicate) {
-        return tables.get(root.filter(predicate));
+        return tables.getTable(root.filter(predicate));
     }
 
     IndexedEntryTable filter(Perms perms) {
@@ -95,15 +89,16 @@ public class Partition {
     }
 
     public static final Partition EMPTY = new Partition(EntryTable.of());
-            // AbstractRandomList.constant(ROOTS.size(), AbstractRandomList.constant(Entries.RADIALS.size(), EntryTable.of())));
 
     public static Partition of(PopCount pop) {
         
         if(pop.sum()>8)
             return EMPTY;
 
-        EntryTable root = PopCount.EMPTY.equals(pop) ? Entries.empty().singleton: Entries.TABLE.filter(pop.eq);
+        if(pop.isEmpty())
+            return new Partition(Entries.empty().singleton);
 
+        EntryTable root = Entries.TABLE.filter(pop.eq);
         return new Partition(root);
     }
 }
