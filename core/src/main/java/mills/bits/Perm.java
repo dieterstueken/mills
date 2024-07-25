@@ -1,6 +1,7 @@
 package mills.bits;
 
-import mills.util.ListSet;
+import mills.util.DirectListSet;
+import mills.util.Indexed;
 
 import java.util.function.UnaryOperator;
 
@@ -45,7 +46,7 @@ import java.util.function.UnaryOperator;
     The permutation can be applied to a pattern of stones.
 */
 
-public enum Perm implements UnaryOperator<Sector>, Operation {
+public enum Perm implements UnaryOperator<Sector>, Operation, Indexed {
 
     /**
      * Enum ordinates select operations applied:
@@ -241,9 +242,13 @@ public enum Perm implements UnaryOperator<Sector>, Operation {
         return pattern;
     }
 
-    public static final ListSet<Perm> VALUES = ListSet.of(Perm.class);
+    public static final DirectListSet<Perm> VALUES = DirectListSet.of(values());
 
     // get by index [0,8[
     public static Perm get(int i) { return VALUES.get(i & Perms.MSK);}
 
+    @Override
+    public int getIndex() {
+        return ordinal();
+    }
 }

@@ -1,164 +1,79 @@
 package mills.util;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.IntFunction;
+public class ArraySet<T extends Indexed> extends AbstractIndexedSet<T> implements IndexedListSet<T> {
 
-/**
- * version:     $
- * created by:  d.stueken
- * created on:  18.10.2019 13:43
- * modified by: $
- * modified on: $
- */
+    final T[] entries;
 
-public class ArraySet<K extends Indexed, V> extends AbstractSet<Map.Entry<K, V>> {
-
-    public static <K extends Indexed, V> ArraySet<K,V> of(IntFunction<K> keys, List<V> values, V defaultValue) {
-        return new ArraySet<>(keys, values, defaultValue);
+    protected ArraySet(T[] entries) {
+        this.entries = entries;
     }
 
-    public static <K extends Indexed, V> Map<K,V> mapOf(IntFunction<K> keys, List<V> values, V defaultValue) {
-        return of(keys, values, defaultValue).asMap();
-    }
-
-    public static <K extends Indexed, V> Map<K,V> mapOf(List<V> values, Function<V, K> getKey, V defaultValue) {
-        return of(i->getKey.apply(values.get(i)), values, defaultValue).asMap();
-    }
-
-    public static <K extends Indexed, V> Map<K,V> mapOf(List<K> keys, V defaultValue) {
-        List<V> values = AbstractRandomArray.preset(keys.size(), defaultValue);
-        return of(keys::get, values, defaultValue).asMap();
-    }
-
-    public Map<K,V> asMap() {
-        return new ArrayMap();
-    }
-
-    private final IntFunction<K> keys;
-    private final List<V> values;
-    private final V defaultValue;
-    private int size;
-
-    private ArraySet(IntFunction<K> keys, List<V> values, V defaultValue) {
-        this.keys = keys;
-        this.values = values;
-        this.defaultValue = defaultValue;
-
-        int size=0;
-        for (V value : values) {
-            if (isValue(value))
-                ++size;
+    public static <T extends Indexed> ArraySet<T> of(T[] entries) {
+        if(!IndexedListSet.isOrdered(entries)) {
+            throw new IllegalArgumentException("not ordered");
         }
 
-        this.size = size;
+        return new ArraySet<>(entries);
     }
 
-    private boolean isValue(V value) {
-        return value != defaultValue && value!=null;
+    @Override
+    public T get(int index) {
+        return entries[index] ;
     }
 
     @Override
     public int size() {
-        return size;
+        return entries.length;
     }
 
-    public V put(K key, V value) {
-        int index = key.getIndex();
+    public IndexedListSet<T> headSet(int size) {
+        if(size==0)
+            return new SingletonSet<>(get(0));
 
-        V prev = values.set(index, value);
-
-        int n = isValue(value) ? 1 : 0;
-        n -= isValue(prev) ? 1 : 0;
-
-        if(n!=0)
-            size += n;
-
-        assert n>=0 && n<values.size();
-
-        return prev;
+        return new HeadSet<>(entries, size);
     }
 
-    public V get(int index) {
-        V value = values.get(index);
-        return value!=null ? value : defaultValue;
+    public IndexedListSet<T> subSet(int offset, int size) {
+        return new SubSet<>(entries, offset, size);
     }
 
-    public V get(Object key) {
+    protected static class HeadSet<T extends Indexed> extends ArraySet<T> {
 
-        if(key instanceof Indexed) {
-            int index = ((Indexed)key).getIndex();
-            assert keys.apply(index).equals(key);
-            return get(index);
-        }
+        final int size;
 
-        return null;
-    }
+        public HeadSet(T[] entries, int size) {
+            super(entries);
+            this.size = size;
 
-    @Override
-    public boolean contains(Object key) {
-        V value = get(key);
-        return value!=null && value != defaultValue;
-    }
-
-    @Override
-    public Iterator<Map.Entry<K, V>> iterator() {
-
-        return new Iterator<>() {
-            int index = 0;
-
-            @Override
-            public boolean hasNext() {
-                // seek to next value
-                while(index < values.size()) {
-                    if(get(index)!=defaultValue)
-                        return true;
-                    else
-                        ++index;
-                }
-
-                return false;
-            }
-
-            @Override
-            public Map.Entry<K, V> next() {
-                if(!hasNext())
-                    throw new NoSuchElementException();
-
-                K key = keys.apply(index);
-                V value = values.get(index);
-                ++index;
-
-                return new AbstractMap.SimpleImmutableEntry<>(key, value);
-            }
-        };
-    }
-
-    class ArrayMap extends AbstractMap<K,V> {
-        @Override
-        public Set<K> keySet() {
-            return super.keySet();
+            if(size<0 || size>=entries.length)
+                throw new IllegalArgumentException("Size =" + size);
         }
 
         @Override
-        public Set<Entry<K, V>> entrySet() {
-            return ArraySet.this;
+        public int size() {
+            return size;
         }
 
         @Override
-        public V get(Object key) {
-            return ArraySet.this.get(key);
-        }
-
-        @Override
-        public V put(K key, V value) {
-            return ArraySet.this.put(key, value);
-        }
-
-        @Override
-        public boolean containsKey(Object key) {
-            return ArraySet.this.contains(key);
+        public T get(int index) {
+            checkIndex(index);
+            return super.get(index);
         }
     }
 
+    protected static class SubSet<T extends Indexed> extends HeadSet<T> {
+
+        final int offset;
+
+        SubSet(T[] entries, int offset, int size) {
+            super(entries, size);
+            this.offset = offset;
+        }
+
+        @Override
+        public T get(int index) {
+            inRange(index);
+            return entries[offset+index] ;
+        }
+    }
 }

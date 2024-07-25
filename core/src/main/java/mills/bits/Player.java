@@ -7,7 +7,8 @@ package mills.bits;
 * Time: 18:17:23
 */
 
-import mills.util.ListSet;
+import mills.util.DirectListSet;
+import mills.util.Indexed;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ import java.util.List;
  * Class Player serves as a base of a ternary system
  * to map a sequence of Player objects to an integer value.
  */
-public enum Player {
+public enum Player implements Indexed {
 
     None(0,0) {
 
@@ -98,13 +99,18 @@ public enum Player {
 
     abstract public int stones(BW bw);
 
+    @Override
+    public int getIndex() {
+        return ordinal();
+    }
+
     Player(int nb, int nw) {
         this.pop = PopCount.get(nb,nw);
     }
 
     public final PopCount pop;
 
-    public static final ListSet<Player> PLAYERS = ListSet.of(Player.class);
+    public static final DirectListSet<Player> PLAYERS = DirectListSet.of(values());
     public static final List<Player> BW = List.of(Black, White);
 
     public static Player of(int i) {

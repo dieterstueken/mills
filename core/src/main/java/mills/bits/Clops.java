@@ -1,7 +1,7 @@
 package mills.bits;
 
+import mills.util.DirectListSet;
 import mills.util.Indexed;
-import mills.util.ListSet;
 
 import java.util.Objects;
 
@@ -99,7 +99,7 @@ public interface Clops extends Indexed {
     int MCLOPS = PopCount.NCLOPS+1;
     int NCLOPS = PopCount.SIZE * MCLOPS;
 
-    ListSet<Clops> CLOPS = ListSet.ofIndexed(NCLOPS, Clops::create);
+    DirectListSet<Clops> CLOPS = DirectListSet.of(new Clops[NCLOPS], Clops::create);
 
     Clops EMPTY = of(PopCount.EMPTY, PopCount.EMPTY);
 

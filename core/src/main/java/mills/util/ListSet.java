@@ -1,7 +1,6 @@
 package mills.util;
 
 import java.util.*;
-import java.util.function.IntFunction;
 
 /**
  * Created by IntelliJ IDEA.
@@ -99,9 +98,15 @@ public interface ListSet<T> extends RandomList<T>, SortedSet<T> {
         return subList(lowerBound(fromElement), lowerBound(toElement));
     }
 
+    ListSet<T> subSet(int offset, int size);
+
     @Override
     default ListSet<T> headSet(T toElement) {
-        return subList(0, lowerBound(toElement));
+        return headSet(lowerBound(toElement));
+    }
+
+    default ListSet<T> headSet(int toIndex) {
+        return subList(0, toIndex);
     }
 
     @Override
@@ -112,11 +117,29 @@ public interface ListSet<T> extends RandomList<T>, SortedSet<T> {
     @Override
     ListSet<T> subList(int fromIndex, int toIndex);
 
-    default ListSet<T> subList(int toIndex) {
-        return subList(0, toIndex);
+    default void checkIndex(int index) {
+        if(index<0 || index>=size())
+            throw new IndexOutOfBoundsException("Index = " + index);
     }
 
-    int checkRange(int fromIndex, int toIndex);
+    default boolean inRange(int index) {
+        return index >= 0 && index < size();
+    }
+
+    default int checkRange(int fromIndex, int toIndex) {
+
+        if(fromIndex<0)
+            throw new IndexOutOfBoundsException("fromIndex = " + fromIndex);
+
+        if (toIndex > size())
+            throw new IndexOutOfBoundsException("toIndex = " + toIndex);
+
+        if (fromIndex > toIndex)
+            throw new IllegalArgumentException("fromIndex(" + fromIndex +
+                    ") > toIndex(" + toIndex + ")");
+
+        return toIndex-fromIndex;
+    }
 
     @Override
     default Spliterator<T> spliterator() {
@@ -141,7 +164,7 @@ public interface ListSet<T> extends RandomList<T>, SortedSet<T> {
 
     @Override
     default T getFirst() {
-        return RandomList.super.getFirst();
+        return this.get(0);
     }
 
     @Override
@@ -163,33 +186,12 @@ public interface ListSet<T> extends RandomList<T>, SortedSet<T> {
         return of(new ArrayList<>(), comparator);
     }
 
-
     static <T extends Comparable<T>> ListSet<T> of() {
         return of(Comparator.naturalOrder());
     }
 
-    static <T extends Indexed> ListSet<T> ofIndexed(List<T> values) {
-        return IndexedListSet.of(values);
-    }
-
-    static <T extends Indexed> IndexedListSet<T> ifDirect(List<T> values) {
-        return IndexedListSet.ifDirect(values);
-    }
-
     static <T> ListSet<T> of(List<T> values, Comparator<? super T> comparator) {
         return DelegateListSet.of(values, comparator);
-    }
-
-    static <T extends Indexed> ListSet<T> ofIndexed(int size, IntFunction<? extends T> generate) {
-        return ofIndexed(AbstractRandomList.generate(size, generate));
-    }
-
-    static <T extends Indexed> ListSet<T> ofDirect(List<T> values) {
-        return DirectListSet.of(values, Indexer.INDEXED);
-    }
-
-    static <T> ListSet<T> ofIndexed(int size, IntFunction<? extends T> generate, Indexer<T> indexer) {
-        return IndexedDelegate.of(AbstractRandomList.generate(size, generate), indexer);
     }
 
     static <T extends Comparable<? super T>> ListSet<T> of(List<T> values) {
@@ -201,14 +203,30 @@ public interface ListSet<T> extends RandomList<T>, SortedSet<T> {
     }
 
     static <I extends Indexed> ListSet<I> of(I[] values) {
-        return DirectListSet.of(values, Indexer.INDEXED);
-    }
-
-    static <E extends Enum<E>> ListSet<E> of(Class<E> type) {
-        return DirectListSet.of(type.getEnumConstants(), Indexer.ENUM);
+        if(DirectListSet.isDirect(values))
+            return DirectArraySet.of(values, values.length);
+        else
+            return new ArraySet<>(values);
     }
 
     default <V> ListMap<T, V> mapOf(List<V> values) {
         return ListMap.create(this, values);
+    }
+
+
+    static <T> boolean isOrdered(T[] values, Comparator<? super T> order) {
+
+        if(values.length<2)
+            return true;
+
+        T t0 = values[0];
+        for (int i = 1; i < values.length; ++i) {
+            T t1 = values[i];
+            if(order.compare(t0, t1)>=0)
+                return false;
+            t0 = t1;
+        }
+
+        return  true;
     }
 }

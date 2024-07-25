@@ -25,4 +25,20 @@ public interface RandomList<T> extends List<T>, RandomAccess {
     default List<T> copyOf() {
         return List.copyOf(this);
     }
+
+    static <T> boolean isOrdered(List<T> values, Comparator<? super T> order) {
+
+        if(values.size()<2)
+            return true;
+
+        T t0 = values.getFirst();
+        for (int i = 1; i < values.size(); ++i) {
+            T t1 = values.get(i);
+            if(order.compare(t0, t1)>=0)
+                return false;
+            t0 = t1;
+        }
+
+        return  true;
+    }
 }

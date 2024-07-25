@@ -20,7 +20,6 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
     @Override
     abstract public T get(int index);
 
-
     public static <T> AbstractRandomArray<T> constant(int size, T value) {
         return new AbstractRandomArray<>(size) {
 

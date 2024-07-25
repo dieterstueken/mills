@@ -17,7 +17,8 @@ public interface Entries {
      * Immutable tables.
      */
     IndexedEntryTable TABLE = new RingTable();
-    EntryTable RADIALS = TABLE.subList(0, 81);
+    RingEntry EMPTY = TABLE.getFirst();
+    EntryTable RADIALS = TABLE.headSet(81);
     EntryTable MINIMIZED = TABLE.filter(RingEntry::isMin);
 
     static RingEntry entry(int index) {
@@ -25,7 +26,7 @@ public interface Entries {
     }
 
     static RingEntry empty() {
-        return entry(0);
+        return EMPTY;
     }
 
     Predicate<RingEntry> ALL  = e -> true;

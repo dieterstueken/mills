@@ -2,8 +2,8 @@ package mills.score.attic.opening;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
+import mills.util.DirectListSet;
 import mills.util.Indexed;
-import mills.util.ListSet;
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,7 +19,7 @@ public class Plop implements Indexed {
 
     public static final int COUNT = 18;
 
-    public static final ListSet<Plop> LIST = ListSet.ofIndexed(COUNT, Plop::new);
+    public static final DirectListSet<Plop> LIST = DirectListSet.of(new Plop[COUNT], Plop::new);
 
     public static final Plop EMPTY = LIST.getFirst();
 

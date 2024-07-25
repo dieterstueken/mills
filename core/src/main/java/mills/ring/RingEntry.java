@@ -52,9 +52,9 @@ abstract public class RingEntry extends BW {
         return Player.of(p%3);
     }
 
-    public final SingleEntry singleton = new SingleEntry(this);
+    public final SingletonTable singleton = new SingletonTable(this);
 
-    public final SingleEntry singleton() {
+    public SingletonTable singleton() {
         return singleton;
     }
 

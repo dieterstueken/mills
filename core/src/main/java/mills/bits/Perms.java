@@ -1,14 +1,9 @@
 package mills.bits;
 
+import mills.util.DirectListSet;
 import mills.util.Indexed;
-import mills.util.ListSet;
 
-import java.util.AbstractSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -135,7 +130,7 @@ public class Perms extends AbstractSet<Perm> implements Indexed, Comparable<Perm
 
     //////////////////////////////////////////
 
-    public static final ListSet<Perms> VALUES = ListSet.ofIndexed(256, Perms::new);
+    public static final DirectListSet<Perms> VALUES = DirectListSet.of(new Perms[256], Perms::new);
 
     public static final Perms EMPTY = of(0);
 

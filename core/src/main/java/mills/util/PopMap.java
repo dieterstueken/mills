@@ -26,7 +26,7 @@ public class PopMap<T> extends ListMap<PopCount, T> {
     }
 
     public static <T> PopMap<T> of(PopCount key, T value) {
-        return new PopMap<>(AbstractListSet.singleton(key), List.of(value)) {
+        return new PopMap<>(AbstractIndexedSet.singleton(key), List.of(value)) {
             @Override
             public T get(PopCount pop) {
                 return key.equals(pop) ? value : null;
@@ -41,7 +41,7 @@ public class PopMap<T> extends ListMap<PopCount, T> {
 
     public static <T> PopMap<T> ofDirect(ListSet<PopCount> keys, List<T> values) {
 
-        assert DirectListSet.isDirect(keys, Indexer.INDEXED);
+        assert DirectListSet.isDirect(keys);
 
         return new PopMap<>(keys, values) {
             @Override

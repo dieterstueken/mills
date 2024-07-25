@@ -1,5 +1,6 @@
 package mills.bits;
 
+import mills.util.DirectListSet;
 import mills.util.Indexed;
 import mills.util.ListSet;
 
@@ -292,7 +293,7 @@ public class PopCount implements Indexed, Comparable<PopCount> {
 
 
     // PopCounts <= (9,9)
-    public static final ListSet<PopCount> TABLE = ListSet.of(values());
+    public static final DirectListSet<PopCount> TABLE = DirectListSet.of(values());
 
     public static final PopCount EMPTY = get(0,0);
     public static final PopCount P11 = get(1,1);
@@ -303,7 +304,7 @@ public class PopCount implements Indexed, Comparable<PopCount> {
 
     // # of closed mills (0-4)
     public static final int NCLOPS = P44.index+1;
-    public static final ListSet<PopCount> CLOPS = TABLE.subList(NCLOPS);
+    public static final ListSet<PopCount> CLOPS = TABLE.headSet(NCLOPS);
 
     // clop counts with at least one closed mill.
     public static final ListSet<PopCount> CLOSED = TABLE.subList(1, NCLOPS);

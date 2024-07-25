@@ -112,7 +112,7 @@ public class RingTableTest {
     @Test
     public void testX() {
 
-        Entries.empty().index();
+        Entries.EMPTY.index();
 
         final int MAX=500;
 

@@ -11,12 +11,20 @@ import java.util.stream.Stream;
  * Date: 21.08.22
  * Time: 15:25
  */
-abstract public class DelegateListSet<T> extends AbstractListSet<T>  {
+class DelegateListSet<T> extends AbstractListSet<T> {
 
     protected final List<T> values;
 
-    public DelegateListSet(final List<T> values) {
+    private final Comparator<? super T> comparator;
+
+    public DelegateListSet(List<T> values, Comparator<? super T> comparator) {
         this.values = values;
+        this.comparator = comparator;
+    }
+
+    @Override
+    public Comparator<? super T> comparator() {
+        return comparator;
     }
 
     @Override
@@ -30,16 +38,12 @@ abstract public class DelegateListSet<T> extends AbstractListSet<T>  {
     }
 
     @Override
-    public ListSet<T> subList(int fromIndex, int toIndex) {
-        checkRange(fromIndex, toIndex);
+    public ListSet<T> subSet(int offset, int size) {
+        if(offset==0 && size==values.size())
+            return this;
 
-        if(fromIndex==toIndex)
-            return empty();
-
-        if(fromIndex==toIndex+1)
-            return singleton(get(fromIndex));
-
-        return of(values.subList(fromIndex, toIndex), comparator());
+        List<T> subSet = values.subList(offset, offset+size);
+        return new DelegateListSet<>(subSet, comparator);
     }
 
     @Override
@@ -112,12 +116,8 @@ abstract public class DelegateListSet<T> extends AbstractListSet<T>  {
         return  true;
     }
 
-    static <T> DelegateListSet<T> of(List<T> values, Comparator<? super T> comparator) {
-        return new DelegateListSet<>(values) {
-            @Override
-            public Comparator<? super T> comparator() {
-                return comparator;
-            }
-        };
+    static <T> ListSet<T> of(List<T> values, Comparator<? super T> comparator) {
+        assert isOrdered(values, comparator);
+        return new DelegateListSet<>(values, comparator);
     }
 }

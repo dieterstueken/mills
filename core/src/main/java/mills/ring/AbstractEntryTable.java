@@ -1,10 +1,10 @@
 package mills.ring;
 
 
-import mills.util.AbstractListSet;
-import mills.util.Indexed;
-import mills.util.Indexer;
+import mills.util.listset.AbstractIndexedSet;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -15,16 +15,10 @@ import java.util.function.Predicate;
  */
 
 /**
- * An EntryTable is a List of RingEntries.
- * In addition, it provides utility methods to get the RingEntry.index directly,
- * to find the table indexOf a given RingEntry and to generate filtered subsets of itself.
+ * Class AbstractEntryTable is the base of all stable EntryTable implementations.
+ * The internal array to form the list must never be modified.
  */
-abstract public class AbstractEntryTable extends AbstractListSet<RingEntry> implements EntryTable {
-
-    @Override
-    public Indexer<Indexed> comparator() {
-        return Indexer.INDEXED;
-    }
+abstract public class AbstractEntryTable extends AbstractIndexedSet<RingEntry> implements EntryTable {
 
     public int indexOf(RingEntry entry) {
         return findIndex(entry.index);
@@ -79,10 +73,11 @@ abstract public class AbstractEntryTable extends AbstractListSet<RingEntry> impl
         if(size==this.size())
             return this;
 
-        return partition(fromIndex, size);
+        return subSet(fromIndex, size);
     }
 
-    public EntryTable partition(int fromIndex, int size) {
+    @Override
+    public EntryTable subSet(int fromIndex, int size) {
         return new SubTable(this, fromIndex, size);
     }
 
@@ -94,6 +89,11 @@ abstract public class AbstractEntryTable extends AbstractListSet<RingEntry> impl
     @Override
     public EntryTable headSet(RingEntry toElement) {
         return subList(0, lowerBound(toElement.index));
+    }
+
+    @Override
+    public EntryTable headSet(int toIndex) {
+        return subList(0, toIndex);
     }
 
     @Override
@@ -169,5 +169,40 @@ abstract public class AbstractEntryTable extends AbstractListSet<RingEntry> impl
         assert count == indexes.length : "filter mismatch";
 
         return EntryArray.of(indexes);
+    }
+
+    /**
+     * Transform a List of entries into a stable EntryTable.
+     * @param list of entries.
+     * @return a stable AbstractEntryTable.
+     */
+    static AbstractEntryTable of(List<? extends RingEntry> list) {
+
+        if(list instanceof AbstractEntryTable)
+            return (AbstractEntryTable) list;
+
+        int size = list.size();
+
+        if(size==0)
+            return EmptyTable.EMPTY;
+
+        RingEntry e = list.getFirst();
+        if(size==1)
+            return e.singleton;
+
+        short[] index = new short[size];
+        index [0] = e.index;
+        boolean ordered = true;
+
+        for(int i=1; i<size; i++) {
+            RingEntry f = list.get(i);
+            index[i] = f.index;
+            ordered &= e.index>f.index;
+        }
+
+        if(!ordered)
+            Arrays.sort(index);
+
+        return EntryArray.of(index);
     }
 }

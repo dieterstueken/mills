@@ -12,19 +12,19 @@ import java.util.stream.Stream;
  * Date: 13.08.11
  * Time: 18:16
  */
-class SingleEntry extends AbstractEntryTable implements IndexedEntryTable {
+class SingletonTable extends AbstractEntryTable implements IndexedEntryTable {
 
     final RingEntry entry;
 
-    SingleEntry(RingEntry entry) {
+    SingletonTable(RingEntry entry) {
         this.entry = entry;
     }
 
-    public static SingleEntry of(RingEntry entry) {
+    public static SingletonTable of(RingEntry entry) {
         return entry.singleton;
     }
 
-    public static SingleEntry of(int index) {
+    public static SingletonTable of(int index) {
         return Entries.entry(index).singleton;
     }
 

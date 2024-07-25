@@ -1,6 +1,7 @@
 package mills.bits;
 
-import mills.util.ListSet;
+import mills.util.DirectListSet;
+import mills.util.Indexed;
 
 /**
  * Created by IntelliJ IDEA.
@@ -8,7 +9,7 @@ import mills.util.ListSet;
  * Date: 26.09.2010
  * Time: 20:13:36
  */
-public enum Ring {
+public enum Ring implements Indexed {
 
     OUTER(3), INNER(1), MIDDLE(2);
 
@@ -30,9 +31,14 @@ public enum Ring {
         return (long)ring << 16*ordinal();
     }
 
-    public static final ListSet<Ring> RINGS = ListSet.of(Ring.class);
+    public static final DirectListSet<Ring> RINGS = DirectListSet.of(values());
 
     public static Ring of(int i) {
         return RINGS.get(i);
+    }
+
+    @Override
+    public int getIndex() {
+        return ordinal();
     }
 }

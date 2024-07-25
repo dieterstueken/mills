@@ -4,8 +4,7 @@ package mills.ring;
 import mills.util.IndexedListSet;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -62,6 +61,11 @@ public interface EntryTable extends IndexedListSet<RingEntry> {
     EntryTable headSet(RingEntry toElement);
 
     @Override
+    default EntryTable headSet(int toIndex) {
+        return subList(0, toIndex);
+    }
+
+    @Override
     EntryTable tailSet(RingEntry fromElement);
 
     EntryTable filter(Predicate<? super RingEntry> predicate);
@@ -72,48 +76,16 @@ public interface EntryTable extends IndexedListSet<RingEntry> {
         return IndexedEntryTable.of();
     }
 
-    static EntryTable of(Iterator<? extends RingEntry> entries, int size) {
-
-        if(size==0)
-            return EmptyTable.EMPTY;
-
-        RingEntry e = entries.next();
-
-        if(size==1)
-            return SingleEntry.of(e.index);
-
-        short[] index = new short[size];
-
-        index [0] = e.index;
-        boolean ordered = true;
-
-        for(int i=1; i<size; i++) {
-            RingEntry f = entries.next();
-            index[i] = f.index;
-            ordered &= e.index>f.index;
-        }
-
-        if(!ordered)
-            Arrays.sort(index);
-
-        return EntryArray.of(index);
-    }
-
-    static EntryTable of(Collection<? extends RingEntry> entries) {
+    static EntryTable of(List<? extends RingEntry> entries) {
 
         if(entries instanceof EntryTable) {
             return (EntryTable) entries;
         }
 
-        final int size = entries.size();
-
-        if(size==0)
-            return EmptyTable.EMPTY;
-
-        return of(entries.iterator(), size);
+        return AbstractEntryTable.of(entries);
     }
     
-    static EntryTable of(int ... index) {
+    static AbstractEntryTable of(int ... index) {
         short[] values = new short[index.length];
         int l=-1;
 
@@ -130,18 +102,18 @@ public interface EntryTable extends IndexedListSet<RingEntry> {
         return of(values, values.length);
     }
 
-    static EntryTable of(short[] ringIndex, int size) {
+    static AbstractEntryTable of(short[] ringIndex, int size) {
         return of(ringIndex, 0, size);
     }
 
-    static EntryTable of(short[] table, int fromIndex, int toIndex) {
+    static AbstractEntryTable of(short[] table, int fromIndex, int toIndex) {
 
         int size = toIndex - fromIndex;
         if(size==0)
             return EmptyTable.EMPTY;
 
         if(size==1)
-            return SingleEntry.of(table[fromIndex]);
+            return SingletonTable.of(table[fromIndex]);
 
         table = Arrays.copyOfRange(table, fromIndex, toIndex);
         return EntryArray.of(table);
