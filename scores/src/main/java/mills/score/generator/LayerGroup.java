@@ -3,8 +3,8 @@ package mills.score.generator;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.util.AbstractRandomList;
-import mills.util.ListSet;
-import mills.util.PopMap;
+import mills.util.listset.ListSet;
+import mills.util.listset.PopMap;
 
 import java.util.List;
 import java.util.Map;

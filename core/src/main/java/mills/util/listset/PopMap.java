@@ -1,7 +1,8 @@
-package mills.util;
+package mills.util.listset;
 
 import mills.bits.PopCount;
 import mills.ring.EntryTable;
+import mills.util.AbstractRandomList;
 
 import java.util.List;
 import java.util.function.Function;

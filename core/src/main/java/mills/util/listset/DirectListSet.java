@@ -1,4 +1,6 @@
-package mills.util;
+package mills.util.listset;
+
+import mills.util.Indexed;
 
 import java.util.Arrays;
 import java.util.List;

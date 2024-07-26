@@ -1,4 +1,6 @@
-package mills.util;
+package mills.util.listset;
+
+import mills.util.AbstractRandomList;
 
 import java.util.AbstractMap;
 import java.util.Comparator;

@@ -8,7 +8,7 @@ package mills.bits;
  */
 
 import mills.util.Indexed;
-import mills.util.ListSet;
+import mills.util.listset.ListSet;
 
 import java.util.Arrays;
 import java.util.function.IntFunction;

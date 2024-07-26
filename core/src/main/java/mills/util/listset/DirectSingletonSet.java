@@ -1,4 +1,6 @@
-package mills.util;
+package mills.util.listset;
+
+import mills.util.Indexed;
 
 class DirectSingletonSet<T extends Indexed> extends SingletonSet<T> implements DirectListSet<T> {
 

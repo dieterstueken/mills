@@ -1,4 +1,6 @@
-package mills.util;
+package mills.util.listset;
+
+import mills.util.Indexed;
 
 import java.util.Iterator;
 import java.util.List;

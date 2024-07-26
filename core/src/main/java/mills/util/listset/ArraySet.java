@@ -1,4 +1,6 @@
-package mills.util;
+package mills.util.listset;
+
+import mills.util.Indexed;
 
 public class ArraySet<T extends Indexed> extends AbstractIndexedSet<T> implements IndexedListSet<T> {
 

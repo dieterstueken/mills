@@ -1,7 +1,7 @@
 package mills.bits;
 
-import mills.util.DirectListSet;
 import mills.util.Indexed;
+import mills.util.listset.DirectListSet;
 
 /**
  * Created by IntelliJ IDEA.

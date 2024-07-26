@@ -8,7 +8,7 @@ import mills.index.tables.R0Table;
 import mills.position.Positions;
 import mills.ring.EntryMap;
 import mills.util.IndexTable;
-import mills.util.PopMap;
+import mills.util.listset.PopMap;
 
 /**
  * Created by IntelliJ IDEA.

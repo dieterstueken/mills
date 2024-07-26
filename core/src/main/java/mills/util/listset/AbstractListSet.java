@@ -1,4 +1,6 @@
-package mills.util;
+package mills.util.listset;
+
+import mills.util.AbstractRandomList;
 
 import java.util.List;
 import java.util.Objects;

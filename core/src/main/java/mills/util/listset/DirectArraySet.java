@@ -1,4 +1,6 @@
-package mills.util;
+package mills.util.listset;
+
+import mills.util.Indexed;
 
 public class DirectArraySet<T extends Indexed> extends ArraySet<T> implements DirectListSet<T> {
 

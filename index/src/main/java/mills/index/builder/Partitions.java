@@ -3,7 +3,7 @@ package mills.index.builder;
 import mills.bits.PopCount;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
-import mills.util.PopMap;
+import mills.util.listset.PopMap;
 
 import java.util.Arrays;
 import java.util.List;

@@ -2,8 +2,8 @@ package mills.score.attic.opening;
 
 import mills.bits.Player;
 import mills.bits.PopCount;
-import mills.util.DirectListSet;
 import mills.util.Indexed;
+import mills.util.listset.DirectListSet;
 
 /**
  * Created by IntelliJ IDEA.

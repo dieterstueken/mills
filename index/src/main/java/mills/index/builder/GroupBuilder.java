@@ -4,8 +4,8 @@ import mills.bits.PopCount;
 import mills.index.tables.C2Table;
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;
-import mills.util.ListSet;
-import mills.util.PopMap;
+import mills.util.listset.ListSet;
+import mills.util.listset.PopMap;
 
 import java.util.List;
 import java.util.function.Function;

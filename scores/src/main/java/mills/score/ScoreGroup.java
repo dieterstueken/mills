@@ -3,7 +3,7 @@ package mills.score;
 import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.PosIndex;
-import mills.util.PopMap;
+import mills.util.listset.PopMap;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,7 +1,7 @@
 package mills.ring;
 
 
-import mills.util.IndexedListSet;
+import mills.util.listset.IndexedListSet;
 
 import java.util.Arrays;
 import java.util.List;

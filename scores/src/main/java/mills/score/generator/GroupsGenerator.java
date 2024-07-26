@@ -4,7 +4,7 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.PosIndex;
 import mills.score.Score;
-import mills.util.ListSet;
+import mills.util.listset.ListSet;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;

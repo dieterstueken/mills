@@ -1,8 +1,8 @@
 package mills.bits;
 
-import mills.util.DirectListSet;
 import mills.util.Indexed;
-import mills.util.ListSet;
+import mills.util.listset.DirectListSet;
+import mills.util.listset.ListSet;
 
 import java.util.Objects;
 import java.util.function.Consumer;

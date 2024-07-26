@@ -1,4 +1,8 @@
-package mills.util;
+package mills.util.listset;
+
+import mills.util.Indexed;
+import mills.util.Indexer;
+import mills.util.RandomList;
 
 import java.util.List;
 

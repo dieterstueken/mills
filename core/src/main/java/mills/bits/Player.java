@@ -7,8 +7,8 @@ package mills.bits;
 * Time: 18:17:23
 */
 
-import mills.util.DirectListSet;
 import mills.util.Indexed;
+import mills.util.listset.DirectListSet;
 
 import java.util.List;
 

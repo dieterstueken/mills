@@ -1,5 +1,7 @@
 package mills.util;
 
+import mills.util.listset.ListSet;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.RandomAccess;
