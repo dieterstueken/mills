@@ -6,8 +6,8 @@ plugins {
 version = '1.0'
 
 idea.project {
-    jdkName = '17'
-    languageLevel = JavaVersion.VERSION_11
+    jdkName = '21'
+    languageLevel = JavaVersion.VERSION_21
     vcs = 'Git'
 }
 
@@ -22,8 +22,8 @@ allprojects {
 
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     plugins.withType(JavaPlugin) {

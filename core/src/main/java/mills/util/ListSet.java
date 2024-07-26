@@ -124,6 +124,41 @@ public interface ListSet<T> extends RandomList<T>, SortedSet<T> {
         return RandomList.super.spliterator();
     }
 
+    @Override
+    default ListSet<T> reversed() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default void addFirst(T t) {
+        RandomList.super.addFirst(t);
+    }
+
+    @Override
+    default void addLast(T t) {
+        RandomList.super.addLast(t);
+    }
+
+    @Override
+    default T getFirst() {
+        return RandomList.super.getFirst();
+    }
+
+    @Override
+    default T getLast() {
+        return RandomList.super.getLast();
+    }
+
+    @Override
+    default T removeFirst() {
+        return RandomList.super.removeFirst();
+    }
+
+    @Override
+    default T removeLast() {
+        return RandomList.super.removeLast();
+    }
+
     static <T> ListSet<T> of(Comparator<? super T> comparator) {
         return of(new ArrayList<>(), comparator);
     }
