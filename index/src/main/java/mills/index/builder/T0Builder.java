@@ -136,7 +136,7 @@ class T0Builder extends ConcurrentCompleter {
 
             final List<IndexedEntryTable> t1tables = partition.getFragments(meq2).get(rad);
             for (IndexedEntryTable t1 : t1tables) {
-                PopCount clop = t1.get(0).clop(rad).add(clop20);
+                PopCount clop = t1.getFirst().clop(rad).add(clop20);
 
                 RingEntry limit = group.limit(r2, r0);
                 if(limit!=null) {

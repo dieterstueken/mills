@@ -107,7 +107,7 @@ public class MapSlice {
 
         int size = size();
 
-        final AtomicInteger stat0 = stat.get(0);
+        final AtomicInteger stat0 = stat.getFirst();
 
         for(int i=0; i<size; ++i) {
 

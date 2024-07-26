@@ -101,7 +101,7 @@ abstract public class DelegateListSet<T> extends AbstractListSet<T>  {
         if(values.size()<2)
             return true;
 
-        T t0 = values.get(0);
+        T t0 = values.getFirst();
         for (int i = 1; i < values.size(); ++i) {
             T t1 = values.get(i);
             if(order.compare(t0, t1)>=0)

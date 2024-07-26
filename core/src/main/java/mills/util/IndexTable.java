@@ -155,7 +155,7 @@ public abstract class IndexTable extends AbstractRandomList<Integer> {
         if(table.isEmpty())
             return EMPTY;
 
-        int sum = indexer.applyAsInt(table.get(0));
+        int sum = indexer.applyAsInt(table.getFirst());
         int size = table.size();
         if(size==1)
             return singleton(sum);

@@ -21,7 +21,7 @@ public class Plop implements Indexed {
 
     public static final ListSet<Plop> LIST = ListSet.ofIndexed(COUNT, Plop::new);
 
-    public static final Plop EMPTY = LIST.get(0);
+    public static final Plop EMPTY = LIST.getFirst();
 
     protected final PopCount pop;
 

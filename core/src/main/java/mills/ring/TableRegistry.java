@@ -55,7 +55,7 @@ public class TableRegistry {
             return IndexedEntryTable.of();
 
         if (size == 1) {
-            return entries.get(0).singleton;
+            return entries.getFirst().singleton;
         }
 
         IndexedEntryTable table = fragMap.get(entries);

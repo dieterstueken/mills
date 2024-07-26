@@ -1,12 +1,6 @@
 package mills.util;
 
-import java.util.AbstractList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.RandomAccess;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
@@ -131,7 +125,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
             return Collections.emptyList();
 
         if(size==1)
-            return Collections.singletonList(mapper.apply(source.get(0)));
+            return Collections.singletonList(mapper.apply(source.getFirst()));
 
         // back to forth
         Object[] values = new Object[size];

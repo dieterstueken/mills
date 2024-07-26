@@ -55,6 +55,11 @@ class SingleEntry extends AbstractEntryTable implements IndexedEntryTable {
     }
 
     @Override
+    public RingEntry getFirst() {
+        return entry;
+    }
+
+    @Override
     public int findIndex(int ringIndex) {
         int i = entry.index();
         if(i==ringIndex)
