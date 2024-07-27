@@ -10,6 +10,8 @@ import mills.util.listset.PopMap;
 import java.util.List;
 import java.util.function.Function;
 
+import static mills.util.Indexed.max;
+
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -82,7 +84,7 @@ class GroupBuilder {
     static GroupBuilder jumping(Partitions partitions, PopCount pop) {
         return new GroupBuilder(partitions, pop) {
             RingEntry limit(RingEntry r2, RingEntry r0) {
-                RingEntry limit = r2.index > r0.index ? r2 : r0;
+                RingEntry limit = max(r2, r0);
                 if (r0.min() < limit.index)
                     limit = r0;
 

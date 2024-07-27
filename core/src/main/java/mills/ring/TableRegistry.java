@@ -1,9 +1,11 @@
 package mills.ring;
 
+import mills.util.AbstractRandomList;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -15,40 +17,65 @@ import static mills.ring.RingEntry.MAX_INDEX;
  * Date: 27.01.21
  * Time: 10:52
  */
-public class TableRegistry {
+public class TableRegistry extends AbstractRandomList<IndexedEntryTable> {
 
-    public static final AtomicInteger MAX = new AtomicInteger();
+    private final AtomicInteger counter = new AtomicInteger(0);
+    // the actual size of fragments may increase during synchronisation.
+    private int count = 0;
 
-    private final ConcurrentNavigableMap<List<RingEntry>, IndexedEntryTable> fragMap = new ConcurrentSkipListMap<>(Entries.BY_SIZE);
-    private final List<IndexedEntryTable> fragments = new ArrayList<>();
+    private final ArrayList<IndexedEntryTable> tables = new ArrayList<>();
+
+    private final Map<List<RingEntry>, IndexedEntryTable> tableMap = new ConcurrentSkipListMap<>(Entries.BY_SIZE);
 
     public int count() {
-        return fragments.size();
+        return tableMap.size();
     }
 
     public int size() {
-        return MAX_INDEX + fragments.size();
+        return MAX_INDEX + 1 + count;
     }
 
-    public IndexedEntryTable getTable(int index) {
+    /**
+     * Lookup an IndexedEntryTable by its index.
+     * @param index index of the element to return
+     * @return the IndexedEntryTable.
+     */
+    public IndexedEntryTable get(int index) {
+
+        // return an empty table
         if (index < 0)
             return IndexedEntryTable.of();
 
+        // virtual singleton entries.
         if (index < MAX_INDEX)
             return Entries.entry(index).singleton;
 
-        return fragments.get(index - MAX_INDEX);
+        // this returns the full table.
+        if (index == MAX_INDEX)
+            return Entries.TABLE;
+
+        index -= MAX_INDEX+1;
+
+        // we should get it after synchronisation.
+        if(index>=count && index < counter.get())
+            synchronize();
+
+        IndexedEntryTable fragment = tables.get(index);
+
+        assert fragment.getIndex() == index;
+
+        return fragment;
     }
 
+    /**
+     * Register a list of entries as an IndexedEntryTable.
+     * If the list is already registered, the already registered table is returned.
+     * @param entries to register.
+     * @return a IndexedEntryTable containing the given entries.
+     */
     public IndexedEntryTable getTable(List<RingEntry> entries) {
 
-        if (entries instanceof IndexedEntryTable) {
-            int index = ((IndexedEntryTable) entries).getIndex();
-            IndexedEntryTable indexed = getTable(index);
-            if (indexed == entries)
-                return indexed;
-        }
-
+        // look for predefined tables.
         int size = entries.size();
 
         if (size == 0)
@@ -58,30 +85,64 @@ public class TableRegistry {
             return entries.getFirst().singleton;
         }
 
-        IndexedEntryTable table = fragMap.get(entries);
-        if (table == null)
-            table = register(entries);
+        // quick lookup
+        IndexedEntryTable table = tableMap.get(entries);
+
+        if (table == null) {
+            // normalize to AbstractEntryTable to stabilize any virtual lists.
+            entries = AbstractEntryTable.of(entries);
+
+            table = tableMap.computeIfAbsent(entries, this::register);
+        }
 
         return table;
     }
 
-    private synchronized IndexedEntryTable register(List<RingEntry> entries) {
-        IndexedEntryTable table = fragMap.get(entries);
-        if (table != null)
-            return table;
+    /**
+     * Register a new IndexedEntryTable with a unique index.
+     * @param entries to register.
+     * @return a new IndexedEntryTable.
+     */
+    private IndexedEntryTable register(List<RingEntry> entries) {
+        int index = counter.getAndIncrement();
+        return IndexedEntryTable.of(entries, index + MAX_INDEX + 1);
+    }
 
-        int index = fragments.size() + MAX_INDEX;
-        table = IndexedEntryTable.of(entries, index);
-        fragments.add(table);
+    /**
+     * Transfer all registered entries from fragMap into the linear lookup table.
+     */
+    public synchronized void synchronize() {
 
-        assert table.size()>1;
+        // double check.
+        if(count==counter.get())
+            return;
 
-        fragMap.put(table, table);
+        if(count!= tables.size())
+            throw new IllegalStateException("unexpected fragment size");
 
-        if(index>MAX.get())
-            MAX.updateAndGet(i -> Math.max(i, index));
+        // internal resize
+        tables.ensureCapacity(counter.get());
 
-        return table;
+        // add missing entries.
+        for (IndexedEntryTable fragment : tableMap.values()) {
+            int index = fragment.getIndex() - MAX_INDEX - 1;
+
+            // have to add it.
+            if(index>=count) {
+                // resize on demand
+                while(tables.size()<=index) {
+                    tables.add(null);
+                }
+                // place fragment at its position.
+                tables.set(index, fragment);
+            }
+            // There is a very small change to leave null entries.
+            // This happens, if concurrent computeIfAbsent calls register twice but uses only one result.
+            // As the unused result never entered the fragMap, it will never be exposed and thus never be queried.
+        }
+
+        // publish new fragments.
+        count = tables.size();
     }
 
     public IndexedEntryTables tablesOf(Collection<? extends List<RingEntry>> tables) {
@@ -105,17 +166,21 @@ public class TableRegistry {
             index[i] = (short) table.getIndex();
         }
 
-        return IndexedEntryTables.of(index, this::getTable);
+        IndexedEntryTables indexedTables = IndexedEntryTables.of(index, this::get);
+
+        assert indexedTables.equals(tables);
+
+        return indexedTables;
     }
 
     public String toString() {
-        return String.format("T[%d]", fragments.size());
+        return String.format("T[%d]", tables.size());
     }
 
     public void stat() {
         int count = 0;
         int len = 0;
-        for (IndexedEntryTable table : fragMap.values()) {
+        for (IndexedEntryTable table : tableMap.values()) {
             int size = table.size();
             if(size!=len && count>0) {
                 System.out.format("%3d: %4d\n", len, count);
