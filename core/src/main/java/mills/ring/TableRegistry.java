@@ -54,13 +54,13 @@ public class TableRegistry extends AbstractRandomList<IndexedEntryTable> {
         if (index == MAX_INDEX)
             return Entries.TABLE;
 
-        index -= MAX_INDEX+1;
+        int pos = index - MAX_INDEX - 1;
 
         // we should get it after synchronisation.
-        if(index>=count && index < counter.get())
+        if(pos>=count && pos < counter.get())
             synchronize();
 
-        IndexedEntryTable fragment = tables.get(index);
+        IndexedEntryTable fragment = tables.get(pos);
 
         assert fragment.getIndex() == index;
 

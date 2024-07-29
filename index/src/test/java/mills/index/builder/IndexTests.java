@@ -1,9 +1,8 @@
-package mills.index;
+package mills.index.builder;
 
 import mills.bits.Clops;
 import mills.bits.PopCount;
-import mills.index.builder.IndexGroup;
-import mills.index.builder.IndexGroups;
+import mills.index.PosIndex;
 import mills.position.Normalizer;
 import mills.position.Positions;
 import mills.util.CachedBuilder;
@@ -14,6 +13,7 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.LongUnaryOperator;
 import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
@@ -136,6 +136,11 @@ public class IndexTests {
     
     public static void main(String ... args) {
         new IndexTests().buildGroups();
+    }
+
+    @Test
+    public void buildPartitions() {
+        timer("time", () -> Partitions.create(ForkJoinPool.commonPool()));
     }
 
     @Test
