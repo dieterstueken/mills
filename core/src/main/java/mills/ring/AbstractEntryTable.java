@@ -3,7 +3,6 @@ package mills.ring;
 
 import mills.util.listset.AbstractIndexedSet;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -197,11 +196,15 @@ abstract public class AbstractEntryTable extends AbstractIndexedSet<RingEntry> i
         for(int i=1; i<size; i++) {
             RingEntry f = list.get(i);
             index[i] = f.index;
-            ordered &= e.index>f.index;
+            ordered &= e.index<f.index;
+            e=f;
         }
 
-        if(!ordered)
-            Arrays.sort(index);
+        if(!ordered) {
+            throw new IllegalArgumentException("entries not sorted");
+            // not sufficient: may have duplicates.
+            //Arrays.sort(index);
+        }
 
         return EntryArray.of(index);
     }
