@@ -17,15 +17,11 @@ import static mills.ring.RingEntry.MAX_INDEX;
 /**
  * Class RingTable is the complete EntryTable of 6561 RingEntries.
  */
-class RingTable extends AbstractEntryTable implements IndexedEntryTable {
-
-    private final RingEntry[] entries = new RingEntry[MAX_INDEX];
-
-    private final int hashCode;
+class RingTable extends RingArray implements IndexedEntryTable {
 
     RingTable() {
+        super(new RingEntry[MAX_INDEX]);
         Arrays.parallelSetAll(entries, this::newEntry);
-        this.hashCode = Arrays.hashCode(entries);
     }
 
     @Override
@@ -36,11 +32,6 @@ class RingTable extends AbstractEntryTable implements IndexedEntryTable {
     @Override
     public int getIndex() {
         return MAX_INDEX;
-    }
-
-    @Override
-    public RingEntry get(int index) {
-        return entries[index];
     }
 
     // for the full table there is no need to search any entry.
@@ -55,11 +46,6 @@ class RingTable extends AbstractEntryTable implements IndexedEntryTable {
         return (short) index;
     }
 
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-    
     private RingEntry newEntry(int index) {
         return newEntry((short) index);
     }

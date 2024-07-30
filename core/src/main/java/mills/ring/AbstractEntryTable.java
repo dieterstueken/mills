@@ -64,7 +64,7 @@ abstract public class AbstractEntryTable extends AbstractIndexedSet<RingEntry> i
         int size = checkRange(fromIndex, toIndex);
 
         if(size==0)
-            return EntryTable.of();
+            return EntryTable.empty();
 
         if(size==1)
             return get(fromIndex).singleton;
@@ -87,12 +87,12 @@ abstract public class AbstractEntryTable extends AbstractIndexedSet<RingEntry> i
 
     @Override
     public EntryTable headSet(RingEntry toElement) {
-        return subList(0, lowerBound(toElement.index));
+        return headSet(lowerBound(toElement.index));
     }
 
     @Override
-    public EntryTable headSet(int toIndex) {
-        return subList(0, toIndex);
+    public EntryTable headSet(int size) {
+        return subList(0, size);
     }
 
     @Override
@@ -106,7 +106,7 @@ abstract public class AbstractEntryTable extends AbstractIndexedSet<RingEntry> i
             return this;
 
         if(predicate == Entries.NONE)
-            return EntryTable.of();
+            return EntryTable.empty();
 
         int i0; // first match
 
@@ -118,7 +118,7 @@ abstract public class AbstractEntryTable extends AbstractIndexedSet<RingEntry> i
         }
 
         if(i0==size())
-            return EntryTable.of();
+            return EntryTable.empty();
 
         int i1; // first miss
 
@@ -183,7 +183,7 @@ abstract public class AbstractEntryTable extends AbstractIndexedSet<RingEntry> i
         int size = list.size();
 
         if(size==0)
-            return EmptyTable.EMPTY;
+            return EntryTable.empty();
 
         RingEntry e = list.getFirst();
         if(size==1)

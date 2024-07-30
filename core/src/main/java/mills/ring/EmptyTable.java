@@ -46,6 +46,19 @@ class EmptyTable extends AbstractEntryTable implements IndexedEntryTable {
     }
 
     @Override
+    public EmptyTable headSet(int toIndex) {
+        if(toIndex!=0)
+            throw new IllegalArgumentException("Size = " + toIndex);
+
+        return this;
+    }
+
+    @Override
+    public EmptyTable headSet(RingEntry toElement) {
+        return this;
+    }
+
+    @Override
     public int indexOf(RingEntry entry) {
         return -1;
     }

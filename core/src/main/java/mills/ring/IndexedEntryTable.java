@@ -14,14 +14,14 @@ import java.util.List;
 public interface IndexedEntryTable extends EntryTable, Indexed {
 
     static IndexedEntryTable of() {
-        return EmptyTable.EMPTY;
+        return EntryTable.empty();
     }
 
     static IndexedEntryTable of(List<RingEntry> entries, int key) {
         int size = entries.size();
 
         if(size==0)
-            return EmptyTable.EMPTY;
+            return EntryTable.empty();
 
         if(size==1)
             return entries.getFirst().singleton;

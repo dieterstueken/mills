@@ -1,6 +1,7 @@
 package mills.util.listset;
 
 import mills.util.Indexed;
+import mills.util.Indexer;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -23,6 +24,15 @@ public class SingletonSet<T extends Indexed> extends AbstractIndexedSet<T> {
     @Override
     public int indexOf(Object obj) {
         return Objects.equals(obj, value) ? 0 : -1;
+    }
+
+    @Override
+    public int findIndex(T entry) {
+        int i = Indexer.INDEXED.compare(entry, value);
+        if(i==0)
+            return 0;
+
+        return i>0 ? -1 : -2;
     }
 
     @Override

@@ -29,6 +29,11 @@ class EmptyListSet<T extends Indexed> extends AbstractListSet<T> implements Dire
     }
 
     @Override
+    public EmptyListSet<T> headSet(T toIndex) {
+        return this;
+    }
+
+    @Override
     public EmptyListSet<T> headSet(int toIndex) {
         if(toIndex!=0)
             throw new IllegalArgumentException("Size = " + toIndex);

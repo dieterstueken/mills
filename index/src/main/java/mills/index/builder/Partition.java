@@ -89,7 +89,7 @@ public class Partition {
         ROOT_INDEX = List.copyOf(lookup);
     }
 
-    public static final Partition EMPTY = new Partition(EntryTable.of());
+    public static final Partition EMPTY = new Partition(EntryTable.empty());
 
     public static Partition of(PopCount pop) {
         

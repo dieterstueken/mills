@@ -43,7 +43,7 @@ class SingletonTable extends AbstractEntryTable implements IndexedEntryTable {
         if (predicate.test(entry))
             return this;
         else
-            return EntryTable.of();
+            return EntryTable.empty();
     }
 
     @Override
@@ -67,6 +67,10 @@ class SingletonTable extends AbstractEntryTable implements IndexedEntryTable {
         if(ringIndex<i)
             return -1;
         return -2;
+    }
+
+    public int findIndex(RingEntry entry) {
+        return findIndex(entry.index());
     }
 
     @Override

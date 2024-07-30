@@ -18,6 +18,7 @@ import java.util.function.Predicate;
  * An EntryTable is a List of RingEntries.
  * In addition, it provides utility methods to get the RingEntry.index directly,
  * to find the table indexOf a given RingEntry and to generate filtered subsets of itself.
+ * An EntryTable must always be sorted and immutable.
  */
 public interface EntryTable extends IndexedListSet<RingEntry> {
 
@@ -61,8 +62,8 @@ public interface EntryTable extends IndexedListSet<RingEntry> {
     EntryTable headSet(RingEntry toElement);
 
     @Override
-    default EntryTable headSet(int toIndex) {
-        return subList(0, toIndex);
+    default EntryTable headSet(int size) {
+        return subList(0, size);
     }
 
     @Override
@@ -72,8 +73,8 @@ public interface EntryTable extends IndexedListSet<RingEntry> {
 
     ////////////////////////////////////////////////////////////////////////////////////////////
 
-    static EntryTable of() {
-        return IndexedEntryTable.of();
+    static EmptyTable empty() {
+        return EmptyTable.EMPTY;
     }
 
     static EntryTable of(List<? extends RingEntry> entries) {
@@ -110,7 +111,7 @@ public interface EntryTable extends IndexedListSet<RingEntry> {
 
         int size = toIndex - fromIndex;
         if(size==0)
-            return EmptyTable.EMPTY;
+            return EntryTable.empty();
 
         if(size==1)
             return SingletonTable.of(table[fromIndex]);

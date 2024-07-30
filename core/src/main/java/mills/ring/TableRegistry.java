@@ -12,10 +12,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static mills.ring.RingEntry.MAX_INDEX;
 
 /**
- * Created by IntelliJ IDEA.
- * User: stueken
- * Date: 27.01.21
- * Time: 10:52
+ * Class TableRegistry has a cache of entry tables.
+ * An incoming list of RingEntry elements is converted into an uniq IndexedEntryTable.
+ * The generated table can later be retrieved again by its index.
  */
 public class TableRegistry extends AbstractRandomList<IndexedEntryTable> {
 
@@ -89,8 +88,8 @@ public class TableRegistry extends AbstractRandomList<IndexedEntryTable> {
         IndexedEntryTable table = tableMap.get(entries);
 
         if (table == null) {
-            // normalize to AbstractEntryTable to stabilize any virtual lists.
-            entries = AbstractEntryTable.of(entries);
+            // normalize to EntryTable to stabilize any virtual lists.
+            entries = EntryTable.of(entries);
 
             table = tableMap.computeIfAbsent(entries, this::register);
         }

@@ -88,7 +88,7 @@ public class EntryTableTest {
         testIndexOf(Entries.TABLE);
         testIndexOf(Entries.MINIMIZED);
         testIndexOf(Entries.entry(77).singleton);
-        testIndexOf(EntryTable.of());
+        testIndexOf(EntryTable.empty());
 
     }
 
