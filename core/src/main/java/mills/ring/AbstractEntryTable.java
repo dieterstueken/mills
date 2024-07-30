@@ -67,7 +67,7 @@ abstract public class AbstractEntryTable extends AbstractIndexedSet<RingEntry> i
             return EntryTable.empty();
 
         if(size==1)
-            return get(fromIndex).singleton;
+            return get(fromIndex).singleton();
 
         if(size==this.size())
             return this;
@@ -145,7 +145,7 @@ abstract public class AbstractEntryTable extends AbstractIndexedSet<RingEntry> i
         }
 
         if(count==1)
-            return get(i0).singleton;
+            return get(i0).singleton();
 
         // may be a sub list
         if(i1-i0 == count)
@@ -187,7 +187,7 @@ abstract public class AbstractEntryTable extends AbstractIndexedSet<RingEntry> i
 
         RingEntry e = list.getFirst();
         if(size==1)
-            return e.singleton;
+            return e.singleton();
 
         short[] index = new short[size];
         index [0] = e.index;

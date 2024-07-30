@@ -49,7 +49,7 @@ public class RingArray extends AbstractEntryTable {
             return EntryTable.empty();
 
         if(size==1)
-            return getFirst().singleton;
+            return getFirst().singleton();
 
         return new RingArray(entries, size);
     }

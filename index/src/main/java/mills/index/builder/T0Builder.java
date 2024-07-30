@@ -186,7 +186,7 @@ class T0Builder extends ConcurrentCompleter {
             int key = getKey(offt);
             PopCount pop1 = pop0.sub(r0.pop);
             IndexedEntryTable t1 = group.partitions.get(pop1).tables.get(key);
-            return R0Table.of(r0.singleton, List.of(t1));
+            return R0Table.of(r0.singleton(), List.of(t1));
         }
 
         EntryTable t0 = EntryTable.of(new AbstractRandomArray<>(size) {

@@ -97,7 +97,7 @@ public class Partition {
             return EMPTY;
 
         if(pop.isEmpty())
-            return new Partition(Entries.EMPTY.singleton);
+            return new Partition(Entries.EMPTY.singleton());
 
         EntryTable root = Entries.TABLE.filter(pop.eq);
         return new Partition(root);

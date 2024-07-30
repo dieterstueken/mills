@@ -24,7 +24,7 @@ public interface IndexedEntryTable extends EntryTable, Indexed {
             return EntryTable.empty();
 
         if(size==1)
-            return entries.getFirst().singleton;
+            return entries.getFirst().singleton();
 
         return IndexedEntryArray.of(entries, key);
     }

@@ -47,7 +47,7 @@ public class TableRegistry extends AbstractRandomList<IndexedEntryTable> {
 
         // virtual singleton entries.
         if (index < MAX_INDEX)
-            return Entries.entry(index).singleton;
+            return Entries.entry(index).singleton();
 
         // this returns the full table.
         if (index == MAX_INDEX)
@@ -81,7 +81,7 @@ public class TableRegistry extends AbstractRandomList<IndexedEntryTable> {
             return IndexedEntryTable.of();
 
         if (size == 1) {
-            return entries.getFirst().singleton;
+            return entries.getFirst().singleton();
         }
 
         // quick lookup

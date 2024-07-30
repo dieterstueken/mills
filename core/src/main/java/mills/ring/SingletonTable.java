@@ -21,11 +21,11 @@ class SingletonTable extends AbstractEntryTable implements IndexedEntryTable {
     }
 
     public static SingletonTable of(RingEntry entry) {
-        return entry.singleton;
+        return entry.singleton();
     }
 
     public static SingletonTable of(int index) {
-        return Entries.entry(index).singleton;
+        return Entries.entry(index).singleton();
     }
 
     @Override
