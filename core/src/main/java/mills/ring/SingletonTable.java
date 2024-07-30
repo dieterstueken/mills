@@ -16,7 +16,7 @@ class SingletonTable extends AbstractEntryTable implements IndexedEntryTable {
 
     final RingEntry entry;
 
-    SingletonTable(RingEntry entry) {
+    private SingletonTable(RingEntry entry) {
         this.entry = entry;
     }
 
@@ -26,6 +26,13 @@ class SingletonTable extends AbstractEntryTable implements IndexedEntryTable {
 
     public static SingletonTable of(int index) {
         return Entries.entry(index).singleton();
+    }
+
+    static SingletonTable create(RingEntry entry) {
+        if(entry.index==0)
+            return new Direct(entry);
+        else
+            return new SingletonTable(entry);
     }
 
     @Override
@@ -52,6 +59,34 @@ class SingletonTable extends AbstractEntryTable implements IndexedEntryTable {
             return entry;
         else
             throw new IndexOutOfBoundsException("Index: " + index);
+    }
+
+    @Override
+    public EntryTable headSet(final RingEntry toElement) {
+        if(entry.index<toElement.index)
+            return this;
+        else
+            return EntryTable.empty();
+    }
+
+    @Override
+    public EntryTable headSet(final int size) {
+
+        if (size == 0)
+            return EntryTable.empty();
+
+        if (size == 1)
+            return this;
+
+        throw new IllegalArgumentException("Size = " + size);
+    }
+
+    @Override
+    public EntryTable tailSet(final RingEntry toElement) {
+        if(entry.index>=toElement.index)
+            return this;
+        else
+            return EntryTable.empty();
     }
 
     @Override
@@ -97,5 +132,33 @@ class SingletonTable extends AbstractEntryTable implements IndexedEntryTable {
     @Override
     public int hashCode() {
         return entry.hashCode();
+    }
+
+    public static class Direct extends SingletonTable implements DirectTable {
+
+        Direct(final RingEntry entry) {
+            super(entry);
+            assert entry.index==0;
+        }
+
+        @Override
+        public DirectTable headSet(final RingEntry toElement) {
+            if(entry.index<toElement.index)
+                return this;
+            else
+                return EntryTable.empty();
+        }
+
+        @Override
+        public DirectTable headSet(final int size) {
+
+            if (size == 0)
+                return EntryTable.empty();
+
+            if (size == 1)
+                return this;
+
+            throw new IllegalArgumentException("Size = " + size);
+        }
     }
 }

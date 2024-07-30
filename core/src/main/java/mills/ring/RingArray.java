@@ -2,7 +2,7 @@ package mills.ring;
 
 import java.util.Arrays;
 
-public class RingArray extends AbstractEntryTable {
+public class RingArray extends AbstractEntryTable implements DirectTable {
 
     protected final RingEntry[] entries;
 
@@ -41,7 +41,17 @@ public class RingArray extends AbstractEntryTable {
     }
 
     @Override
-    public EntryTable headSet(final int size) {
+    public EmptyEntry getFirst() {
+        return (EmptyEntry) this.get(0);
+    }
+
+    @Override
+    public DirectTable headSet(final RingEntry toElement) {
+        return headSet(Math.min(toElement.index, size));
+    }
+
+    @Override
+    public DirectTable headSet(final int size) {
         if(size==size())
             return this;
 
@@ -68,6 +78,11 @@ public class RingArray extends AbstractEntryTable {
     @Override
     public int indexOf(final RingEntry entry) {
         return findIndex(entry.index);
+    }
+
+    @Override
+    public short ringIndex(final int index) {
+        return super.ringIndex(index);
     }
 
     @Override

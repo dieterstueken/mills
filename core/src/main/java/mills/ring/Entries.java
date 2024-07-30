@@ -16,9 +16,9 @@ public interface Entries {
     /**
      * Immutable tables.
      */
-    IndexedEntryTable TABLE = new RingTable();
-    RingEntry EMPTY = TABLE.getFirst();
-    EntryTable RADIALS = TABLE.headSet(81);
+    RingTable TABLE = new RingTable();
+    MinEntry EMPTY = TABLE.getFirst();
+    DirectTable RADIALS = TABLE.headSet(81);
     EntryTable MINIMIZED = TABLE.filter(RingEntry::isMin);
 
     static RingEntry entry(int index) {

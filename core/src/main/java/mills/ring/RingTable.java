@@ -8,7 +8,6 @@ package mills.ring;
  */
 
 import mills.bits.Patterns;
-import mills.bits.Perm;
 
 import java.util.Arrays;
 
@@ -17,7 +16,7 @@ import static mills.ring.RingEntry.MAX_INDEX;
 /**
  * Class RingTable is the complete EntryTable of 6561 RingEntries.
  */
-class RingTable extends RingArray implements IndexedEntryTable {
+public class RingTable extends RingArray implements IndexedEntryTable {
 
     RingTable() {
         super(new RingEntry[MAX_INDEX]);
@@ -52,6 +51,9 @@ class RingTable extends RingArray implements IndexedEntryTable {
 
     private RingEntry newEntry(final short index) {
 
+        if(index==0)
+            return EMPTY;
+
         byte mix = 0;
         byte meq = 1;
         byte min = 1;
@@ -82,47 +84,42 @@ class RingTable extends RingArray implements IndexedEntryTable {
                 meq |= m;
         }
 
+
         if (mix == 0) {
-            return new RingEntry(index, meq, mlt, min, (byte)0, perm) {
+            return new MinEntry(index, meq, mlt, min, mix, perm) {
 
                 @Override
-                public RingEntry entry(int index) {
-                    return entries[index];
-                }
-
-                @Override
-                public boolean isMin() {
-                    return true;
-                }
-
-                @Override
-                public short min() {
-                    return index;
-                }
-
-                @Override
-                public RingEntry minimized() {
-                    return this;
-                }
-
-                @Override
-                public Perm pmix() {
-                    return Perm.R0;
+                public RingEntry entry(final int index) {
+                    return index==this.index ? this : entries[index];
                 }
             };
         } else {
             return new RingEntry(index, meq, mlt, min, mix, perm) {
-
                 @Override
-                public RingEntry entry(int index) {
-                    return entries[index];
-                }
-
-                @Override
-                public boolean isMin() {
-                    return false;
+                public RingEntry entry(final int index) {
+                    return index==this.index ? this : entries[index];
                 }
             };
         }
     }
+
+    @Override
+    public EmptyEntry getFirst() {
+        return EMPTY;
+    }
+
+    private final EmptyEntry EMPTY = new EmptyEntry() {
+
+        private final SingletonTable.Direct directSingleton = new SingletonTable.Direct(this);
+
+        @Override
+        public SingletonTable.Direct singleton() {
+            return directSingleton;
+        }
+
+        @Override
+        public RingEntry entry(final int index) {
+            return index==this.index ? this : entries[index];
+        }
+    };
 }

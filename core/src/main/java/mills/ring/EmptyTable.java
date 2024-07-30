@@ -12,7 +12,7 @@ import java.util.stream.Stream;
  * Time: 18:15
  */
 
-class EmptyTable extends AbstractEntryTable implements IndexedEntryTable {
+class EmptyTable extends AbstractEntryTable implements IndexedEntryTable, DirectTable {
 
     static final EmptyTable EMPTY = new EmptyTable();
 
