@@ -50,6 +50,8 @@ abstract public class R2Table extends IndexedMap<R0Table> implements PosIndex {
 
     public long i201(int posIndex) {
 
+        assert posIndex>=0 && posIndex < range();
+
         int pos = it.indexOf(posIndex);
         R0Table r0 = values.get(pos);
         short i2 = keys.ringIndex(pos);

@@ -3,6 +3,7 @@ package mills.index.builder;
 import mills.bits.Clops;
 import mills.bits.PopCount;
 import mills.index.PosIndex;
+import mills.index.tables.C2Table;
 import mills.position.Normalizer;
 import mills.position.Positions;
 import mills.util.CachedBuilder;
@@ -164,14 +165,34 @@ public class IndexTests {
             }
 
             System.out.format("total: %,d\n", total);
-
-            return null;
         });
 
-        System.out.format("memory: %dMb\n", Runtime.getRuntime().totalMemory()/1024/1024);
+        System.out.format("memory: %dMb\n", Runtime.getRuntime().totalMemory() / 1024 / 1024);
+
+        timer("verify", this::verifyGroups);
+
         groups.providers().forEach(CachedBuilder::clear);
         Runtime.getRuntime().gc();
         System.out.format("memory: %dMb\n", Runtime.getRuntime().totalMemory()/1024/1024);
+    }
+
+    void verifyGroups() {
+        PopCount.TABLE.parallelStream().forEach(this::verifyGroup);
+    }
+
+    void verifyGroup(PopCount pop) {
+        groups.group(pop).group().values().forEach(this::verifyIndex);
+    }
+
+    void verifyIndex(C2Table table) {
+        IntStream.range(0, table.range())
+                .parallel().forEach(posIndex -> {
+            long i201 = table.i201(posIndex);
+            int i= table.posIndex(i201);
+            assertEquals(posIndex, i);
+        });
+
+        System.out.format("%s/%s verified (%d)\n", table.pop(), table.clop(), table.range());
     }
 
     @Test
@@ -203,14 +224,25 @@ public class IndexTests {
 
     @Test
     public void testIndexes() {
-        groups().forEach(this::testIndexes);
+        timer("total", () -> PopCount.TABLE.forEach(this::testIndexes));
+    }
+
+    void testIndexes(PopCount pop) {
+        PosIndex index = groups.group(pop);
+        double ms = timer(String.format("testIndexes %s (%,d)\n", pop, index.range()),
+                () -> testIndexes(index)
+        );
+
+        System.out.format("%,.0f/ms\n", index.range()/(ms+0.001));
+    }
+
+    static IntStream randomInt(int size) {
+        return IntStream.range(0, size).map(i -> (int) ((3001L*i)%size));
     }
 
     void testIndexes(PosIndex index) {
-        System.out.format("testIndexes %s\n", Clops.of(index));
-
-        IntStream.range(0, index.range()).parallel()
-                .forEach(i->testIndex(index, i));
+        randomInt(index.range()).parallel()
+                .forEach(i -> testIndex(index, i));
     }
 
     void testIndex(PosIndex ix, int pi0) {
@@ -254,12 +286,23 @@ public class IndexTests {
         assertTrue(Positions.equals(m201,r201));
     }
 
-    static <T> T timer(String name, Supplier<T> proc) {
-        double start = System.currentTimeMillis();
-        T t = proc.get();
-        double stop = System.currentTimeMillis();
+    static double timer(String name, Runnable proc) {
+        long start = System.nanoTime();
+        proc.run();
+        long stop = System.nanoTime();
 
-        System.out.format("%s: %.3fs\n", name, (stop - start) / 1000);
+        double ms = (stop - start)/1000000.0;
+        System.out.format("%s: %.3fs\n", name, ms/1000);
+
+        return ms;
+    }
+
+    static <T> T timer(String name, Supplier<T> proc) {
+        long start = System.nanoTime();
+        T t = proc.get();
+        long stop = System.nanoTime();
+
+        System.out.format("%s: %.3fs\n", name, (stop - start) / 1000000000.0);
 
         return t;
     }
