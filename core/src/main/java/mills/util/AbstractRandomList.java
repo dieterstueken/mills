@@ -157,7 +157,7 @@ public abstract class AbstractRandomList<T> extends AbstractList<T> implements R
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof List && equals((List) o);
+        return o instanceof List && equals((List<?>) o);
     }
 
     public boolean equals(List<?> other) {

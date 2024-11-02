@@ -8,7 +8,7 @@ import java.util.List;
  * Date: 02.02.21
  * Time: 20:18
  */
-abstract class IndexedEntryArray extends EntryArray implements IndexedEntryTable {
+class IndexedEntryArray extends EntryArray implements IndexedEntryTable {
 
     final int index;
 
@@ -26,12 +26,7 @@ abstract class IndexedEntryArray extends EntryArray implements IndexedEntryTable
     }
 
     static IndexedEntryArray of(short[] indices, int key) {
-        return new IndexedEntryArray(indices, key) {
-            @Override
-            protected RingEntry entry(final int index) {
-                return Entries.entry(index);
-            }
-        };
+        return new IndexedEntryArray(indices, key);
     }
 
     private static short[] indices(List<RingEntry> entries) {

@@ -22,6 +22,12 @@ import java.util.function.Predicate;
  */
 public interface EntryTable extends IndexedListSet<RingEntry> {
 
+    @Override
+    boolean equals(Object other);
+
+    @Override
+    int hashCode();
+
     // fast lookup of table index of a given ring index
     int findIndex(int ringIndex);
 
@@ -95,7 +101,7 @@ public interface EntryTable extends IndexedListSet<RingEntry> {
             values[i] = (short) k;
             
             if(k<=l)
-                throw new IllegalArgumentException("unordered ENtryTable");
+                throw new IllegalArgumentException("unordered EntryTable");
 
             l = k;
         }

@@ -8,7 +8,7 @@ import java.util.Arrays;
  * Date: 22.10.11
  * Time: 20:14
  */
-abstract public class EntryArray extends AbstractEntryTable {
+public class EntryArray extends AbstractEntryTable {
 
     final short[] indices;
 
@@ -34,7 +34,9 @@ abstract public class EntryArray extends AbstractEntryTable {
         return entry(index);
     }
 
-    abstract protected RingEntry entry(int index);
+    protected RingEntry entry(int index) {
+        return Entries.entry(index);
+    }
 
     @Override
     public int size() {
@@ -43,12 +45,7 @@ abstract public class EntryArray extends AbstractEntryTable {
 
     public static EntryArray of(short[] indices) {
         assert isOrdered(indices) : "index mismatch";
-        return new EntryArray(indices) {
-            @Override
-            protected RingEntry entry(final int index) {
-                return Entries.entry(index);
-            }
-        };
+        return new EntryArray(indices);
     }
 
     static boolean isOrdered(short[] values) {
@@ -73,7 +70,6 @@ abstract public class EntryArray extends AbstractEntryTable {
             return true;
 
         if ((o instanceof EntryArray a)) {
-
             return Arrays.equals(this.indices, a.indices);
         }
 
