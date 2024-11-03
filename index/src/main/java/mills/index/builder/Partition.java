@@ -22,7 +22,6 @@ public class Partition {
     public Partition(EntryTable root) {
         this.root = tables.getTable(root);
         this.fragments = fragments();
-        this.tables.synchronize();
     }
 
     public boolean isEmpty() {

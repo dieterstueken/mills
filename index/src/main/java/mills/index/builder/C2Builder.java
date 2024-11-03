@@ -18,18 +18,18 @@ class C2Builder {
 
     final PopCount clop;
 
-    final EntryMap<R0Table> t0Tables;
+    final EntryMap<R0Table<?>> t0Tables;
 
     C2Builder(PopCount clop, EntryTable t2) {
         this.clop = clop;
-        this.t0Tables = EntryMap.preset(t2, R0Table.EMPTY);
+        this.t0Tables = EntryMap.preset(t2, R0Table.emptyTable());
     }
 
-    void put(RingEntry r2, R0Table t0Table) {
+    void put(RingEntry r2, R0Table<?> t0Table) {
         t0Tables.put(r2, t0Table);
     }
 
-    EntryMap<R0Table> tables() {
+    EntryMap<R0Table<?>> tables() {
         return t0Tables.filterValues(not(R0Table::isEmpty));
     }
 }

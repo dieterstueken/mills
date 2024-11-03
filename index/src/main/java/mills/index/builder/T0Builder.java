@@ -8,6 +8,7 @@ import mills.ring.EntryTable;
 import mills.ring.IndexedEntryTable;
 import mills.ring.RingEntry;
 import mills.util.AbstractRandomArray;
+import mills.util.AbstractRandomList;
 import mills.util.ConcurrentCompleter;
 
 import java.util.Arrays;
@@ -60,9 +61,14 @@ class T0Builder extends ConcurrentCompleter {
         return (short) (pattern % M);
     }
 
-    RingEntry getEntry(int index) {
+    short getEntryIndex(int index) {
         int pattern = table[index];
-        int i1 = (pattern / M) % RingEntry.MAX_INDEX;
+        int key = (pattern / M) % RingEntry.MAX_INDEX;
+        return (short) key;
+    }
+
+    RingEntry getEntry(int index) {
+        int i1 = getEntryIndex(index);
         return Entries.entry(i1);
     }
 
@@ -83,7 +89,7 @@ class T0Builder extends ConcurrentCompleter {
         //}
     }
 
-    void add(int index) {
+    void addIndex(int index) {
         if (table == null)
             table = new int[1024];
         else if (size >= table.length)
@@ -92,7 +98,13 @@ class T0Builder extends ConcurrentCompleter {
         table[size++] = index;
     }
 
-    void add(PopCount clop, RingEntry r0, int i1) {
+    /**
+     * Build a compact index from the given values.
+     * @param clop pop count of closings
+     * @param r0 Ring Entry
+     * @param i1 index of
+     */
+    int buildIndex(PopCount clop, RingEntry r0, int i1) {
         if (i1 >= M)
             throw new IndexOutOfBoundsException("IndexedEntryTable to big");
 
@@ -100,7 +112,7 @@ class T0Builder extends ConcurrentCompleter {
         if (i1 < 0)
             throw new IndexOutOfBoundsException("IndexedEntryTable negative index");
 
-        add(i1);
+        return i1;
     }
 
     void build(RingEntry r2) {
@@ -138,16 +150,19 @@ class T0Builder extends ConcurrentCompleter {
             for (IndexedEntryTable t1 : t1tables) {
                 PopCount clop = t1.getFirst().clop(rad).add(clop20);
 
+                // to eliminate r201 permutations when jumping the whole array it limited.
                 RingEntry limit = group.limit(r2, r0);
                 if(limit!=null) {
                     EntryTable l1 = t1.tailSet(limit);
                     if(l1.isEmpty())
                         continue;
-
+                    // truncate the table, possibly by allocating a new IndexedEntryTable.
                     t1 = partition.tables.getTable(l1);
                 }
 
-                add(clop, r0, t1.getIndex());
+                // collect all fragments of different clop and r0
+                int index = buildIndex(clop, r0, t1.getIndex());
+                addIndex(index);
             }
         }
 
@@ -157,14 +172,16 @@ class T0Builder extends ConcurrentCompleter {
         if (size > 1)
             Arrays.sort(table, 0, size);
 
-        add(-1); // terminal dummy index
+        addIndex(-1); // terminal dummy index
 
+        // group indexes by increasing clop count starting with first index.
         int offt = 0;
         int clop = getClopIndex(0);
 
         for (int i = 1; i < size; ++i) {
             int iclop = getClopIndex(i);
             if (iclop != clop) {
+                // entering next group of clops, submit current group to the associated builder.
                 C2Builder c2Builder = group.builders.getOf(clop);
                 if (c2Builder != null) {
                     R0Table r0t = build(pop0, offt, i - offt);
@@ -176,10 +193,10 @@ class T0Builder extends ConcurrentCompleter {
         }
     }
 
-    private R0Table build(PopCount pop0, int offt, int size) {
+    private R0Table<IndexedEntryTable> build(final PopCount pop0, final int offt, final int size) {
 
         if (size == 0)
-            return R0Table.EMPTY;
+            return R0Table.emptyTable();
 
         if (size == 1) {
             RingEntry r0 = getEntry(offt);
@@ -189,27 +206,28 @@ class T0Builder extends ConcurrentCompleter {
             return R0Table.of(r0.singleton(), List.of(t1));
         }
 
-        EntryTable t0 = EntryTable.of(new AbstractRandomArray<>(size) {
-            @Override
-            public RingEntry get(int index) {
-                return getEntry(index + offt);
-            }
-        });
+        List<RingEntry> tmp = AbstractRandomList.virtual(size, i -> getEntry(i+offt));
+        EntryTable t0 = EntryTable.of(tmp);
 
         short[] s1 = new short[size];
         for (int index = 0; index < size; ++index) {
             s1[index] = getKey(index + offt);
-        }
+         }
 
-        List<EntryTable> t1 = new AbstractRandomArray<>(size) {
-            @Override
-            public IndexedEntryTable get(int index) {
-                RingEntry r0 = t0.get(index);
-                PopCount pop1 = pop0.sub(r0.pop);
-                int key = s1[index];
-                return group.partitions.get(pop1).tables.get(key);
-            }
-        };
+         List<IndexedEntryTable> t1 = new AbstractRandomArray<>(size) {
+             @Override
+             public IndexedEntryTable get(int index) {
+                 RingEntry r0 = t0.get(index);
+                 PopCount pop1 = pop0.sub(r0.pop);
+                 int key = s1[index];
+                 return group.partitions.get(pop1).tables.get(key);
+             }
+         };
+
+        // materialize small lists
+        if(size<16) {
+            t1 = List.copyOf(t1);
+        }
 
         return R0Table.of(t0, t1);
     }

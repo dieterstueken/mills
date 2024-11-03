@@ -35,7 +35,7 @@ public class IndexGroup implements PosIndex {
      */
     class Table extends C2Table {
 
-        Table(PopCount pop, PopCount clop, EntryMap<R0Table> tables) {
+        Table(PopCount pop, PopCount clop, EntryMap<R0Table<?>> tables) {
             super(pop, clop, tables.keySet(), tables.values());
         }
 

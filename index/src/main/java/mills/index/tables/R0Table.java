@@ -20,7 +20,7 @@ import static mills.position.Positions.i1;
  * Date: 07.07.12
  * Time: 12:25
  */
-public class R0Table extends IndexedMap<EntryTable> {
+public class R0Table<T extends EntryTable> extends IndexedMap<T> {
 
     int idx01(long i201) {
         final short i0 = i0(i201);
@@ -101,32 +101,37 @@ public class R0Table extends IndexedMap<EntryTable> {
         return true;
     }
 
-    R0Table(EntryTable t0, List<EntryTable> t1, IndexTable it) {
+    R0Table(EntryTable t0, List<T> t1, IndexTable it) {
         super(t0, t1, it);
     }
 
-    public static final R0Table EMPTY = new R0Table(
+    private static final R0Table<EntryTable> EMPTY = new R0Table<>(
             EntryTable.empty(), Collections.<EntryTable>emptyList(), IndexTable.EMPTY
     );
 
-    public static R0Table of(EntryTable r0, List<EntryTable> t1, IndexTable it) {
+    @SuppressWarnings("unchecked")
+    public static <T extends EntryTable> R0Table<T> emptyTable() {
+        return (R0Table<T>) EMPTY;
+    }
+
+    public static <T extends EntryTable> R0Table<T> of(EntryTable r0, List<T> t1, IndexTable it) {
         assert r0.size() == it.size();
         assert r0.size() == t1.size();
 
         if(r0.isEmpty())
-            return EMPTY;
+            return emptyTable();
 
-        return new R0Table(r0, t1, it);
+        return new R0Table<>(r0, t1, it);
     }
 
-    public static R0Table of(EntryTable r0, List<EntryTable> t1) {
+    public static <T extends EntryTable> R0Table<T> of(EntryTable r0, List<T> t1) {
         if(r0.isEmpty())
-            return EMPTY;
+            return emptyTable();
 
         return of(r0, t1, IndexTable.sum(t1, Collection::size));
     }
 
-    public static R0Table of(List<RingEntry> r0, List<EntryTable> t1) {
+    public static <T extends EntryTable> R0Table<T> of(List<? extends RingEntry> r0, List<T> t1) {
         return of(EntryTable.of(r0), t1);
     }
 

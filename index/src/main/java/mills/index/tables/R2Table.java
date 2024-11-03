@@ -16,7 +16,7 @@ import java.util.List;
  * modified by: $Author$
  * modified on: $Date$
  */
-abstract public class R2Table extends IndexedMap<R0Table> implements PosIndex {
+abstract public class R2Table extends IndexedMap<R0Table<?>> implements PosIndex {
 
     public int posIndex(long i201) {
 
@@ -86,7 +86,7 @@ abstract public class R2Table extends IndexedMap<R0Table> implements PosIndex {
         return pop;
     }
 
-    R2Table(final PopCount pop, EntryTable t2, List<R0Table> t0) {
+    R2Table(final PopCount pop, EntryTable t2, List<R0Table<?>> t0) {
         super(t2, t0, R0Table::range);
 
         this.pop = pop;

@@ -24,7 +24,7 @@ abstract public class C2Table extends R2Table implements IClops {
         return other instanceof C2Table c2t && IClops.equals(this, c2t);
     }
 
-    public C2Table(PopCount pop, PopCount clop, EntryTable t2, List<R0Table> t0) {
+    public C2Table(PopCount pop, PopCount clop, EntryTable t2, List<R0Table<?>> t0) {
         super(pop, t2, t0);
         this.clop = clop;
     }

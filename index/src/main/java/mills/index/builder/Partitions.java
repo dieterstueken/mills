@@ -31,6 +31,8 @@ class Partitions extends PopMap<Partition> {
 
     @Override
     public Partition get(PopCount pop) {
+        if(pop==null)
+            return null;
 
         assert keySet.get(pop.index)==pop;
 
