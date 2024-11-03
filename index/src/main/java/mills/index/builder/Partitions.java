@@ -71,15 +71,13 @@ class Partitions extends PopMap<Partition> {
 
         Partitions pts = Partitions.create(ForkJoinPool.commonPool());
 
-        pts.dump("root:", pt->String.format("%5d", pt.root.size()));
-        pts.dump("max frag size:", pt-> {
-            int max = 0;
-            for (Fragments fm : pt.fragments) {
-                max = Math.max(max, fm.root.size());
-            }
-            return String.format("%5d", pt.root.size());
-        }
-        );
-        pts.dump("tables:", pt->String.format("%5d", pt.tables.count()));
+        pts.dump("root:", pt-> pt.root.isEmpty() ? "" :String.format("%5d", pt.root.size()));
+        pts.dump("max frag size:", Partitions::maxFrag);
+        pts.dump("tables:", pt->pt.tables.count()==0 ? "" : String.format("%5d", pt.tables.count()));
+    }
+
+    private static String maxFrag(Partition pt) {
+        int max = pt.fragments.stream().flatMap(f->f.fragments.stream()).mapToInt(List::size).reduce(0, Math::max);
+        return max==0 ? "" : String.format("%5d", max);
     }
 }

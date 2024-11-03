@@ -14,12 +14,10 @@ class PartitionsTest {
 
     @Test
     void testPartitions() {
-        Partitions partitions = Partitions.create(ForkJoinPool.commonPool());
-        partitions.forEach((pop, partition)  -> {
-            int count = partition.tables.count();
-            if(count>0)
-                System.out.format("%s: %d\n", pop, count);
-        });
+        Partitions partitions = IndexTests.timer("partitons", () -> Partitions.create(ForkJoinPool.commonPool()));
+
+        partitions.dump("root:", pt->String.format("%5d", pt.root.size()));
+        partitions.dump("tables:", pt->String.format("%5d", pt.tables.count()));
 
         Stat stat = new Stat();
 
