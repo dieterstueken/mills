@@ -1,9 +1,11 @@
 package mills.bits;
 
 import mills.util.Indexed;
+import mills.util.Indexer;
 import mills.util.listset.DirectListSet;
-import mills.util.listset.ListSet;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -43,25 +45,27 @@ public class PopCount implements Indexed, Comparable<PopCount> {
      * @return a compact index for positive populations.
      */
     public static int getIndex(int nb, int nw) {
-
-        if (Math.min(nb, nw)<0)
-            return -1;
-
-        int m = Math.max(nb, nw)+1;
-        m *= m;
-
-        int d = 2*(nb-nw);
-        m += d>0 ? 1-d : d;
-
-        return m-1;
+        PopCount pop = of(nb, nw);
+        if(pop==null)
+            throw new IllegalArgumentException("invalid pop count");
+        return pop.index;
     }
 
     public int getIndex() {
         return 0xff&index;
     }
 
+    @Override
+    public int compareTo(PopCount o) {
+        return Indexed.super.compareTo(o);
+    }
+
     public int sum() {
         return nb + nw;
+    }
+
+    public int div() {
+        return Math.abs(nb -nw);
     }
 
     public boolean isEven() {
@@ -83,10 +87,6 @@ public class PopCount implements Indexed, Comparable<PopCount> {
 
     public PopCount remains() {
         return _of(9 - nb, 9 - nw);
-    }
-
-    public PopCount truncate(int max) {
-        return _of(Math.min(nb, max), Math.min(nw, max));
     }
 
     /**
@@ -140,6 +140,10 @@ public class PopCount implements Indexed, Comparable<PopCount> {
 
     public boolean le(PopCount other) {
         return other != null && nb <= other.nb && nw <= other.nw;
+    }
+
+    public boolean lt(PopCount other) {
+        return other != null && nb < other.nb || nw < other.nw;
     }
 
     public boolean ge(PopCount other) {
@@ -213,37 +217,20 @@ public class PopCount implements Indexed, Comparable<PopCount> {
 
     public final Predicate<BW> le = (bw) -> bw != null && bw.pop.le(this);
 
-    public final Predicate<BW> gt = (bw) -> bw != null && !bw.pop.le(this);
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PopCount pop)) return false;
-
-        if (nb != pop.nb) return false;
-        if (nw != pop.nw) return false;
-
-        return true;
+        return o==this || o instanceof PopCount pop && equals(pop);
     }
+
+    public boolean equals(PopCount pop) {
+           if (nb != pop.nb) return false;
+           if (nw != pop.nw) return false;
+           return true;
+       }
 
     @Override
     public int hashCode() {
         return index;
-    }
-
-    /**
-     * Create a new PopCount.
-     * Use factory of() to benefit from pre calculated instances
-     *
-     * @param nb black population count.
-     * @param nw white population count.
-     */
-    private PopCount(int nb, int nw) {
-        this.nb = (byte) nb;
-        this.nw = (byte) nw;
-        this.index = (byte) getIndex(nb, nw);
-
-        this.string = String.format("%X:%X", nb, nw);
     }
 
     private final String string;
@@ -284,21 +271,69 @@ public class PopCount implements Indexed, Comparable<PopCount> {
      * @return a PopCount describing the given occupations.
      */
     public static PopCount get(int nb, int nw) {
-        int index = getIndex(nb, nw);
-        if (index < SIZE)
-            return TABLE.get(index);
+        if(Math.min(nb, nw)<0)
+            return null;
 
-        // create an individual PopCount
-        return new PopCount(nb, nw);
+        if(Math.max(nb, nw)>9)
+            return null;
+
+        return VALUES.get(10*nb + nw);
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
-    public static final int SIZE = 100;  // index(9,9)+1
+    /**
+     * Create a new PopCount.
+     * Use factory of() to benefit from pre calculated instances
+     *
+     * @param nb black population count.
+     * @param nw white population count.
+     */
+    private PopCount(int nb, int nw, int index) {
+        this.nb = (byte) nb;
+        this.nw = (byte) nw;
+        this.index = (byte) index;
 
+        this.string = String.format("%X:%X", nb, nw);
+    }
 
-    // PopCounts <= (9,9)
-    public static final DirectListSet<PopCount> TABLE = DirectListSet.of(values());
+    public static final int SIZE = 100;
+
+    // internal list by 10*nb+nw.
+    public static final List<PopCount> VALUES;
+
+    // ordered by index.
+    public static final DirectListSet<PopCount> TABLE;
+
+    public static PopCount get(int index) {
+        return TABLE.get(index);
+    }
+
+    static {
+
+        // indexes to create for 10*nb+nw.
+        int[] index = {
+                     0, 1, 5, 9,13,25,29,35,43,53,
+                     2, 3, 7,11,17,27,33,41,51,63,
+                     4, 6,10,15,21,31,39,49,61,71,
+                     8,12,16,19,23,37,47,59,69,77,
+                    14,18,20,22,24,45,57,67,75,83,
+                    26,28,32,38,46,55,65,73,81,89,
+                    30,34,40,48,56,64,72,79,87,93,
+                    36,42,50,58,66,74,80,85,91,95,
+                    44,52,60,68,76,82,86,90,94,97,
+                    54,62,70,78,84,88,92,96,98,99
+            };
+
+        // create values.
+        PopCount[] values = new PopCount[100];
+
+        Arrays.setAll(values, bw -> new PopCount(bw/10, bw%10, index[bw]));
+        VALUES = List.of(values);
+
+        Arrays.sort(values, Indexer.INDEXED);
+        TABLE = DirectListSet.of(values);
+    }
 
     public static final PopCount EMPTY = get(0,0);
     public static final PopCount P11 = get(1,1);
@@ -307,31 +342,13 @@ public class PopCount implements Indexed, Comparable<PopCount> {
     public static final PopCount P88 = get(8,8);
     public static final PopCount P99 = get(9,9);
 
+    // # of entries with pop.sum() < 9 (single ring)
+    public static final int SRPOPS = 9*10/2;
+    public static final DirectListSet<PopCount> SRPOP = TABLE.headSet(SRPOPS);
+
     // # of closed mills (0-4)
     public static final int NCLOPS = P44.index+1;
-    public static final ListSet<PopCount> CLOPS = TABLE.headSet(NCLOPS);
-
-    // clop counts with at least one closed mill.
-    public static final ListSet<PopCount> CLOSED = TABLE.subList(1, NCLOPS);
-
-    public static PopCount get(int index) {
-        return TABLE.get(index);
-    }
-
-    private static PopCount[] values() {
-
-        PopCount[] table = new PopCount[SIZE];
-        for (int nw = 0; nw < 10; ++nw) {
-            for (int nb = 0; nb < 10; ++nb) {
-                PopCount p = new PopCount(nb, nw);
-                int index = p.getIndex();
-                assert table[index]==null;
-                table[index] = p;
-            }
-        }
-
-        return table;
-    }
+    public static final DirectListSet<PopCount> CLOPS = TABLE.headSet(NCLOPS);
 
     /**
      * Dump table.
@@ -343,25 +360,20 @@ public class PopCount implements Indexed, Comparable<PopCount> {
         System.out.println("PopCount index");
 
         System.out.print("b\\w");
-        for (int nw = 0; nw < 12; ++nw) {
+        for (int nw = 0; nw < 10; ++nw) {
             System.out.format("  %X ", nw);
         }
         System.out.println();
 
-        for (int nb = 0; nb < 12; ++nb) {
+        for (int nb = 0; nb < 10; ++nb) {
             System.out.format("%X ", nb);
 
-            for (int nw = 0; nw < 12; ++nw) {
+            for (int nw = 0; nw < 10; ++nw) {
                 final PopCount p = PopCount.of(nb, nw);
                 System.out.format("%4d", p.getIndex());
             }
 
             System.out.println();
         }
-    }
-
-    @Override
-    public int compareTo(PopCount o) {
-        return Indexed.super.compareTo(o);
     }
 }

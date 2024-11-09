@@ -20,8 +20,8 @@ public class PopMap<T> extends ListMap<PopCount, T> {
     }
 
     public static <T> PopMap<T> of(ListSet<PopCount> keys, List<T> values) {
-        if(keys instanceof DirectListSet<PopCount>)
-            return ofDirect(keys, values);
+        if(keys instanceof DirectListSet<PopCount> dls)
+            return new DirectPopMap<>(dls, values);
         else
             return new PopMap<>(keys, values);
     }
@@ -40,21 +40,8 @@ public class PopMap<T> extends ListMap<PopCount, T> {
         };
     }
 
-    public static <T> PopMap<T> ofDirect(ListSet<PopCount> keys, List<T> values) {
-
-        assert DirectListSet.isDirect(keys);
-
-        return new PopMap<>(keys, values) {
-            @Override
-            public T get(PopCount pop) {
-                return getValue(pop.index);
-            }
-
-            @Override
-            public T getOf(int index) {
-                return getValue(index);
-            }
-        };
+    public static <T> PopMap<T> ofDirect(DirectListSet<PopCount> keys, List<T> values) {
+        return new DirectPopMap<>(keys, values);
     }
 
     static <T> PopMap<T> of(List<T> values) {
@@ -108,7 +95,7 @@ public class PopMap<T> extends ListMap<PopCount, T> {
         System.out.println(head);
 
         for (int nb = 0; nb < 9; nb++) {
-            for (int nw = 0; nw < 9; nw++) {
+            for (int nw = 0; nw+nb < 9; nw++) {
                 PopCount pop = PopCount.of(nb, nw);
                 T pt = get(pop);
                 System.out.print(dump.apply(pt));

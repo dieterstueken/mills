@@ -29,6 +29,7 @@ class PartitionsTest {
                 .forEach(stat);
               
         stat.dump("stat");
+
     }
 
     static boolean isCompact(EntryTable table) {

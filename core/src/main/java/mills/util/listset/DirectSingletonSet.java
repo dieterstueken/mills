@@ -7,7 +7,8 @@ class DirectSingletonSet<T extends Indexed> extends SingletonSet<T> implements D
     public DirectSingletonSet(T value) {
         super(value);
 
-        if (!DirectListSet.isDirect(value))
+        // to be a direct DirectSingletonSet requires: this.get(0) == value == 0
+        if (value.getIndex()!=0)
             throw new IllegalArgumentException("Index not 0: " + value.getIndex());
     }
 

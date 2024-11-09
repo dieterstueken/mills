@@ -63,8 +63,4 @@ public interface DirectListSet<T extends Indexed> extends IndexedListSet<T> {
         }
         return true;
     }
-
-    static boolean isDirect(Indexed value) {
-        return value.getIndex()!=0;
-    }
 }

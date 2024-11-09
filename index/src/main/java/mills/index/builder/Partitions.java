@@ -3,6 +3,7 @@ package mills.index.builder;
 import mills.bits.PopCount;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
+import mills.util.listset.DirectPopMap;
 import mills.util.listset.PopMap;
 
 import java.util.Arrays;
@@ -15,7 +16,7 @@ import java.util.concurrent.ForkJoinPool;
  * Date: 26.01.21
  * Time: 21:31
  */
-class Partitions extends PopMap<Partition> {
+class Partitions extends DirectPopMap<Partition> {
 
     final PopMap<EntryTable> lePops;
     final PopMap<EntryTable> minPops;
@@ -23,7 +24,7 @@ class Partitions extends PopMap<Partition> {
     final ForkJoinPool pool;
 
     protected Partitions(ForkJoinPool pool, List<Partition> partitions, PopMap<EntryTable> lePops, PopMap<EntryTable> minPops) {
-        super(PopCount.TABLE, partitions);
+        super(PopCount.SRPOP, partitions);
         this.lePops = lePops;
         this.minPops = minPops;
         this.pool = pool;
@@ -59,10 +60,10 @@ class Partitions extends PopMap<Partition> {
 
     private static List<Partition> partitions() {
 
-        Partition[] fragments = new Partition[PopCount.SIZE];
+        Partition[] fragments = new Partition[PopCount.SRPOPS];
         Arrays.fill(fragments, Partition.EMPTY);
 
-        PopCount.TABLE.stream().filter(pop->pop.sum()<=8)
+        PopCount.SRPOP.stream().filter(pop->pop.sum()<=8)
                 .parallel()
                 .forEach(pop -> fragments[pop.index] = Partition.of(pop));
 
@@ -75,7 +76,7 @@ class Partitions extends PopMap<Partition> {
 
         pts.dump("root:", pt-> pt.root.isEmpty() ? "" :String.format("%5d", pt.root.size()));
         pts.dump("max frag size:", Partitions::maxFrag);
-        pts.dump("tables:", pt->pt.tables.count()==0 ? "" : String.format("%5d", pt.tables.count()));
+        pts.dump("tables:", pt->String.format("%5d", pt.tables.count()));
     }
 
     private static String maxFrag(Partition pt) {

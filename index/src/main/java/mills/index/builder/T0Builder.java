@@ -134,6 +134,9 @@ class T0Builder extends ConcurrentCompleter {
             // debug(r0, r2);
 
             PopCount pop1 = pop0.sub(r0.pop);
+            if(pop1.sum()>8)
+                continue;
+
             final Partition partition = group.partitions.get(pop1);
 
             if (partition.isEmpty())
