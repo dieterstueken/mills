@@ -62,13 +62,13 @@ public interface EntryTable extends IndexedListSet<RingEntry> {
     @Override
     EntryTable subList(int fromIndex, int toIndex);
 
+    @Override
     EntryTable subSet(RingEntry fromElement, RingEntry toElement);
 
     @Override
     EntryTable headSet(RingEntry toElement);
 
-    @Override
-    default EntryTable headSet(int size) {
+    default EntryTable headList(int size) {
         return subList(0, size);
     }
 

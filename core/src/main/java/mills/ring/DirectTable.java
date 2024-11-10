@@ -19,5 +19,5 @@ public interface DirectTable extends EntryTable, DirectListSet<RingEntry> {
     DirectTable headSet(RingEntry toElement);
 
     @Override
-    DirectTable headSet(int size);
+    DirectTable headList(int size);
 }

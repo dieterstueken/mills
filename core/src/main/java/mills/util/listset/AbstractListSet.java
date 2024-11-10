@@ -2,6 +2,7 @@ package mills.util.listset;
 
 import mills.util.AbstractRandomList;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,14 +29,14 @@ abstract public class AbstractListSet<T> extends AbstractRandomList<T> implement
             return this;
 
         if(fromIndex==0)
-            return headSet(toIndex);
+            return headList(toIndex);
 
         return subSet(fromIndex, size);
     }
 
     abstract public ListSet<T> subSet(int offset, int size);
 
-    public ListSet<T> headSet(int size) {
+    public ListSet<T> headList(int size) {
         return subSet(0, size);
     }
 
@@ -50,11 +51,13 @@ abstract public class AbstractListSet<T> extends AbstractRandomList<T> implement
         if (o == this)
             return true;
 
-        if (!(o instanceof List<?> l))
+        // not a collection or wrong size
+        if (!(o instanceof Collection<?> c) || c.size()!=this.size())
             return false;
 
-        if (l.size() != size())
-            return false;
+        // not a list, ask other one.
+        if (!(o instanceof List<?> l))
+            return o.equals(this);
 
         for(int i=0; i<size(); ++i) {
             if(!Objects.equals(get(i), l.get(i)))

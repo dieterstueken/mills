@@ -44,6 +44,9 @@ public class ListSetTest {
         assertTrue(iset.remove(7));
         assertEquals(list, iset);
 
+        list.add(7);
+        iset.add(7);
+        assertEquals(list, iset);
     }
 
     @Test

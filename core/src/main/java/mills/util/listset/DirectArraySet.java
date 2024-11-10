@@ -25,7 +25,7 @@ public class DirectArraySet<T extends Indexed> extends ArraySet<T> implements Di
         return new DirectHeadSet<>(entries, size);
     }
 
-    public DirectListSet<T> headSet(int size) {
+    public DirectListSet<T> headList(int size) {
         if(size == size())
             return this;
 
@@ -33,23 +33,6 @@ public class DirectArraySet<T extends Indexed> extends ArraySet<T> implements Di
             throw new IllegalArgumentException("increasing size: " + size);
 
         return of(entries, size);
-    }
-
-    protected static class DirectHeadSet<T extends Indexed> extends ArraySet.HeadSet<T> implements DirectListSet<T> {
-
-        public DirectHeadSet(T[] entries, int size) {
-            super(entries, size);
-        }
-
-        public DirectListSet<T> headSet(int size) {
-            if(size == size())
-                return this;
-
-            if(size>size())
-                throw new IllegalArgumentException("increasing size: " + size);
-
-            return DirectArraySet.of(entries, size);
-        }
     }
 
 }

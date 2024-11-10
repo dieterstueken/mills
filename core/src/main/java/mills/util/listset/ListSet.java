@@ -101,15 +101,9 @@ public interface ListSet<T> extends RandomList<T>, SortedSet<T> {
         return subList(lowerBound(fromElement), lowerBound(toElement));
     }
 
-    ListSet<T> subSet(int offset, int size);
-
     @Override
     default ListSet<T> headSet(T toElement) {
-        return headSet(lowerBound(toElement));
-    }
-
-    default ListSet<T> headSet(int toIndex) {
-        return subList(0, toIndex);
+        return subList(0, lowerBound(toElement));
     }
 
     @Override

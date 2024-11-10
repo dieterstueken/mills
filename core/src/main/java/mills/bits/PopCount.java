@@ -247,35 +247,35 @@ public class PopCount implements Indexed, Comparable<PopCount> {
     }
 
     /**
-     * Return a PopCount, either from the predefined table or create some new one.
-     * Return null if either count is negative.
+     * Get a PopCount from given positive population counts.
      *
      * @param nb black population count.
      * @param nw white population count.
-     * @return a PopCount describing the given occupations, or null if negative.
+     * @return a PopCount describing the given occupations, or null for indexes out of range
      */
     public static PopCount of(int nb, int nw) {
-
-        if (Math.min(nb, nw)<0)
-            return null;
-        else
-            return get(nb, nw);
-    }
-
-    /**
-     * Get a PopCount from given positive population counts.
-     * PopCount beyond 100 are  not cached but generated.
-     *
-     * @param nb black population count.
-     * @param nw white population count.
-     * @return a PopCount describing the given occupations.
-     */
-    public static PopCount get(int nb, int nw) {
         if(Math.min(nb, nw)<0)
             return null;
 
         if(Math.max(nb, nw)>9)
             return null;
+
+        return VALUES.get(10*nb + nw);
+    }
+
+    /**
+     * Get a PopCount from given positive population counts.
+     *
+     * @param nb black population count.
+     * @param nw white population count.
+     * @return a PopCount describing the given occupations.
+     * @throws IndexOutOfBoundsException for invalid indexes.
+     */
+    public static PopCount get(int nb, int nw) {
+        PopCount popCount = of(nb, nw);
+
+        if(popCount==null)
+            throw new IndexOutOfBoundsException(String.format("[%d,%d]", nb, nw));
 
         return VALUES.get(10*nb + nw);
     }
@@ -336,19 +336,16 @@ public class PopCount implements Indexed, Comparable<PopCount> {
     }
 
     public static final PopCount EMPTY = get(0,0);
-    public static final PopCount P11 = get(1,1);
-    public static final PopCount P33 = get(3,3);
     public static final PopCount P44 = get(4,4);
-    public static final PopCount P88 = get(8,8);
     public static final PopCount P99 = get(9,9);
 
     // # of entries with pop.sum() < 9 (single ring)
-    public static final int SRPOPS = 9*10/2;
-    public static final DirectListSet<PopCount> SRPOP = TABLE.headSet(SRPOPS);
+    public static final int NPOPS88 = 9*10/2;
+    public static final DirectListSet<PopCount> POPS88 = TABLE.headList(NPOPS88);
 
     // # of closed mills (0-4)
-    public static final int NCLOPS = P44.index+1;
-    public static final DirectListSet<PopCount> CLOPS = TABLE.headSet(NCLOPS);
+    public static final int NCLOPS = 5*5;
+    public static final DirectListSet<PopCount> CLOPS = TABLE.headList(NCLOPS);
 
     /**
      * Dump table.

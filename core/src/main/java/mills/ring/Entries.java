@@ -4,6 +4,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
+import static mills.ring.RingEntry.MAX_INDEX;
+
 /**
  * version:     $
  * created by:  d.stueken
@@ -18,7 +20,7 @@ public interface Entries {
      */
     RingTable TABLE = new RingTable();
     MinEntry EMPTY = TABLE.getFirst();
-    DirectTable RADIALS = TABLE.headSet(81);
+    DirectTable RADIALS = TABLE.headList(81);
     EntryTable MINIMIZED = TABLE.filter(RingEntry::isMin);
 
     static RingEntry entry(int index) {
@@ -27,6 +29,13 @@ public interface Entries {
 
     static RingEntry empty() {
         return EMPTY;
+    }
+
+    static short validateIndex(int index) {
+        if(index<0 || index>=MAX_INDEX)
+            throw new IndexOutOfBoundsException("invalid index: " + index);
+
+        return (short) index;
     }
 
     Predicate<RingEntry> ALL  = e -> true;

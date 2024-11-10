@@ -23,6 +23,10 @@ public interface IndexedListSet<T extends Indexed> extends ListSet<T> {
         return Indexer.INDEXED.binarySearchKey(this, key);
     }
 
+    default int findIndex(T entry) {
+        return findIndex(entry.getIndex());
+    }
+
     default int indexOf(Object o) {
         return o instanceof Indexed idx ? findIndex(idx.getIndex()) : -1;
     }

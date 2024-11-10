@@ -15,6 +15,9 @@ class PopCountTest {
 
     @Test
     public void testPops() {
+
+        assertEquals(PopCount.P44.index+1, PopCount.NCLOPS);
+
         PopCount.TABLE.forEach(this::testPop);
     }
 

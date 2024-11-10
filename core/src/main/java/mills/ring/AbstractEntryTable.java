@@ -19,6 +19,7 @@ import java.util.function.Predicate;
  */
 abstract public class AbstractEntryTable extends AbstractIndexedSet<RingEntry> implements EntryTable {
 
+    @Override
     public int indexOf(RingEntry entry) {
         return findIndex(entry.index);
     }
@@ -87,11 +88,11 @@ abstract public class AbstractEntryTable extends AbstractIndexedSet<RingEntry> i
 
     @Override
     public EntryTable headSet(RingEntry toElement) {
-        return headSet(lowerBound(toElement.index));
+        return this.headList(lowerBound(toElement.index));
     }
 
     @Override
-    public EntryTable headSet(int size) {
+    public EntryTable headList(int size) {
         return subList(0, size);
     }
 

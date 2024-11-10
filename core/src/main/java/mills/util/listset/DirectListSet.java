@@ -24,13 +24,11 @@ public interface DirectListSet<T extends Indexed> extends IndexedListSet<T> {
         return key;
     }
 
-    @Override
-    default DirectListSet<T> headSet(T toElement) {
-        return headSet(lowerBound(toElement));
+    default DirectListSet<T> headList(T toElement) {
+        return headList(lowerBound(toElement));
     }
 
-    @Override
-    DirectListSet<T> headSet(int toIndex);
+    DirectListSet<T> headList(int toIndex);
 
     static boolean isDirect(List<? extends Indexed> values) {
         for (int i = 0; i < values.size(); i++) {

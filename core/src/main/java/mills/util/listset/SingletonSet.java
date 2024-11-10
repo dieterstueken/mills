@@ -39,13 +39,13 @@ public class SingletonSet<T extends Indexed> extends AbstractIndexedSet<T> {
     public IndexedListSet<T> subSet(int fromIndex, int size) {
 
         if (fromIndex == 0)
-            return headSet(size);
+            return this.headList(size);
 
         throw new IllegalArgumentException("Size = " + size);
     }
 
     @Override
-    public IndexedListSet<T> headSet(int size) {
+    public IndexedListSet<T> headList(int size) {
 
         if (size == 0)
             return empty();

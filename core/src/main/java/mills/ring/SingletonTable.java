@@ -70,7 +70,7 @@ class SingletonTable extends AbstractEntryTable implements IndexedEntryTable {
     }
 
     @Override
-    public EntryTable headSet(final int size) {
+    public EntryTable headList(final int size) {
 
         if (size == 0)
             return EntryTable.empty();
@@ -115,7 +115,6 @@ class SingletonTable extends AbstractEntryTable implements IndexedEntryTable {
 
     @Override
     public Iterator<RingEntry> iterator() {
-        //return Iterators.singletonIterator(entry());
         return super.iterator();
     }
 
@@ -134,7 +133,7 @@ class SingletonTable extends AbstractEntryTable implements IndexedEntryTable {
         return 31 + entry.hashCode();
     }
 
-    public static class Direct extends SingletonTable implements DirectTable {
+    static class Direct extends SingletonTable implements DirectTable {
 
         Direct(final RingEntry entry) {
             super(entry);
@@ -150,7 +149,7 @@ class SingletonTable extends AbstractEntryTable implements IndexedEntryTable {
         }
 
         @Override
-        public DirectTable headSet(final int size) {
+        public DirectTable headList(final int size) {
 
             if (size == 0)
                 return EntryTable.empty();

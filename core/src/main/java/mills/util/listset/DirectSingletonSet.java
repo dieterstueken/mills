@@ -12,7 +12,7 @@ class DirectSingletonSet<T extends Indexed> extends SingletonSet<T> implements D
             throw new IllegalArgumentException("Index not 0: " + value.getIndex());
     }
 
-    public DirectListSet<T> headSet(int size) {
+    public DirectListSet<T> headList(int size) {
 
         if (size == 0)
             return empty();

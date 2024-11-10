@@ -47,11 +47,11 @@ public class RingArray extends AbstractEntryTable implements DirectTable {
 
     @Override
     public DirectTable headSet(final RingEntry toElement) {
-        return headSet(Math.min(toElement.index, size));
+        return headList(Math.min(toElement.index, size));
     }
 
     @Override
-    public DirectTable headSet(final int size) {
+    public DirectTable headList(final int size) {
         if(size==size())
             return this;
 
@@ -83,13 +83,5 @@ public class RingArray extends AbstractEntryTable implements DirectTable {
     @Override
     public short ringIndex(final int index) {
         return super.ringIndex(index);
-    }
-
-    @Override
-    public EntryTable subSet(final int fromIndex, final int size) {
-        if(fromIndex==0)
-            return headSet(size);
-        else
-            return super.subSet(fromIndex, size);
     }
 }

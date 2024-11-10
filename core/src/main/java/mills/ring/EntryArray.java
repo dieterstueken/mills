@@ -2,6 +2,8 @@ package mills.ring;
 
 import java.util.Arrays;
 
+import static mills.ring.Entries.entry;
+
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -32,10 +34,6 @@ public class EntryArray extends AbstractEntryTable {
     public RingEntry get(int i) {
         final int index = ringIndex(i);
         return entry(index);
-    }
-
-    protected RingEntry entry(int index) {
-        return Entries.entry(index);
     }
 
     @Override

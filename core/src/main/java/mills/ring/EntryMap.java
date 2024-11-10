@@ -229,7 +229,7 @@ public class EntryMap<T> implements SortedMap<RingEntry, T> {
         return filter(key -> predicate.test(get(key)));
     }
 
-    public class EntrySet extends AbstractRandomList<Map.Entry<RingEntry, T>> implements Set<Map.Entry<RingEntry, T>> {
+    class EntrySet extends AbstractRandomList<Map.Entry<RingEntry, T>> implements Set<Map.Entry<RingEntry, T>> {
 
         @Override
         public int size() {

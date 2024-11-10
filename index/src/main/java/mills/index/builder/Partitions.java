@@ -24,7 +24,7 @@ class Partitions extends DirectPopMap<Partition> {
     final ForkJoinPool pool;
 
     protected Partitions(ForkJoinPool pool, List<Partition> partitions, PopMap<EntryTable> lePops, PopMap<EntryTable> minPops) {
-        super(PopCount.SRPOP, partitions);
+        super(PopCount.POPS88, partitions);
         this.lePops = lePops;
         this.minPops = minPops;
         this.pool = pool;
@@ -60,10 +60,10 @@ class Partitions extends DirectPopMap<Partition> {
 
     private static List<Partition> partitions() {
 
-        Partition[] fragments = new Partition[PopCount.SRPOPS];
+        Partition[] fragments = new Partition[PopCount.NPOPS88];
         Arrays.fill(fragments, Partition.EMPTY);
 
-        PopCount.SRPOP.stream().filter(pop->pop.sum()<=8)
+        PopCount.POPS88.stream().filter(pop->pop.sum()<=8)
                 .parallel()
                 .forEach(pop -> fragments[pop.index] = Partition.of(pop));
 

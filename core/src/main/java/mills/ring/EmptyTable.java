@@ -46,7 +46,7 @@ class EmptyTable extends AbstractEntryTable implements IndexedEntryTable, Direct
     }
 
     @Override
-    public EmptyTable headSet(int toIndex) {
+    public EmptyTable headList(int toIndex) {
         if(toIndex!=0)
             throw new IllegalArgumentException("Size = " + toIndex);
 
