@@ -24,7 +24,7 @@ import java.util.function.Predicate;
  * PopCounts<100 are provided by a precalculated lookup table.
  */
 
-public class PopCount implements Indexed, Comparable<PopCount> {
+public class PopCount implements Pop, Indexed, Comparable<PopCount> {
 
     public final byte nb;
     public final byte nw;

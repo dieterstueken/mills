@@ -37,14 +37,6 @@ public class BW extends Patterns implements Indexed, Comparable<BW> {
         return PopCount.of(b.mcount, w.mcount);
     }
 
-    public byte nb() {
-        return b.count;
-    }
-
-    public byte nw() {
-        return w.count;
-    }
-
     protected BW(short index) {
         super(index);
 

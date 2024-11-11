@@ -69,7 +69,13 @@ abstract public class RingEntry extends BW {
     // return entry with only radials set.
     public final RingEntry radials() {
         int radix = index%81;
-        return index==radix ? this : entry(index%81);
+        return index==radix ? this : entry(radix);
+    }
+
+    // return entry with only radials set.
+    public final RingEntry diaglonals() {
+        int diax = index/81;
+        return index==diax ? this : entry(diax);
     }
 
     // get radial index

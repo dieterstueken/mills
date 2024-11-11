@@ -6,7 +6,7 @@ package mills.bits;
  * Date: 12/29/15
  * Time: 12:56 PM
  */
-public class Patterns {
+public class Patterns implements Pop {
 
     /**
      * The central index function to map a pair of patterns [0,256[
@@ -55,6 +55,14 @@ public class Patterns {
 
         this.b = Pattern.of(b);
         this.w = Pattern.of(w);
+    }
+
+    public byte nb() {
+        return b.count;
+    }
+
+    public byte nw() {
+        return w.count;
     }
 
     public short perm(int i) {
