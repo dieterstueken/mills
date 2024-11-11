@@ -121,8 +121,9 @@ public class TableRegistry extends AbstractRandomList<IndexedEntryTable> {
         int len = 0;
         for (IndexedEntryTable table : tableMap.values()) {
             int size = table.size();
-            if(size!=len && count>0) {
-                System.out.format("%3d: %4d\n", len, count);
+            if(size!=len) {
+                if(count>0)
+                    System.out.format("%3d: %4d\n", len, count);
                 count = 0;
                 len = size;
             }
@@ -130,5 +131,6 @@ public class TableRegistry extends AbstractRandomList<IndexedEntryTable> {
         }
 
         System.out.format("%3d: %4d\n", len, count);
+        System.out.format("total: %4d\n", count());
     }
 }
