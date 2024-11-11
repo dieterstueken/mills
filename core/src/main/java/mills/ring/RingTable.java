@@ -118,6 +118,11 @@ public class RingTable extends RingArray implements IndexedEntryTable {
         }
 
         @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
         public RingEntry entry(final int index) {
             return index==this.index ? this : entries[index];
         }

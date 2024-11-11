@@ -1,6 +1,7 @@
 package mills.index.builder;
 
 import mills.bits.PopCount;
+import mills.index.fragments.Partition;
 import mills.ring.Entries;
 import mills.ring.EntryTable;
 import mills.util.listset.DirectPopMap;
@@ -60,21 +61,37 @@ class Partitions extends DirectPopMap<Partition> {
 
     private static List<Partition> partitions() {
 
-        Partition[] fragments = new Partition[PopCount.NPOPS88];
-        Arrays.fill(fragments, Partition.EMPTY);
+        Partition[] partitions = new Partition[PopCount.NPOPS88];
+        Arrays.fill(partitions, Partition.of());
 
         PopCount.POPS88.stream().filter(pop->pop.sum()<=8)
                 .parallel()
-                .forEach(pop -> fragments[pop.index] = Partition.of(pop));
+                .forEach(pop -> partitions[pop.index] = partition(pop));
 
-        return List.of(fragments);
+        return List.of(partitions);
     }
+
+    private static Partition partition(PopCount pop) {
+
+        // empty table
+        if(pop.sum()>8) {
+            return Partition.of();
+        }
+
+        // single entry: [RingEntry(0)]
+        if(pop.sum()==0) {
+            return Partition.zero();
+        }
+
+        return Partition.of(Entries.TABLE.filter(pop.eq));
+    }
+
 
     public static void main(String ... args) {
 
         Partitions pts = Partitions.create(ForkJoinPool.commonPool());
 
-        pts.dump("root:", pt-> pt.root.isEmpty() ? "" :String.format("%5d", pt.root.size()));
+        pts.dump("root:", pt-> pt.isEmpty() ? "" :String.format("%5d", pt.root.size()));
         pts.dump("max frag size:", Partitions::maxFrag);
         pts.dump("tables:", pt->String.format("%5d", pt.tables.count()));
     }

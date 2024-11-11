@@ -1,6 +1,7 @@
 package mills.index.builder;
 
 import mills.bits.PopCount;
+import mills.index.fragments.Partition;
 import mills.index.tables.R0Table;
 import mills.position.Positions;
 import mills.ring.Entries;

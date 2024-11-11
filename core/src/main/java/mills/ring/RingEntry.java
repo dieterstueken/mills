@@ -52,6 +52,10 @@ abstract public class RingEntry extends BW {
         return Player.of(p%3);
     }
 
+    public boolean isEmpty() {
+        return false;
+    }
+
     private final SingletonTable singleton = SingletonTable.create(this);
 
     public SingletonTable singleton() {
