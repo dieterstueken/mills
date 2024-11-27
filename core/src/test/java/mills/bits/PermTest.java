@@ -6,8 +6,8 @@ import mills.ring.RingEntry;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -65,18 +65,6 @@ public class PermTest {
     }
 
     @Test
-    public void meqPerms() {
-        Set<Perms> perms = new TreeSet<>();
-
-        Entries.TABLE.stream().mapToInt(RingEntry::pmeq).mapToObj(Perms::of).forEach(perms::add);
-
-        System.out.format("%d:\n", perms.size());
-        for (Perms perm : perms) {
-            System.out.println(perm);
-        }
-    }
-
-    @Test
     public void testMapping() {
         Perm.VALUES.forEach(this::testPerm);
     }
@@ -108,5 +96,16 @@ public class PermTest {
             map = map.andThen(Sector::mirror);
 
         return SectMap.of(map);
+    }
+
+    @Test
+    public void mlt2() {
+        Set<Perms> permset = Entries.TABLE.stream().flatMap(e2 ->
+                        Entries.TABLE.tailSet(e2).stream()
+                                .map(e0 -> Perms.of(Positions.mlt20(e2, e0))))
+                .collect(Collectors.toSet());
+
+        System.out.format("%d:\n", permset.size());
+        permset.forEach(System.out::println);
     }
 }

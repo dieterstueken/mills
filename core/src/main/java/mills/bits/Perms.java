@@ -1,7 +1,7 @@
 package mills.bits;
 
 import mills.util.Indexed;
-import mills.util.listset.DirectListSet;
+import mills.util.listset.*;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -12,30 +12,32 @@ import java.util.stream.IntStream;
  * Date: 29.09.19
  * Time: 18:03
  */
-public class Perms extends AbstractSet<Perm> implements Indexed, Comparable<Perms> {
+public class Perms extends AbstractIndexedSet<Perm> implements Indexed {
 
-    public final int perms;
-
+    // 3bit perms[7] | 3bit size | 8bit perms
     public final int bitseq;
 
-    private Perms(int perms) {
-        this.perms = perms;
-        this.bitseq = bitseq(perms);
+    private Perms(int perm) {
+        this.bitseq = bitseq(perm);
     }
 
     @Override
     public int getIndex() {
-        return perms;
+        return bitseq&0xFF;
     }
 
     @Override
     public int size() {
-        return Integer.bitCount(perms);
+        return (bitseq>>8)&0x7;
     }
 
-    @Override
-    public boolean isEmpty() {
-        return perms==0;
+    public int perm(int index) {
+        checkIndex(index);
+        return bitseq>>(3*index + 11);
+    }
+
+    public Perm get(int index) {
+        return Perm.get(perm(index));
     }
 
     @Override
@@ -44,64 +46,26 @@ public class Perms extends AbstractSet<Perm> implements Indexed, Comparable<Perm
     }
 
     public boolean contains(Perm p) {
-        return (perms & p.msk()) != 0;
+        return (bitseq & p.msk()) != 0;
     }
 
     @Override
-    public Spliterator<Perm> spliterator() {
-        return Spliterators.spliterator(this, Spliterator.DISTINCT|Spliterator.IMMUTABLE);
-    }
+    public ListSet<Perm> subSet(final int offset, final int size) {
+        int mask = bitseq&0xFF;
 
-    public Perm first() {
-        if(perms ==0)
-            throw new NoSuchElementException("empty");
+        // reset all bits < offset
+        mask &= ((1<<perm(offset))-1)^0xff;
 
-        int i = Integer.numberOfTrailingZeros(perms);
-        return Perm.get(i);
-    }
+        // reset all bits >= offset+size
+        mask &= ((1<<perm(offset + size - 1)+1)-1);
 
-    public Perms next() {
-        int l = Integer.lowestOneBit(perms);
-        if(l==0)
-            throw new NoSuchElementException("empty");
-
-        return Perms.of(perms-l);
-    }
-
-    @Override
-    public Iterator<Perm> iterator() {
-        return new Itr(this);
-    }
-
-    @Override
-    public int compareTo(Perms o) {
-        return Indexed.super.compareTo(o);
-    }
-
-    static class Itr implements Iterator<Perm> {
-        Perms current;
-
-        public Itr(Perms current) {
-            this.current = current;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return !current.isEmpty();
-        }
-
-        @Override
-        public Perm next() {
-            Perm next = current.first();
-            current = current.next();
-            return next;
-        }
+        return of(mask);
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("%02x:[", perms));
+        sb.append(String.format("%cx%02x:[", getClass().getSimpleName().charAt(0), getIndex()));
         String sep = "";
         for (Perm perm : this) {
             sb.append(sep);
@@ -112,31 +76,118 @@ public class Perms extends AbstractSet<Perm> implements Indexed, Comparable<Perm
         return sb.toString();
     }
 
-    // fill a long with byte indexes of set bits.
-    // bit 0 is ignored
+    //////////////////////////////////////////
 
-    static int bitseq(int perms) {
-        int bits = 0;
-        for(int i=7; i>0; --i) {
+    /**
+     * Generate a compact representation of indexes for size<8.
+     *
+     * @param perms 8 bit permutation mask.
+     * @return a compact representation of indexes.
+     */
+    private static int bitseq(int perms) {
+        // special case, no sequence needed.
+        if(perms==0 || perms==0xff)
+            return perms;
+
+        // shift out indexes back to forth
+        int bitseq = 0;
+        int size = 0;
+        for(int i=7; i>=0; --i) {
             int m = 1<<i;
             if((perms & m)!=0) {
-                bits <<= 4;
-                bits += i;
+                bitseq <<= 3;
+                bitseq += i;
+                ++size;
             }
         }
 
-        return bits;
+        assert size<8;
+
+        // add 3 bit size information.
+        bitseq <<= 3;
+        bitseq += size;
+
+        // add perms itself
+        bitseq <<= 8;
+        bitseq |= (perms&0xff);
+        return bitseq;
     }
 
-    //////////////////////////////////////////
+    static class Range extends Perms {
 
-    public static final DirectListSet<Perms> VALUES = DirectListSet.of(new Perms[256], Perms::new);
+        private final int size;
 
-    public static final Perms EMPTY = of(0);
+        private final int offset;
 
-    public static final Perms OTHER = of(0xfe);
+        private Range(int size, int offset) {
+            super(((1 << size) - 1)<<offset);
+            this.size = size;
+            this.offset = offset;
+        }
 
+        @Override
+        public int size() {
+            return size;
+        }
+
+        @Override
+        public int perm(int index) {
+            checkIndex(index);
+            return index + offset;
+        }
+    }
+
+    static class Direct extends Range implements DirectListSet<Perm> {
+
+        private Direct(int size) {
+            super(size, 0);
+        }
+
+        @Override
+        public int perm(int index) {
+            checkIndex(index);
+            return index;
+        }
+
+        public Direct headList(int size) {
+            return DIRECT.get(size);
+        }
+    }
+    
     public static final int MSK = 7;
+
+    static final IndexedListSet<Direct> DIRECT;
+
+    static final ListSet<Perms> VALUES;
+
+    static {
+        // setup directs
+        Direct[] directs = new Direct[9];
+        Arrays.setAll(directs, Direct::new);
+        DIRECT = ArraySet.of(directs);
+
+        // setup values
+        Perms[] values = new Perms[256];
+
+        // setup direct perms.
+        for (Direct direct : directs) {
+            values[direct.getIndex()] = direct;
+            int l = direct.size();
+            for(int i=1; i<l; ++i) {
+                Range range = new Range(l-i,i);
+                values[range.getIndex()] = range;
+            }
+        }
+
+        // setup remaining.
+        for (int perm = 0; perm < 256; ++perm) {
+            if (values[perm] == null) {
+                values[perm] = new Perms(perm);
+            }
+        }
+
+        VALUES = DirectListSet.of(values);
+    }
 
     public static Perms of(int perms) {
         return VALUES.get(perms&0xff);

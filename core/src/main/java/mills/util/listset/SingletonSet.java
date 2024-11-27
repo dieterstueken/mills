@@ -58,10 +58,11 @@ public class SingletonSet<T extends Indexed> extends AbstractIndexedSet<T> {
 
     @Override
     public T get(int index) {
-        if (index == 0)
-            return value;
-        else
-            return AbstractIndexedSet.<T>empty().get(index);
+        checkIndex(index);
+
+        assert index==0;
+
+        return value;
     }
 
     @Override

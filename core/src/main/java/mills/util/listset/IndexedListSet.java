@@ -4,6 +4,7 @@ import mills.util.Indexed;
 import mills.util.Indexer;
 import mills.util.RandomList;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**

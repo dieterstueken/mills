@@ -24,7 +24,7 @@ import mills.stones.Stones;
  * Those are kept in the lower short to simplify sorting of i201 values.
  * This also simplifies status modifications.
  *
- * The status helps tracking operations on an i201 value.
+ * The status helps to track operations on an i201 value.
  * Bits 0,1,2 carry the applied permutations, bit 3 indicates if the i20 part was swapped.
  * Bit 4/5 indicate ring torsion of 0,1,2 (applicable for pop counts <=(3,3))
  * Bit 6 indicates if colors have been inverted.
@@ -153,6 +153,10 @@ public interface Positions {
         return (e2.index<<16) + e0.index;
     }
 
+    static int i20(int i2, int i0) {
+        return (i2<<16) + i0;
+    }
+
     static long i201(short i2, short i0, short i1, int stat) {
         long i201 = stat&WORD;
         i201 |= ((long) i2) << S2;
@@ -238,23 +242,33 @@ public interface Positions {
             return i201(r2, r0, r1, stat);
     }
 
+    /**
+     * This is the central procedure to normalize a position.
+     * Conditions:
+     * r1 must be minimized.
+     * for each r1.min choose the smallest (r2, r0) resp (r0, r2).
+     * @return the smallest combination found plus the status reflecting the necessary permutations.
+     */
     static long normalize(RingEntry r2, RingEntry r0, RingEntry r1) {
 
-        long m201 = m201(r2, r0, r1, 0);
+        int perm = r1.mix;
 
-        int m2 = r2.min();
-        int m0 = r0.min();
+        if(perm!=0) {
+            r2 = r2.permute(perm);
+            r0 = r0.permute(perm);
+            r1 = r1.permute(perm);
+        }
 
-        // user smaller one or both if equal
-        int mlt = m2<m0 ? r2.pmin : m0<m2 ? r0.pmin : r2.pmin |r0.pmin;
+        long m201 = m201(r2, r0, r1, perm);
 
-        for (Perm p : Perms.of(mlt & 0xfe)) {
+        // p1 is minimized. Test for all stable perms of p1 except perm(0).
+        for (Perm p : Perms.of(r1.meq & 0xfe)) {
 
             RingEntry p2 = r2.permute(p);
             RingEntry p0 = r0.permute(p);
             RingEntry p1 = r1.permute(p);
 
-            int perm = p.ordinal();
+            perm = p.ordinal();
 
             long i201 = m201(p2, p0, p1, perm);
 
@@ -364,5 +378,55 @@ public interface Positions {
         }
 
         return meq&0xff;
+    }
+
+    static int mlt20(RingEntry r2, RingEntry r0) {
+        // r0 must be <= r2, else swap and tag
+        if(r0.index<r2.index)
+            return mlt20(r0, r2) | 1;
+
+        // any reduction needs at least one lesser index
+        int candidates = (r2.mlt|r0.mlt)&0xff;
+        if(candidates==0)
+            return 0;
+
+        short i2 = r2.index;
+        short i0 = r0.index;
+
+        // current index value
+        final int i20 = i20(r2, r0);
+
+        // identity transformation won't reduce ever.
+        int result = 0;
+        int pi = 1;
+
+        while(candidates!=0) {
+
+            candidates >>>= 1;
+
+            if(candidates%16==0) {
+                candidates >>>= 4;
+                pi += 4;
+            }
+
+            if(candidates%4==0) {
+                candidates >>>= 2;
+                pi += 2;
+            }
+
+            if(candidates%2!=0) {
+                i2 = r2.perm(pi);
+                i0 = r0.perm(pi);
+
+                // check swapped combinations too (swaps are not tagged here)
+                if(i20(i2, i0)<i20 || i20(i0, i2)<i20) {
+                    result |= (1 << pi);
+                }
+            }
+
+            ++pi;
+        }
+
+        return result;
     }
 }
