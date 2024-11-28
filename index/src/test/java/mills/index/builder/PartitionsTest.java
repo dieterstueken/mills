@@ -16,8 +16,8 @@ class PartitionsTest {
     void testPartitions() {
         Partitions partitions = IndexTests.timer("partitons", () -> Partitions.create(ForkJoinPool.commonPool()));
 
-        partitions.dump("root:", pt->String.format("%5d", pt.root.size()));
-        partitions.dump("tables:", pt->String.format("%5d", pt.tables.count()));
+        partitions.dumpInt("root:", pt-> pt.isEmpty() ? null : pt.root.size());
+        partitions.dumpInt("tables:", pt-> pt.tables.count());
 
         Stat stat = new Stat();
 
@@ -29,7 +29,6 @@ class PartitionsTest {
                 .forEach(stat);
               
         stat.dump("stat");
-
     }
 
     static boolean isCompact(EntryTable table) {

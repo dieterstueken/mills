@@ -117,9 +117,9 @@ public class Fragments {
         return new AbstractRandomArray<>(128) {
 
             @Override
-            public Fragments get(int meq) {
-                int index = ROOT_INDEX.get(meq/2);
-                return fragments[index];
+            public Fragments get(int meq2) {
+                int index = ROOT_INDEX.get(meq2);
+                return index < 0 ? Fragments.EMPTY :fragments[index];
             }
         };
     }

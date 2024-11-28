@@ -58,10 +58,7 @@ public class PopMap<T> extends ListMap<PopCount, T> {
     }
 
     public T get(PopCount pop) {
-        if(pop==null)
-            return null;
-        else
-            return super.get(pop);
+        return pop==null ? null : super.get(pop);
     }
 
     public T getOf(int index) {
@@ -90,20 +87,11 @@ public class PopMap<T> extends ListMap<PopCount, T> {
         return allocate(PopCount.SIZE);
     }
 
-    public void dump(String head, Function<T, String> dump) {
-
+    public void dumpInt(String head, Function<T, Integer> toInt) {
         System.out.println(head);
-
-        for (int nb = 0; nb < 9; nb++) {
-            for (int nw = 0; nw+nb < 9; nw++) {
-                PopCount pop = PopCount.of(nb, nw);
-                T pt = get(pop);
-                System.out.print(dump.apply(pt));
-            }
-
-            System.out.println();
-        }
-
-        System.out.println();
+        PopCount.OF.map(this::get)
+                .map(toInt, null)
+                .map("%5d"::formatted, "     ")
+                .dump(9, "%5d");
     }
 }

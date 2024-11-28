@@ -18,7 +18,7 @@ public class DirectPopMap<T> extends PopMap<T> {
 
     @Override
     public T get(PopCount pop) {
-        return getValue(pop.index);
+        return pop==null ? null : getValue(pop.index);
     }
 
     @Override

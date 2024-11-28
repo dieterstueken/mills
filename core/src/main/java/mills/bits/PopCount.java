@@ -2,6 +2,7 @@ package mills.bits;
 
 import mills.util.Indexed;
 import mills.util.Indexer;
+import mills.util.Table;
 import mills.util.listset.DirectListSet;
 
 import java.util.Arrays;
@@ -347,30 +348,15 @@ public class PopCount implements Indexed, Comparable<PopCount> {
     public static final int NCLOPS = 5*5;
     public static final DirectListSet<PopCount> CLOPS = TABLE.headList(NCLOPS);
 
+    public static Table<PopCount> OF = PopCount::of;
+
     /**
      * Dump table.
      *
      * @param args unused.
      */
     public static void main(String... args) {
-
-        System.out.println("PopCount index");
-
-        System.out.print("b\\w");
-        for (int nw = 0; nw < 10; ++nw) {
-            System.out.format("  %X ", nw);
-        }
-        System.out.println();
-
-        for (int nb = 0; nb < 10; ++nb) {
-            System.out.format("%X ", nb);
-
-            for (int nw = 0; nw < 10; ++nw) {
-                final PopCount p = PopCount.of(nb, nw);
-                System.out.format("%4d", p.getIndex());
-            }
-
-            System.out.println();
-        }
+        OF.map(p -> String.format("%4d", p.getIndex()))
+                .dump(10, "%4d");
     }
 }
