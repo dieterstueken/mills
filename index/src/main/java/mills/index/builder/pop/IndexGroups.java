@@ -1,7 +1,9 @@
-package mills.index.builder;
+package mills.index.builder.pop;
 
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
+import mills.index.builder.GroupBuilder;
+import mills.index.builder.IndexGroup;
 import mills.util.CachedBuilder;
 
 import java.lang.ref.Reference;
@@ -91,7 +93,7 @@ public class IndexGroups implements IndexProvider {
         protected IndexGroup build() {
             debug.start(pop);
             worker = Thread.currentThread();
-            GroupBuilder builder = GroupBuilder.create(partitions, pop, jump);
+            GroupBuilder builder = PopGroupBuilder.create(partitions, pop, jump);
             IndexGroup result = new IndexGroup(pop, builder);
             debug.done(result);
             worker = null;

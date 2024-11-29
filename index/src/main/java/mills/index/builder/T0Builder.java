@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Date: 03.09.22
  * Time: 15:55
  */
-class T0Builder extends ConcurrentCompleter {
+public class T0Builder extends ConcurrentCompleter {
 
     // M < 2^31 / 25 / 6561 = 13092
     static final int M = 12 * 1024;
@@ -39,7 +39,7 @@ class T0Builder extends ConcurrentCompleter {
         this.group = group;
     }
 
-    T0Builder(GroupBuilder group) {
+    public T0Builder(GroupBuilder group) {
         this(null, new AtomicInteger(group.t2.size()), group);
     }
 
@@ -118,12 +118,7 @@ class T0Builder extends ConcurrentCompleter {
 
     void build(RingEntry r2) {
 
-        PopCount pop0 = group.pop.sub(r2.pop);
-
-        if (pop0.sum() > 16)
-            return; // won't fit into two rings
-
-        EntryTable t0 = group.partitions.lePops.get(pop0).tailSet(r2);
+        EntryTable t0 = group.t0(r2);
 
         if (t0.isEmpty())
             return;
@@ -134,11 +129,7 @@ class T0Builder extends ConcurrentCompleter {
 
             // debug(r0, r2);
 
-            PopCount pop1 = pop0.sub(r0.pop);
-            if(pop1.sum()>8)
-                continue;
-
-            final Partition partition = group.partitions.get(pop1);
+            final Partition partition = group.partition(r2, r0);
 
             if (partition.isEmpty())
                 continue;
@@ -188,7 +179,7 @@ class T0Builder extends ConcurrentCompleter {
                 // entering next group of clops, submit current group to the associated builder.
                 C2Builder c2Builder = group.builders.getOf(clop);
                 if (c2Builder != null) {
-                    R0Table r0t = build(pop0, offt, i - offt);
+                    R0Table r0t = build(r2, offt, i - offt);
                     c2Builder.put(r2, r0t);
                 }
                 offt = i;
@@ -197,7 +188,7 @@ class T0Builder extends ConcurrentCompleter {
         }
     }
 
-    private R0Table<IndexedEntryTable> build(final PopCount pop0, final int offt, final int size) {
+    private R0Table<IndexedEntryTable> build(final RingEntry r2, final int offt, final int size) {
 
         if (size == 0)
             return R0Table.emptyTable();
@@ -205,8 +196,7 @@ class T0Builder extends ConcurrentCompleter {
         if (size == 1) {
             RingEntry r0 = getEntry(offt);
             int key = getKey(offt);
-            PopCount pop1 = pop0.sub(r0.pop);
-            IndexedEntryTable t1 = group.partitions.get(pop1).tables.get(key);
+            IndexedEntryTable t1 = group.partition(r2, r0).tables.get(key);
             return R0Table.of(r0.singleton(), List.of(t1));
         }
 
@@ -222,9 +212,8 @@ class T0Builder extends ConcurrentCompleter {
              @Override
              public IndexedEntryTable get(int index) {
                  RingEntry r0 = t0.get(index);
-                 PopCount pop1 = pop0.sub(r0.pop);
                  int key = s1[index];
-                 return group.partitions.get(pop1).tables.get(key);
+                 return group.partition(r2, r0).tables.get(key);
              }
          };
 

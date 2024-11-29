@@ -24,7 +24,7 @@ public class IndexGroup implements PosIndex {
 
     final IndexTable it;
 
-    IndexGroup(PopCount pop, GroupBuilder builder) {
+    public IndexGroup(PopCount pop, GroupBuilder builder) {
         this.pop = pop;
         this.group = builder.build(Table::new);
         this.it = IndexTable.sum(group.values(), C2Table::range);

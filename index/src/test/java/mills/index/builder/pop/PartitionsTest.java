@@ -1,4 +1,4 @@
-package mills.index.builder;
+package mills.index.builder.pop;
 
 import mills.ring.EntryTable;
 import mills.ring.RingEntry;

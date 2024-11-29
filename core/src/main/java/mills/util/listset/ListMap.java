@@ -53,7 +53,7 @@ public class ListMap<K, V> extends AbstractMap<K, V> {
         return defaultValue();
     }
 
-    V defaultValue() {
+    protected V defaultValue() {
         return null;
     }
 

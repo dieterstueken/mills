@@ -1,7 +1,8 @@
-package mills.index.builder;
+package mills.index.builder.pop;
 
 import mills.bits.PopCount;
 import mills.index.PosIndex;
+import mills.index.builder.IndexGroup;
 import mills.index.tables.C2Table;
 import mills.position.Normalizer;
 import mills.position.Positions;

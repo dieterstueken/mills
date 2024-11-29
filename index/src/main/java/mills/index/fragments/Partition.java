@@ -74,7 +74,7 @@ public class Partition {
         return new Partition(tables, root, fragments);
     }
 
-    public static Partition of() {
+    public static Partition empty() {
         return Empty.INSTANCE;
     }
 
@@ -82,16 +82,16 @@ public class Partition {
         return Empty.INSTANCE.zero;
     }
 
-    public static Partition of(RingEntry entry) {
+    public static Partition empty(RingEntry entry) {
         return Empty.INSTANCE.singleton(entry);
     }
 
-    public static Partition of(EntryTable root) {
+    public static Partition empty(EntryTable root) {
         if(root.isEmpty())
-            return of();
+            return empty();
 
         if(root.size()==1)
-            return of(root.first());
+            return empty(root.first());
 
         TableRegistry tables = new TableRegistry();
         IndexedEntryTable indexed = tables.getTable(root);

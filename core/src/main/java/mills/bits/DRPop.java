@@ -30,7 +30,7 @@ public class DRPop implements Indexed {
 
     @Override
     public int getIndex() {
-        return indexOf(dia, rad);
+        return indexOf(dia.index, rad.index);
     }
 
     public int hashCode() {
@@ -65,8 +65,10 @@ public class DRPop implements Indexed {
         return of(dia, rad);
     }
 
-    public static int indexOf(PopCount dia, PopCount rad) {
-        return P44*dia.index + rad.index;
+    public static int indexOf(int dia, int rad) {
+        if(Math.min(dia,rad)<0 || Math.max(dia,rad)>=P44)
+            throw new IndexOutOfBoundsException("index out of range: [" + dia + ", " + rad + ']');
+        return P44*dia + rad;
     }
 
     public static DRPop of(int index) {
@@ -74,6 +76,10 @@ public class DRPop implements Indexed {
     }
 
     public static DRPop of(PopCount dia, PopCount rad) {
+        return of(indexOf(dia.index, rad.index));
+    }
+
+    public static DRPop of(int dia, int rad) {
         return of(indexOf(dia, rad));
     }
 

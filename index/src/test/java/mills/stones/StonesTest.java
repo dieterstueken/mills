@@ -4,7 +4,7 @@ import mills.bits.Player;
 import mills.bits.PopCount;
 import mills.index.IndexProvider;
 import mills.index.PosIndex;
-import mills.index.builder.IndexGroups;
+import mills.index.builder.pop.IndexGroups;
 import mills.position.Positions;
 import org.junit.jupiter.api.Test;
 

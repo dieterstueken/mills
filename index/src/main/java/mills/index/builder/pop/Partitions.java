@@ -1,4 +1,4 @@
-package mills.index.builder;
+package mills.index.builder.pop;
 
 import mills.bits.PopCount;
 import mills.index.fragments.Partition;
@@ -62,7 +62,7 @@ class Partitions extends DirectPopMap<Partition> {
     private static List<Partition> partitions() {
 
         Partition[] partitions = new Partition[PopCount.NPOPS88];
-        Arrays.fill(partitions, Partition.of());
+        Arrays.fill(partitions, Partition.empty());
 
         PopCount.POPS88.stream().filter(pop->pop.sum()<=8)
                 .parallel()
@@ -75,7 +75,7 @@ class Partitions extends DirectPopMap<Partition> {
 
         // empty table
         if(pop.sum()>8) {
-            return Partition.of();
+            return Partition.empty();
         }
 
         // single entry: [RingEntry(0)]
@@ -83,7 +83,7 @@ class Partitions extends DirectPopMap<Partition> {
             return Partition.zero();
         }
 
-        return Partition.of(Entries.TABLE.filter(pop.eq));
+        return Partition.empty(Entries.TABLE.filter(pop.eq));
     }
 
 
