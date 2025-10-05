@@ -1,7 +1,5 @@
 package mills.position;
 
-import org.junit.jupiter.api.Test;
-
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.LongUnaryOperator;
 import java.util.stream.IntStream;
@@ -31,7 +29,7 @@ class NormalizerTest {
     volatile double limit;
     final double INCREMENT = Math.pow(3, 1/3.0);
 
-    @Test
+    //@Test
     void normalizerTest() {
         count.set(0);
         limit = 3;

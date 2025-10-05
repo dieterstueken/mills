@@ -75,5 +75,5 @@ public class Clops implements IClops {
 
     public static final DirectListSet<Clops> CLOPS = DirectListSet.of(new Clops[NCLOPS], Clops::new);
 
-    public static final Clops EMPTY = CLOPS.getFirst();
+    public static final Clops EMPTY = of(PopCount.EMPTY, PopCount.EMPTY);
 }

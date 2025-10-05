@@ -88,8 +88,8 @@ public class MovedLayer extends PlopLayer {
      *
      * Ordinary moves from src layer must not have closed a mill.
      *
-     * Moves coming from from this.closed layer had closed a mill (or two)
-     * and will loose an opponent stone from either non closed or all closed positions.
+     * Moves coming from this.closed layer had closed a mill (or two)
+     * and will lose an opponent stone from either non-closed or all closed positions.
      *
      * @param src of ordinary moves.
      */

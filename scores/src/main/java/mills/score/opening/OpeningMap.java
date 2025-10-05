@@ -6,7 +6,7 @@ import mills.index.IndexProvider;
 import mills.index.PosIndex;
 import mills.util.IntActor;
 
-import java.util.*;
+import java.util.BitSet;
 
 /**
  * Created by IntelliJ IDEA.
@@ -39,7 +39,7 @@ public class OpeningMap extends OpeningLayer {
     public static OpeningMap open(IndexProvider provider, int turn, IClops clops) {
         PosIndex index = provider.build(clops);
         if(index==null)
-            throw new IllegalArgumentException("no indes for: " + clops);
+            throw new IllegalArgumentException("no index for: " + clops);
         return new OpeningMap(index, turn, false);
     }
 

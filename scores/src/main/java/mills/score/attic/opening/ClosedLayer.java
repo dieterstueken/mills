@@ -40,7 +40,7 @@ public class ClosedLayer extends PlopLayer {
         int closeable = source.clops().closeables(player);
 
         if (closeable > 0) {
-            // opponent might have close a mill
+            // opponent might have closed a mill
             clop = clop.add(player.pop);
             this.plops(next, clop);
 

@@ -182,7 +182,7 @@ public interface Positions {
     static short compose(short pm1, short pm2) {
         short pm3 = Perm.compose(pm1, pm2);
         pm3 |= Swap.compose(pm1, pm2);
-        pm3 |= pm1^pm2&INV;
+        pm3 |= (pm1^pm2)&INV;
         return pm3;
     }
 

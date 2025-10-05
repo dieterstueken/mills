@@ -65,6 +65,7 @@ class DelegateListSet<T> extends AbstractListSet<T> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean remove(Object o) {
         int index = findIndex((T)o);
         if(index<0)
