@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -21,7 +19,7 @@ class PermsTest {
     @Test
     public void showPerms()
     {
-        Perms.VALUES.forEach(System.out::println);
+        Perms.values().forEach(System.out::println);
     }
 
     @Test

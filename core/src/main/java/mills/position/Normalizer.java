@@ -46,7 +46,7 @@ public class Normalizer implements Builder {
         int bitseq = Perms.of(mlt(r2, r0, r1)).bitseq;
 
         while(bitseq!=0) {
-            int perm = bitseq&0x3;
+            int perm = bitseq&Perms.MSK;
             bitseq >>>= 4;
 
             RingEntry p2 = r2.permute(perm);

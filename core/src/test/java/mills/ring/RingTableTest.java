@@ -64,30 +64,38 @@ public class RingTableTest {
 
         for (RingEntry e2 : Entries.TABLE) {
             for (RingEntry e0 : Entries.TABLE) {
-
-                final int i20 = Positions.i20(e2, e0);
-                int meq = 0;
-
-                for (int pm = 0; pm < 8; ++pm) {
-                    RingEntry p2 = e2.permute(pm);
-                    RingEntry p0 = e0.permute(pm);
-
-                    int p20 = Positions.i20(p2, p0);
-                    int p02 = Positions.i20(p0, p2);
-
-                    if(p20<i20 || p02<i20) {
-                        meq = 0;
-                        break;
-                    }
-
-                    if(i20==p20 | i20==p02)
-                        meq |= 1<<pm;
-                }
-
+                int meq = meq(e2, e0);
                 int meq2 = Positions.meq(e2, e0);
+                //if(meq!=meq2) {
+                //    meq = meq(e2, e0);
+                //    meq2 = Positions.meq(e2, e0);
+                //}
                 assertEquals(meq, meq2);
             }
         }
+    }
+
+    int meq(RingEntry e2, RingEntry e0) {
+        final int i20 = Positions.i20(e2, e0);
+        int meq = 0;
+
+        for (int pm = 0; pm < 8; ++pm) {
+            RingEntry p2 = e2.permute(pm);
+            RingEntry p0 = e0.permute(pm);
+
+            int p20 = Positions.i20(p2, p0);
+            int p02 = Positions.i20(p0, p2);
+
+            if(p20<i20 || p02<i20) {
+                meq = 0;
+                break;
+            }
+
+            if(i20==p20 | i20==p02)
+                meq |= 1<<pm;
+        }
+
+        return meq;
     }
 
     @Test

@@ -1,43 +1,71 @@
 package mills.bits;
 
 import mills.util.Indexed;
-import mills.util.listset.*;
+import mills.util.listset.AbstractIndexedSet;
+import mills.util.listset.AbstractListSet;
+import mills.util.listset.DirectListSet;
+import mills.util.listset.ListSet;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * Created by IntelliJ IDEA.
- * User: stueken
- * Date: 29.09.19
- * Time: 18:03
+ * Class Perms provides predefined bitmasks of permutations.
  */
-public class Perms extends AbstractIndexedSet<Perm> implements Indexed {
+public class Perms extends AbstractIndexedSet<Perm> implements Indexed, Iterator<Perms> {
 
-    // 3bit perms[7] | 3bit size | 8bit perms
+    protected final int perms;
+
+    protected final int size;
+
+    // perms[8] of 4 bits (bit 3 always set to mark validity)
     public final int bitseq;
 
-    private Perms(int perm) {
-        this.bitseq = bitseq(perm);
+    public static final int MSK = 0x7;
+    public static final int FLAG = MSK+1;
+
+    private Perms(int perms) {
+        if((perms&0xff) != perms)
+            throw new IllegalArgumentException();
+
+        this.perms = perms;
+        this.size = Integer.bitCount(perms&0xff);
+        this.bitseq = bitseq(perms);
     }
 
     @Override
     public int getIndex() {
-        return bitseq&0xFF;
+        return perms;
     }
 
     @Override
     public int size() {
-        return (bitseq>>8)&0x7;
+        return size;
     }
 
     public int perm(int index) {
-        checkIndex(index);
-        return bitseq>>(3*index + 11);
+        assert inRange(index);
+        int perm = (bitseq>>(4*index));
+        assert (perm&FLAG)!=0;
+        return perm&MSK;
     }
 
+    @Override
     public Perm get(int index) {
         return Perm.get(perm(index));
+    }
+
+    @Override
+    public boolean hasNext() {
+        return true;
+    }
+
+    @Override
+    public Perms next() {
+        int next = getIndex();
+        next ^= 1<<(bitseq&MSK);
+        return of(next);
     }
 
     @Override
@@ -46,18 +74,19 @@ public class Perms extends AbstractIndexedSet<Perm> implements Indexed {
     }
 
     public boolean contains(Perm p) {
-        return (bitseq & p.msk()) != 0;
+        return (perms & p.msk()) != 0;
     }
 
     @Override
-    public ListSet<Perm> subSet(final int offset, final int size) {
-        int mask = bitseq&0xFF;
+    public Perms subSet(final int offset, final int length) {
+        assert inRange(size+offset);
 
-        // reset all bits < offset
-        mask &= ((1<<perm(offset))-1)^0xff;
+        int mask = 0;
 
-        // reset all bits >= offset+size
-        mask &= ((1<<perm(offset + size - 1)+1)-1);
+        for(int i=0; i<length; ++i) {
+            int perm = perm(offset + i);
+            mask |= 1<<perm;
+        }
 
         return of(mask);
     }
@@ -76,8 +105,6 @@ public class Perms extends AbstractIndexedSet<Perm> implements Indexed {
         return sb.toString();
     }
 
-    //////////////////////////////////////////
-
     /**
      * Generate a compact representation of indexes for size<8.
      *
@@ -85,59 +112,49 @@ public class Perms extends AbstractIndexedSet<Perm> implements Indexed {
      * @return a compact representation of indexes.
      */
     private static int bitseq(int perms) {
-        // special case, no sequence needed.
-        if(perms==0 || perms==0xff)
-            return perms;
-
         // shift out indexes back to forth
         int bitseq = 0;
-        int size = 0;
         for(int i=7; i>=0; --i) {
             int m = 1<<i;
             if((perms & m)!=0) {
-                bitseq <<= 3;
-                bitseq += i;
-                ++size;
+                bitseq <<= 4;
+                bitseq += i | FLAG;
             }
         }
 
-        assert size<8;
-
-        // add 3 bit size information.
-        bitseq <<= 3;
-        bitseq += size;
-
-        // add perms itself
-        bitseq <<= 8;
-        bitseq |= (perms&0xff);
         return bitseq;
     }
 
+    /**
+     * A specialized version of a compact range of bits.
+     */
     static class Range extends Perms {
-
-        private final int size;
 
         private final int offset;
 
         private Range(int size, int offset) {
             super(((1 << size) - 1)<<offset);
-            this.size = size;
+            assert this.size() == size;
             this.offset = offset;
         }
 
         @Override
-        public int size() {
-            return size;
-        }
-
-        @Override
         public int perm(int index) {
-            checkIndex(index);
+            assert inRange(index);
             return index + offset;
         }
     }
 
+    /**
+     * A specialized version of all bits set < size
+     */
     static class Direct extends Range implements DirectListSet<Perm> {
+
+        private static Direct create(int size) {
+            return size==0 ? new Empty() : new Direct(size);
+        }
+
+        static final List<Direct> VALUES = AbstractListSet.generate(9, Direct::create);
 
         private Direct(int size) {
             super(size, 0);
@@ -146,31 +163,69 @@ public class Perms extends AbstractIndexedSet<Perm> implements Indexed {
         @Override
         public int perm(int index) {
             checkIndex(index);
+            // direct mapping
             return index;
         }
 
         public Direct headList(int size) {
-            return DIRECT.get(size);
+            checkRange(0, size);
+            return VALUES.get(size);
         }
     }
-    
-    public static final int MSK = 7;
 
-    static final IndexedListSet<Direct> DIRECT;
+    static class Empty extends Direct {
 
-    static final ListSet<Perms> VALUES;
+        // moved to here to prevent cyclic static dependencies
+        static final ListSet<Perms> VALUES = createValues();
 
-    static {
-        // setup directs
-        Direct[] directs = new Direct[9];
-        Arrays.setAll(directs, Direct::new);
-        DIRECT = ArraySet.of(directs);
+        Empty() {
+            super(0);
+        }
+
+        @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
+        public int getIndex() {
+            return 0;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return false;
+        }
+
+        @Override
+        public Perms next() {
+            return null;
+        }
+
+        @Override
+        public boolean contains(final Object o) {
+            return false;
+        }
+
+        @Override
+        public boolean contains(final Perm p) {
+            return false;
+        }
+
+        @Override
+        public Empty subSet(final int offset, final int size) {
+            assert inRange(size+offset);
+            return this;
+        }
+    }
+
+    private static ListSet<Perms> createValues() {
 
         // setup values
         Perms[] values = new Perms[256];
 
-        // setup direct perms.
-        for (Direct direct : directs) {
+        // setup direct perms and derived ranges.
+        for (Direct direct : Direct.VALUES) {
             values[direct.getIndex()] = direct;
             int l = direct.size();
             for(int i=1; i<l; ++i) {
@@ -186,11 +241,15 @@ public class Perms extends AbstractIndexedSet<Perm> implements Indexed {
             }
         }
 
-        VALUES = DirectListSet.of(values);
+        return DirectListSet.of(values);
+    }
+
+    static ListSet<Perms> values() {
+        return Empty.VALUES;
     }
 
     public static Perms of(int perms) {
-        return VALUES.get(perms&0xff);
+        return Empty.VALUES.get(perms&0xff);
     }
 
     public static Perms of(Perm ... perms) {

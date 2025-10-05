@@ -361,7 +361,7 @@ public interface Positions {
 
         long bitseq = Perms.of(msk).bitseq;
         while (bitseq != 0) {
-            int i = (int) (bitseq&0x0f);
+            int i = (int) (bitseq&Perm.MSK);
             bitseq >>>= 4;
 
             int p2 = e2.perm(i);
