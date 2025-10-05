@@ -10,4 +10,4 @@ rootProject.name = 'Mills'
 include "core"
 include "index"
 include "scores"
-include "native"
+// include "native"

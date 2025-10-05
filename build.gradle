@@ -22,21 +22,27 @@ allprojects {
 
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
     }
 
     plugins.withType(JavaPlugin) {
 
         idea {
             module {
-                outputDir file('build/idea/main')
-                testOutputDir file('build/idea/test')
+                outputDir = file('build/idea/main')
+                testOutputDir = file('build/idea/test')
             }
         }
 
         dependencies {
-            testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '+'
+            testImplementation libs.org.junit.jupiter.api
+            testRuntimeOnly libs.org.junit.jupiter.engine
+            testRuntimeOnly libs.org.junit.launcher
+        }
+
+        test {
+            useJUnitPlatform()
         }
     }
 }

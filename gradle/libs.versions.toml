@@ -1,0 +1,7 @@
+[versions]
+junit-jupiter = "5.13.4"
+
+[libraries]
+org-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter" }
+org-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter" }
+org-junit-launcher = 'org.junit.platform:junit-platform-launcher:6.0.0'
