@@ -16,13 +16,7 @@ import mills.util.AbstractRandomList;
 
 import java.util.List;
 
-import static mills.position.Positions.i201;
-import static mills.position.Positions.normalized;
-import static mills.position.Positions.perms;
-import static mills.position.Positions.pop;
-import static mills.position.Positions.r0;
-import static mills.position.Positions.r1;
-import static mills.position.Positions.r2;
+import static mills.position.Positions.*;
 
 /**
  * Class Position represents unfolded information about a position.
@@ -123,7 +117,7 @@ public class Position implements Comparable<Position> {
     }
 
     public static String format(RingEntry e) {
-        return String.format(" %4d [%s]", e.index(), e.pattern());
+        return String.format(" %04X [%s]", e.index(), e.pattern());
     }
 
     public StringBuilder format(StringBuilder sb) {

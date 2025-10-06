@@ -233,8 +233,6 @@ public interface Positions {
         return permute(i201, perms);
     }
 
-    Builder NORMALIZER = Positions::normalize;
-
     static long m201(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
         if(r0.index < r2.index)
             return i201(r0, r2, r1, stat|SWP);
@@ -249,7 +247,7 @@ public interface Positions {
      * for each r1.min choose the smallest (r2, r0) resp (r0, r2).
      * @return the smallest combination found plus the status reflecting the necessary permutations.
      */
-    static long normalize(RingEntry r2, RingEntry r0, RingEntry r1) {
+    static long normalizeR1(RingEntry r2, RingEntry r0, RingEntry r1) {
 
         int perm = r1.mix;
 
@@ -281,31 +279,8 @@ public interface Positions {
         return m201 | NORMALIZED;
     }
 
-    static long normalize(RingEntry r2, RingEntry r0, RingEntry r1, int stat) {
-
-        if(normalized(stat))
-            return i201(r2, r0, r1, stat);
-
-        long n201 = normalize(r2, r0, r1);
-        
-        // compute and apply status changes
-        stat ^= compose((short)stat, perms(n201));
-        n201 ^= stat;
-
-        return n201 | NORMALIZED;
-    }
-
     static long normalize(final long i201) {
-
-        if(normalized(i201))
-            return i201;
-
-        RingEntry r2 = r2(i201);
-        RingEntry r0 = r0(i201);
-        RingEntry r1 = r1(i201);
-        short perms = perms(i201);
-
-        return normalize(r2, r0, r1, perms);
+        return Normalizer.NORMAL.build(i201);
     }
 
     /**
