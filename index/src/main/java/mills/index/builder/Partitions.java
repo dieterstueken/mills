@@ -36,7 +36,7 @@ class Partitions extends DirectPopMap<Partition> {
         if(pop==null)
             return null;
 
-        assert keySet.get(pop.index)==pop;
+        assert pop.index >= size() || keySet.get(pop.index) == pop;
 
         return getValue(pop.index);
     }
